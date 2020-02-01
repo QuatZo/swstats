@@ -123,3 +123,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+
+
+# custom
+# vscode
+./vscode
+
+#pipfile
+Pipfile
+Pipfile.lock
