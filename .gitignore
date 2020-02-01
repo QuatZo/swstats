@@ -131,6 +131,9 @@ dmypy.json
 # vscode
 ./vscode
 
-#pipfile
+# Pipfile
 Pipfile
 Pipfile.lock
+
+# Migrations
+migrations/

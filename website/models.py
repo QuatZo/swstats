@@ -2,9 +2,34 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+class Wizard(models.Model):
+    id = models.BigIntegerField(primary_key=True, unique=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
+    mana = models.IntegerField() # wizard_mana
+    crystals = models.IntegerField() # wizard_crystal
+    # crystals_paid = models.IntegerField() # wizard_crystal_paid - need some analysis, because it can be a total-time or actual value, need more JSON files before implementation
+    last_login = models.DateTimeField() # wizard_last_login
+    country = models.CharField(max_length=5) # wizard_last_country
+    lang = models.CharField(max_length=5) # wizard_last_lang
+    level = models.IntegerField() # wizard_level
+    energy = models.IntegerField() # wizard_energy
+    energy_max = models.IntegerField() # energy_max
+    arena_wing = models.IntegerField() # arena_energy
+    glory_point = models.IntegerField() # honor_point
+    guild_point = models.IntegerField() # guild_point
+    rta_point = models.IntegerField() # honor_medal
+    # don't know what it is, for now - rta_mark = models.IntegerField() # honor_mark
+    event_coin = models.IntegerField() # event_coint - Ancient Coins
+
+    def __str__(self):
+        return str(self.id)
+
 class RuneSet(models.Model):
+    id = models.IntegerField(primary_key=True, unique=True)
     name = models.CharField(max_length=30)
     amount = models.IntegerField()
+
+    def __str__(self):
+        return self.name
 
 # Create your models here.
 class Rune(models.Model):
@@ -36,6 +61,7 @@ class Rune(models.Model):
     ]
 
     id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
+    user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id - user, but Com2Us likes calling user a wizard
     slot = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(6)]) # slot_no
     quality = models.IntegerField(choices=RUNE_QUALITIES) # rank
     stars = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(6)]) # class
@@ -44,23 +70,71 @@ class Rune(models.Model):
     upgrade_curr = models.IntegerField(validators=[MinValueValidator(0),MaxValueValidator(upgrade_limit)]) #upgrade_curr
     base_value = models.IntegerField() # base_value
     sell_value = models.IntegerField() # sell_value
-
     primary = models.IntegerField(choices=RUNE_EFFECTS) # pri_eff[0]
     primary_value = models.IntegerField() # pri_eff[1]
     innate = models.IntegerField(choices=RUNE_EFFECTS) # prefix_eff[0]
     innate_value = models.IntegerField() # prefix_eff[1]
     substats = ArrayField( models.IntegerField(choices=RUNE_EFFECTS) ) # sec_eff[i][0]
     substats_values = ArrayField( models.IntegerField() ) # sec_eff[i][1]
-    substats_grindstones = ArrayField( models.IntegerField() ) # sec_eff[i][2]
-    substats_enchants = ArrayField( models.IntegerField() ) # sec_eff[i][3]
-
+    substats_enchants = ArrayField( models.IntegerField() ) # sec_eff[i][2]
+    substats_grindstones = ArrayField( models.IntegerField() ) # sec_eff[i][3]
     quality_original = models.IntegerField(choices=RUNE_QUALITIES) # extra
-    equipped = models.BooleanField() # occupied_type
-    # ^ OR same as JSON (type, if type different than monster then id = 0)
+    equipped = models.BooleanField() # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
+    # ^ OR same as JSON (,type if type different than monster then id = 0)
     # ^ OR models.BigIntegerField 
     # ^ OR models.ForeignKey for Monster [what with Inventory then?]
     # ^ OR occupied as a Boolean variable and then Foreign Key with possibility of being NULL
     # ^ OR occupied as a Boolean variable and then Monster has its key in class, there is only info if occupied [then needs to make a Trigger]
-    
+
     def __str__(self):
-        return self.id
+        return str(self.id)
+
+
+class Monster(models.Model):
+    MONSTER_ATTRIBUTES = [
+        (1, 'Water'),
+        (2, 'Fire'),
+        (3, 'Wind'),
+        (4, 'Light'),
+        (5, 'Dark'),
+    ]
+
+    MONSTER_TYPES = [
+        (0, 'None'),
+        (1, 'Attack'),
+        (2, 'Defense'),
+        (3, 'HP'),
+        (4, 'Support'),
+        (5, 'Material'),
+    ]
+
+    MONSTER_AWAKEN = [
+        (0, 'Unawakened'),
+        (1, 'Awakened'),
+        (2, '2A'),
+    ]
+
+    id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
+    user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id - user, but Com2Us likes calling user a wizard
+    parent_id = models.IntegerField() # unit_master_id
+    level = models.IntegerField() # unit_level
+    stars = models.IntegerField() # class
+    con = models.IntegerField() # con - IIRC, CON x 15 means actual HP
+    attack = models.IntegerField() # atk
+    defense = models.IntegerField() # def
+    speed = models.IntegerField() # spd
+    res = models.IntegerField() # resist
+    acc = models.IntegerField() # accuracy
+    crit_rate = models.IntegerField() # critical_rate
+    crit_dmg = models.IntegerField() # critical_damage
+    # skills - maybe in future, for now nope
+    runes = models.ManyToManyField(Rune, related_name='equipped_runes', related_query_name='equipped_runes', blank=True) # runes
+    attribute = models.IntegerField(choices=MONSTER_ATTRIBUTES) # attribute
+    awaken = models.IntegerField(choices=MONSTER_AWAKEN) # awakening_info
+    created = models.DateTimeField() # create_time
+    storage = models.BooleanField() # building_id, need to check which one is storage building
+    rep = models.BooleanField() # rep_unit_id for Wizard
+    # no info for now - source = models.IntegerField(choices=MONSTER_SOURCES) # source
+
+    def __str__(self):
+        return str(self.id)
