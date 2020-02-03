@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Specific rune</title>
+  </head>
+  <body>
+    {% if rune %}
+    <ul>
+		<li>ID: {{ rune.id }}</li>
+		<li>User ID: {{ rune.user_id }}</li>
+		<li>Slot: {{ rune.slot }}</li>
+		<li>Quality: {{ rune.get_quality_display }}</li>
+		<li>Stars: {{ rune.stars }}</li>
+		<li>Rune set: {{ rune.rune_set }}</li>
+		<li>Level: {{ rune.upgrade_curr }}</li>
+		<li>Sell for: {{ rune.sell_value }}</li>
+		<li>Primary stat: +{{ rune.primary_value }} {{ rune.get_primary_display }}</li>
+		<li>Init stat: +{{ rune.innate_value }} {{ rune.get_innate_display }}</li>
+		<li>Substats: 
+			<ul>
+				{% for substat in rune.substats %}
+					{% if substat != 0 %}
+						<li>{{ substat }}</li>
+					{% endif %}
+				{% endfor %}
+			</ul>
+		</li>
+		<li>Quality Original: {{ rune.get_quality_original_display }}</li>
+		<li>Equipped: {{ rune.equipped }}</li>
+    </ul>
+{% else %}
+    <p>Didn't find any rune with given ID</p>
+{% endif %}
+  </body>
+</html>

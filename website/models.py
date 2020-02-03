@@ -6,7 +6,7 @@ class Wizard(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
     mana = models.IntegerField() # wizard_mana
     crystals = models.IntegerField() # wizard_crystal
-    # crystals_paid = models.IntegerField() # wizard_crystal_paid - need some analysis, because it can be a total-time or actual value, need more JSON files before implementation
+    crystals_paid = models.IntegerField() # wizard_crystal_paid - need some analysis, because it can be a total-time or actual value, need more JSON files before doing something with its data
     last_login = models.DateTimeField() # wizard_last_login
     country = models.CharField(max_length=5) # wizard_last_country
     lang = models.CharField(max_length=5) # wizard_last_lang
@@ -17,7 +17,7 @@ class Wizard(models.Model):
     glory_point = models.IntegerField() # honor_point
     guild_point = models.IntegerField() # guild_point
     rta_point = models.IntegerField() # honor_medal
-    # don't know what it is, for now - rta_mark = models.IntegerField() # honor_mark
+    rta_mark = models.IntegerField() # honor_mark - don't know what it is, for now 
     event_coin = models.IntegerField() # event_coint - Ancient Coins
 
     def __str__(self):
@@ -33,7 +33,7 @@ class RuneSet(models.Model):
 
 # Create your models here.
 class Rune(models.Model):
-    RUNE_QUALITIES = [
+    RUNE_QUALITIES = (
         (1, 'Common'),
         (2, 'Magic'),
         (3, 'Rare'),
@@ -44,9 +44,9 @@ class Rune(models.Model):
         (13, 'Ancient Rare'),
         (14, 'Ancient Hero'),
         (15, 'Ancient Legend'),
-    ]
+    )
 
-    RUNE_EFFECTS = [
+    RUNE_EFFECTS = (
         (1, 'HP flat'),
         (2, 'HP%'),
         (3, 'ATK flat'),
@@ -58,16 +58,16 @@ class Rune(models.Model):
         (10, 'CDmg'),
         (11, 'RES'),
         (12, 'ACC'),
-    ]
+    )
 
     id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
-    user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id - user, but Com2Us likes calling user a wizard
-    slot = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(6)]) # slot_no
+    user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
+    slot = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # slot_no
     quality = models.IntegerField(choices=RUNE_QUALITIES) # rank
-    stars = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(6)]) # class
+    stars = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # class
     rune_set = models.ForeignKey(RuneSet, on_delete=models.PROTECT) # set
     upgrade_limit = 15 # upgrade_limit
-    upgrade_curr = models.IntegerField(validators=[MinValueValidator(0),MaxValueValidator(upgrade_limit)]) #upgrade_curr
+    upgrade_curr = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(upgrade_limit)]) #upgrade_curr
     base_value = models.IntegerField() # base_value
     sell_value = models.IntegerField() # sell_value
     primary = models.IntegerField(choices=RUNE_EFFECTS) # pri_eff[0]
@@ -79,6 +79,7 @@ class Rune(models.Model):
     substats_enchants = ArrayField( models.IntegerField() ) # sec_eff[i][2]
     substats_grindstones = ArrayField( models.IntegerField() ) # sec_eff[i][3]
     quality_original = models.IntegerField(choices=RUNE_QUALITIES) # extra
+    efficiency = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
     equipped = models.BooleanField() # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
     # ^ OR same as JSON (,type if type different than monster then id = 0)
     # ^ OR models.BigIntegerField 
@@ -89,8 +90,11 @@ class Rune(models.Model):
     def __str__(self):
         return str(self.id)
 
+class MonsterFamily(models.Model):
+    id = models.IntegerField(primary_key=True, unique=True) # unit_master_id, first 3 characters
+    name = models.CharField(max_length=30) # mapping
 
-class Monster(models.Model):
+class MonsterBase(models.Model):
     MONSTER_ATTRIBUTES = [
         (1, 'Water'),
         (2, 'Fire'),
@@ -108,6 +112,22 @@ class Monster(models.Model):
         (5, 'Material'),
     ]
 
+    id = models.IntegerField(primary_key=True, unique=True) # unit_master_id
+    family_id = models.ForeignKey(MonsterFamily, on_delete=models.PROTECT)
+    base_class = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # mapping
+    name = models.CharField(max_length=50) # mapping
+    attribute = models.IntegerField(choices=MONSTER_ATTRIBUTES) # attribute
+    archetype = models.IntegerField(choices=MONSTER_TYPES) # last char from unit_master_id
+    max_skills = ArrayField( models.IntegerField() ) # table with max skillsups ( we don't care about skills itself, it's in SWARFARM already )
+    recommendation_text = models.CharField(max_length=512, blank=True, null=True) # best from Recommendation command, needs to delete every scam
+    recommendation_votes = models.IntegerField(blank=True, null=True) # best from Recommendation command
+
+class MonsterSource(models.Model):
+    id = models.IntegerField(primary_key=True, unique=True)
+    name = models.CharField(max_length=30)
+    farmable = models.BooleanField()
+
+class Monster(models.Model):
     MONSTER_AWAKEN = [
         (0, 'Unawakened'),
         (1, 'Awakened'),
@@ -115,11 +135,13 @@ class Monster(models.Model):
     ]
 
     id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
-    user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id - user, but Com2Us likes calling user a wizard
-    parent_id = models.IntegerField() # unit_master_id
+    user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
     level = models.IntegerField() # unit_level
     stars = models.IntegerField() # class
-    con = models.IntegerField() # con - IIRC, CON x 15 means actual HP
+
+    ############################################
+    # all calculated during data upload, since we don't care about base values
+    con = models.IntegerField() # con - CON x 15 means actual HP
     attack = models.IntegerField() # atk
     defense = models.IntegerField() # def
     speed = models.IntegerField() # spd
@@ -127,14 +149,19 @@ class Monster(models.Model):
     acc = models.IntegerField() # accuracy
     crit_rate = models.IntegerField() # critical_rate
     crit_dmg = models.IntegerField() # critical_damage
-    # skills - maybe in future, for now nope
+    avg_eff = models.FloatField(validators=[MinValueValidator(0.00)]) # sum(rune_eff) / len(runes)
+    ############################################
+
+    skills = ArrayField( models.IntegerField() ) # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already
     runes = models.ManyToManyField(Rune, related_name='equipped_runes', related_query_name='equipped_runes', blank=True) # runes
-    attribute = models.IntegerField(choices=MONSTER_ATTRIBUTES) # attribute
     awaken = models.IntegerField(choices=MONSTER_AWAKEN) # awakening_info
     created = models.DateTimeField() # create_time
     storage = models.BooleanField() # building_id, need to check which one is storage building
-    rep = models.BooleanField() # rep_unit_id for Wizard
-    # no info for now - source = models.IntegerField(choices=MONSTER_SOURCES) # source
+    source = models.ForeignKey(MonsterSource, on_delete=models.PROTECT) # source
 
     def __str__(self):
         return str(self.id)
+
+class MonsterRep(models.Model):
+    wizard_id = models.ForeignKey(Wizard, on_delete=models.PROTECT) # wizard_info
+    monster_id = models.ForeignKey(Monster, on_delete=models.PROTECT) # rep_unit_id in profile JSON - wizard_info part

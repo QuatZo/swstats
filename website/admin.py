@@ -1,11 +1,11 @@
 from django.contrib import admin
-from .models import Rune, RuneSet, Monster, Wizard
+from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep
 
 
 class WizardAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'mana', 'crystals', 'last_login', 'country', 'lang', 'level', 'energy', 'energy_max', 'arena_wing', 'glory_point', 'guild_point',
-        'rta_point', 'event_coin'
+        'id', 'mana', 'crystals', 'crystals_paid', 'last_login', 'country', 'lang', 'level', 'energy', 'energy_max', 'arena_wing', 'glory_point', 'guild_point',
+        'rta_point', 'rta_mark', 'event_coin'
     )
 
 class RuneSetAdmin(admin.ModelAdmin):
@@ -14,13 +14,25 @@ class RuneSetAdmin(admin.ModelAdmin):
 class RuneAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'user_id', 'slot', 'quality', 'stars', 'rune_set', 'upgrade_limit', 'upgrade_curr', 'base_value', 'sell_value', 'primary', 'primary_value', 
-        'innate', 'innate_value', 'substats', 'substats_values', 'substats_grindstones', 'substats_enchants', 'quality_original', 'equipped'
+        'innate', 'innate_value', 'substats', 'substats_values', 'substats_enchants', 'substats_grindstones', 'quality_original', 'efficiency', 'equipped'
     )
+
+class MonsterFamilyAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+
+
+class MonsterBaseAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'family_id', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'recommendation_text', 'recommendation_votes'
+    )
+
+class MonsterSourceAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'name', 'farmable' )
 
 class MonsterAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'user_id', 'parent_id', 'level', 'stars', 'con', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'get_runes', 'attribute',
-        'awaken', 'created', 'storage', 'rep'
+        'id', 'user_id', 'level', 'stars', 'con', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'skills', 'get_runes',
+        'awaken', 'created', 'storage', 'source'
     )
     
     filter_horizontal=('runes', )
@@ -28,8 +40,15 @@ class MonsterAdmin(admin.ModelAdmin):
     def get_runes(self, obj):
         return "\n".join([str(rune) for rune in obj.runes.all()])
 
+class MonsterRepAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'wizard_id', 'monster_id' )
+
 # Register your models here.
 admin.site.register(Wizard, WizardAdmin)
 admin.site.register(RuneSet, RuneSetAdmin)
 admin.site.register(Rune, RuneAdmin)
+admin.site.register(MonsterFamily, MonsterFamilyAdmin)
+admin.site.register(MonsterBase, MonsterBaseAdmin)
+admin.site.register(MonsterSource, MonsterSourceAdmin)
 admin.site.register(Monster, MonsterAdmin)
+admin.site.register(MonsterRep, MonsterRepAdmin)

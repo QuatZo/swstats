@@ -14,10 +14,19 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from website import views
+from rest_framework import routers, serializers, viewsets
+
+router = routers.DefaultRouter()
+router.register(r'upload', views.UploadViewSet, 'upload')
+router.register(r'monsterfamilyupload', views.MonsterFamilyUploadViewSet, 'monsterfamilyupload')
+router.register(r'monstersourceupload', views.MonsterSourceUploadViewSet, 'monstersourceupload')
+router.register(r'monsterbaseupload', views.MonsterBaseUploadViewSet, 'monsterbaseupload')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.index)
+    # path('runes/', views.RuneView), # - not working for all runes
+    path('runes/<int:rune_id>/', views.specific_rune),
+    path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]
