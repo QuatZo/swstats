@@ -31,6 +31,9 @@ class RuneSet(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ['name']
+
 # Create your models here.
 class Rune(models.Model):
     RUNE_QUALITIES = (
@@ -47,17 +50,17 @@ class Rune(models.Model):
     )
 
     RUNE_EFFECTS = (
-        (1, 'HP flat'),
-        (2, 'HP%'),
-        (3, 'ATK flat'),
-        (4, 'ATK%'),
-        (5, 'DEF flat'),
-        (6, 'DEF%'),
-        (8, 'SPD'),
-        (9, 'CRate'),
-        (10, 'CDmg'),
-        (11, 'RES'),
-        (12, 'ACC'),
+        (1, 'HP +'),
+        (2, 'HP %'),
+        (3, 'ATK +'),
+        (4, 'ATK %'),
+        (5, 'DEF +'),
+        (6, 'DEF %'),
+        (8, 'SPD +'),
+        (9, 'CRate %'),
+        (10, 'CDmg %'),
+        (11, 'RES %'),
+        (12, 'ACC %'),
     )
 
     id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
@@ -80,6 +83,7 @@ class Rune(models.Model):
     substats_grindstones = ArrayField( models.IntegerField() ) # sec_eff[i][3]
     quality_original = models.IntegerField(choices=RUNE_QUALITIES) # extra
     efficiency = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
+    efficiency_max = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
     equipped = models.BooleanField() # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
     # ^ OR same as JSON (,type if type different than monster then id = 0)
     # ^ OR models.BigIntegerField 
@@ -88,11 +92,20 @@ class Rune(models.Model):
     # ^ OR occupied as a Boolean variable and then Monster has its key in class, there is only info if occupied [then needs to make a Trigger]
 
     def __str__(self):
-        return str(self.id)
+        return str(self.get_quality_display()) + ' ' + str(self.rune_set) + ' ' + str(self.get_primary_display()) + str(self.primary_value) + ' (slot: ' + str(self.slot) + ', eff: ' + str(self.efficiency) + ')'
+
+    class Meta:
+        ordering = ['slot', 'rune_set', '-efficiency', '-stars']
 
 class MonsterFamily(models.Model):
     id = models.IntegerField(primary_key=True, unique=True) # unit_master_id, first 3 characters
     name = models.CharField(max_length=30) # mapping
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
 
 class MonsterBase(models.Model):
     MONSTER_ATTRIBUTES = [
@@ -112,6 +125,12 @@ class MonsterBase(models.Model):
         (5, 'Material'),
     ]
 
+    MONSTER_AWAKEN = [
+        (0, 'Unawakened'),
+        (1, 'Awakened'),
+        (2, '2A'),
+    ]
+
     id = models.IntegerField(primary_key=True, unique=True) # unit_master_id
     family_id = models.ForeignKey(MonsterFamily, on_delete=models.PROTECT)
     base_class = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # mapping
@@ -119,29 +138,37 @@ class MonsterBase(models.Model):
     attribute = models.IntegerField(choices=MONSTER_ATTRIBUTES) # attribute
     archetype = models.IntegerField(choices=MONSTER_TYPES) # last char from unit_master_id
     max_skills = ArrayField( models.IntegerField() ) # table with max skillsups ( we don't care about skills itself, it's in SWARFARM already )
+    awaken = models.IntegerField(choices=MONSTER_AWAKEN) # to calculate
     recommendation_text = models.CharField(max_length=512, blank=True, null=True) # best from Recommendation command, needs to delete every scam
     recommendation_votes = models.IntegerField(blank=True, null=True) # best from Recommendation command
+    
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
 
 class MonsterSource(models.Model):
     id = models.IntegerField(primary_key=True, unique=True)
     name = models.CharField(max_length=30)
     farmable = models.BooleanField()
 
-class Monster(models.Model):
-    MONSTER_AWAKEN = [
-        (0, 'Unawakened'),
-        (1, 'Awakened'),
-        (2, '2A'),
-    ]
+    def __str__(self):
+        return self.name
 
-    id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
+    class Meta:
+        ordering = ['name']
+
+class Monster(models.Model):
+    id = models.BigIntegerField(primary_key=True, unique=True) # unit_id
     user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
+    base_monster = models.ForeignKey(MonsterBase, on_delete=models.PROTECT) # unit_master_id
     level = models.IntegerField() # unit_level
     stars = models.IntegerField() # class
 
     ############################################
     # all calculated during data upload, since we don't care about base values
-    con = models.IntegerField() # con - CON x 15 means actual HP
+    hp = models.IntegerField() # con - CON x 15 means base HP
     attack = models.IntegerField() # atk
     defense = models.IntegerField() # def
     speed = models.IntegerField() # spd
@@ -154,13 +181,12 @@ class Monster(models.Model):
 
     skills = ArrayField( models.IntegerField() ) # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already
     runes = models.ManyToManyField(Rune, related_name='equipped_runes', related_query_name='equipped_runes', blank=True) # runes
-    awaken = models.IntegerField(choices=MONSTER_AWAKEN) # awakening_info
     created = models.DateTimeField() # create_time
     storage = models.BooleanField() # building_id, need to check which one is storage building
     source = models.ForeignKey(MonsterSource, on_delete=models.PROTECT) # source
 
     def __str__(self):
-        return str(self.id)
+        return str(self.base_monster) + ' ( ID: ' + str(self.id) + ' )'
 
 class MonsterRep(models.Model):
     wizard_id = models.ForeignKey(Wizard, on_delete=models.PROTECT) # wizard_info

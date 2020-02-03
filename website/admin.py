@@ -14,7 +14,7 @@ class RuneSetAdmin(admin.ModelAdmin):
 class RuneAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'user_id', 'slot', 'quality', 'stars', 'rune_set', 'upgrade_limit', 'upgrade_curr', 'base_value', 'sell_value', 'primary', 'primary_value', 
-        'innate', 'innate_value', 'substats', 'substats_values', 'substats_enchants', 'substats_grindstones', 'quality_original', 'efficiency', 'equipped'
+        'innate', 'innate_value', 'substats', 'substats_values', 'substats_enchants', 'substats_grindstones', 'quality_original', 'efficiency', 'efficiency_max', 'equipped'
     )
 
 class MonsterFamilyAdmin(admin.ModelAdmin):
@@ -23,7 +23,7 @@ class MonsterFamilyAdmin(admin.ModelAdmin):
 
 class MonsterBaseAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'family_id', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'recommendation_text', 'recommendation_votes'
+        'id', 'family_id', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken', 'recommendation_text', 'recommendation_votes'
     )
 
 class MonsterSourceAdmin(admin.ModelAdmin):
@@ -31,8 +31,8 @@ class MonsterSourceAdmin(admin.ModelAdmin):
 
 class MonsterAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'user_id', 'level', 'stars', 'con', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'skills', 'get_runes',
-        'awaken', 'created', 'storage', 'source'
+        'id', 'user_id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'skills', 'get_runes',
+        'created', 'storage', 'source'
     )
     
     filter_horizontal=('runes', )
