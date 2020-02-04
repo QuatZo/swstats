@@ -1,0 +1,32 @@
+.navbar .btn{
+    font-size: 1.5em;
+    color: #ededed;
+    padding: 0;
+    margin: 0;
+    margin-left: .25em;
+    width: 2em;
+}
+
+.navbar .btn:hover{
+    background-color: #ededed;
+}
+
+.navbar .btn:focus{
+    border-color: #ededed;
+    outline: none;
+    box-shadow: none;
+}
+
+.content{
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#sticky-footer {
+    flex-shrink: none;
+}
+
+#sticky-footer a{
+    color: inherit;
+}

@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls import url
 from website import views
 from rest_framework import routers, serializers, viewsets
 
@@ -32,6 +33,7 @@ if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabl
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('runes/', views.RuneView), # - not working for all runes
+    url(r'^$', views.get_homepage),
     path('runes/<int:rune_id>/', views.specific_rune),
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]
