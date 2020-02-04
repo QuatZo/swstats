@@ -1,15 +1,12 @@
-from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
 
 from rest_framework import viewsets, permissions, status
 
-from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep
-from .serializers import WizardSerializer, RuneSetSerializer, RuneSerializer, MonsterFamilySerializer, MonsterBaseSerializer, MonsterSourceSerializer, MonsterSerializer, MonsterRepSerializer
+from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck
 
 import copy
 import math
 
-# Temporarily here
 def calc_efficiency(rune):
     primary = rune['pri_eff']
     innate = rune['prefix_eff']
@@ -143,12 +140,6 @@ def calc_stats(monster, runes):
 
 
 # Create your views here.
-def specific_rune(request, rune_id):
-    rune = get_object_or_404(Rune, id=rune_id)
-    context = { 'rune': rune, }
-
-    return render( request, 'website/runes/specific.html', context )
-
 class MonsterFamilyUploadViewSet(viewsets.ViewSet):
     def create(self, request):
         if request.data:
@@ -190,6 +181,39 @@ class MonsterBaseUploadViewSet(viewsets.ViewSet):
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
+class MonsterHohUploadViewSet(viewsets.ViewSet):
+    def create(self, request):
+        if request.data:
+            for hoh in request.data:
+                monster_hoh = dict()
+                ########################################
+                # Monster HoH Model
+                monster_hoh['monster_id'] = MonsterBase.objects.get(id=int(hoh['id']))
+                monster_hoh['date_open'] = hoh['date_open']
+                monster_hoh['date_close'] = hoh['date_close']
+                ########################################
+
+                obj, created = MonsterHoh.objects.update_or_create( monster_id=hoh['id'], defaults=monster_hoh, )
+            return HttpResponse(status=status.HTTP_201_CREATED)
+        
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+class MonsterFusionUploadViewSet(viewsets.ViewSet):
+    def create(self, request):
+        if request.data:
+            for fusion in request.data:
+                monster_fusion = dict()
+                ########################################
+                # Monster Fusion Model
+                monster_fusion['monster_id'] = MonsterBase.objects.get(id=int(fusion['id']))
+                monster_fusion['cost'] = fusion['cost']
+                ########################################
+
+                obj, created = MonsterFusion.objects.update_or_create( monster_id=fusion['id'], defaults=monster_fusion, )
+            return HttpResponse(status=status.HTTP_201_CREATED)
+        
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
 class UploadViewSet(viewsets.ViewSet):
     def create(self, request):
         # prepare dictionaries for every command
@@ -200,7 +224,14 @@ class UploadViewSet(viewsets.ViewSet):
         if request.data:
             if request.data["command"] == "HubUserLogin":
                 data = request.data
-                print("Starting profile upload for", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ")")
+
+                print("Checking if profile", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ") exists...")
+                wiz = Wizard.objects.filter(id=data['wizard_info']['wizard_id'])
+                if wiz:
+                    print("Profile exists overwriting...")
+                    wiz.delete()
+                else:
+                    print("Starting profile upload for", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ")")
 
                 temp_wizard = data['wizard_info']
                 temp_runes = data['runes']
@@ -210,6 +241,7 @@ class UploadViewSet(viewsets.ViewSet):
 
                 ########################################
                 # Wizard Model
+                print("Wizard")
                 wizard['id'] = temp_wizard['wizard_id']
                 wizard['mana'] = temp_wizard['wizard_mana']
                 wizard['crystals'] = temp_wizard['wizard_crystal']
@@ -226,9 +258,14 @@ class UploadViewSet(viewsets.ViewSet):
                 wizard['rta_point'] = temp_wizard['honor_medal']
                 wizard['rta_mark'] = temp_wizard['honor_mark']
                 wizard['event_coin'] = temp_wizard['event_coin']
-                ########################################
+                wizard['antibot_count'] = data['quiz_reward_info']['reward_count']
+                wizard['raid_level'] = data['raid_info_list'][0]['available_stage_id']
+                wizard['storage_capacity'] = data['unit_depository_slots']['number']
                 obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
+                print("Wizard done")
+                ########################################
 
+                print("Runes")
                 for temp_rune in temp_runes:
                     rune = dict()
                     ########################################
@@ -257,7 +294,9 @@ class UploadViewSet(viewsets.ViewSet):
                     rune['equipped'] = temp_rune['occupied_type'] - 1 # needs more testing
                     ########################################
                     obj, created = Rune.objects.update_or_create( id=rune['id'], defaults=rune, )
+                print("Runes done.")
 
+                print("Monsters")
                 for temp_monster in data['unit_list']:
                     monster = dict()
                     ########################################
@@ -287,22 +326,43 @@ class UploadViewSet(viewsets.ViewSet):
                     sum_eff = 0
                     for monster_rune in monster_runes:
                         sum_eff += monster_rune.efficiency
-                    monster['avg_eff'] = sum_eff / len(monster_runes) if len(monster_runes) > 0 else 0.00
+                    monster['avg_eff'] = round(sum_eff / len(monster_runes), 2) if len(monster_runes) > 0 else 0.00
 
                     monster['created'] = temp_monster['create_time']
-                    monster['storage'] = True if temp_monster['building_id'] == 5 else False # temporarily building_id = 5 is Storage
                     monster['source'] = MonsterSource.objects.get(id=temp_monster['source'])
+                    monster['storage'] = True if temp_monster['building_id'] == 5 else False # temporarily building_id = 5 is Storage
+                    monster['locked'] = True if temp_monster['unit_id'] in data['unit_lock_list'] else False
                     ########################################
                     obj, created = Monster.objects.update_or_create( id=monster['id'], defaults=monster, )
                     obj.runes.set(monster_runes)
                     obj.save()
+                print("Monsters done.")
+
 
                 ########################################
                 # Wizard Rep Monster Model
+                print("Wizard's rep monsters")
                 obj, created = MonsterRep.objects.update_or_create( wizard_id=wizard['id'], defaults={
                     'wizard_id': Wizard.objects.get(id=wizard['id']), 
-                    'monster_id': Monster.objects.get(id=monster['id'])
+                    'monster_id': Monster.objects.get(id=temp_wizard['rep_unit_id'])
                 }, )
+                print("Wizard's rep monsters done.")
+                ########################################
+
+                ########################################
+                # Wizard Deck Model
+                print("Wizard's decks")
+                for temp_deck in data['deck_list']:
+                    deck = dict()
+                    deck['wizard_id'] = Wizard.objects.get(id=wizard['id'])
+                    deck['place'] = temp_deck['deck_type']
+                    deck['number'] = temp_deck['deck_seq']
+                    deck['leader'] = Monster.objects.get(id=temp_deck['leader_unit_id'])
+                    deck_monsters = monster_runes = [Monster.objects.get(id=monster_id) for monster_id in temp_deck['unit_id_list'] if monster_id]
+                    obj, created = Deck.objects.update_or_create( wizard_id=wizard['id'], place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
+                    obj.monsters.set(deck_monsters)
+                    obj.save()
+                print("Wizard's decks done.")
                 ########################################
 
             return HttpResponse(status=status.HTTP_201_CREATED)

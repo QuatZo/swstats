@@ -4,21 +4,24 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Wizard(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
-    mana = models.IntegerField() # wizard_mana
+    mana = models.BigIntegerField() # wizard_mana
     crystals = models.IntegerField() # wizard_crystal
     crystals_paid = models.IntegerField() # wizard_crystal_paid - need some analysis, because it can be a total-time or actual value, need more JSON files before doing something with its data
     last_login = models.DateTimeField() # wizard_last_login
     country = models.CharField(max_length=5) # wizard_last_country
     lang = models.CharField(max_length=5) # wizard_last_lang
-    level = models.IntegerField() # wizard_level
+    level = models.SmallIntegerField() # wizard_level
     energy = models.IntegerField() # wizard_energy
-    energy_max = models.IntegerField() # energy_max
+    energy_max = models.SmallIntegerField() # energy_max
     arena_wing = models.IntegerField() # arena_energy
     glory_point = models.IntegerField() # honor_point
     guild_point = models.IntegerField() # guild_point
     rta_point = models.IntegerField() # honor_medal
     rta_mark = models.IntegerField() # honor_mark - don't know what it is, for now 
     event_coin = models.IntegerField() # event_coint - Ancient Coins
+    antibot_count = models.IntegerField() # quiz_reward_info.reward_count
+    raid_level = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)]) # raid_info_list.available_stage_id
+    storage_capacity = models.SmallIntegerField() # unit_depository_slots.number
 
     def __str__(self):
         return str(self.id)
@@ -65,23 +68,23 @@ class Rune(models.Model):
 
     id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
     user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
-    slot = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # slot_no
-    quality = models.IntegerField(choices=RUNE_QUALITIES) # rank
-    stars = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # class
+    slot = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # slot_no
+    quality = models.SmallIntegerField(choices=RUNE_QUALITIES) # rank
+    stars = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # class
     rune_set = models.ForeignKey(RuneSet, on_delete=models.PROTECT) # set
     upgrade_limit = 15 # upgrade_limit
-    upgrade_curr = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(upgrade_limit)]) #upgrade_curr
+    upgrade_curr = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(upgrade_limit)]) #upgrade_curr
     base_value = models.IntegerField() # base_value
     sell_value = models.IntegerField() # sell_value
-    primary = models.IntegerField(choices=RUNE_EFFECTS) # pri_eff[0]
+    primary = models.SmallIntegerField(choices=RUNE_EFFECTS) # pri_eff[0]
     primary_value = models.IntegerField() # pri_eff[1]
-    innate = models.IntegerField(choices=RUNE_EFFECTS) # prefix_eff[0]
+    innate = models.SmallIntegerField(choices=RUNE_EFFECTS) # prefix_eff[0]
     innate_value = models.IntegerField() # prefix_eff[1]
-    substats = ArrayField( models.IntegerField(choices=RUNE_EFFECTS) ) # sec_eff[i][0]
+    substats = ArrayField( models.SmallIntegerField(choices=RUNE_EFFECTS) ) # sec_eff[i][0]
     substats_values = ArrayField( models.IntegerField() ) # sec_eff[i][1]
     substats_enchants = ArrayField( models.IntegerField() ) # sec_eff[i][2]
     substats_grindstones = ArrayField( models.IntegerField() ) # sec_eff[i][3]
-    quality_original = models.IntegerField(choices=RUNE_QUALITIES) # extra
+    quality_original = models.SmallIntegerField(choices=RUNE_QUALITIES) # extra
     efficiency = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
     efficiency_max = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
     equipped = models.BooleanField() # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
@@ -133,12 +136,12 @@ class MonsterBase(models.Model):
 
     id = models.IntegerField(primary_key=True, unique=True) # unit_master_id
     family_id = models.ForeignKey(MonsterFamily, on_delete=models.PROTECT)
-    base_class = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # mapping
+    base_class = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # mapping
     name = models.CharField(max_length=50) # mapping
-    attribute = models.IntegerField(choices=MONSTER_ATTRIBUTES) # attribute
-    archetype = models.IntegerField(choices=MONSTER_TYPES) # last char from unit_master_id
+    attribute = models.SmallIntegerField(choices=MONSTER_ATTRIBUTES) # attribute
+    archetype = models.SmallIntegerField(choices=MONSTER_TYPES) # last char from unit_master_id
     max_skills = ArrayField( models.IntegerField() ) # table with max skillsups ( we don't care about skills itself, it's in SWARFARM already )
-    awaken = models.IntegerField(choices=MONSTER_AWAKEN) # to calculate
+    awaken = models.SmallIntegerField(choices=MONSTER_AWAKEN) # to calculate
     recommendation_text = models.CharField(max_length=512, blank=True, null=True) # best from Recommendation command, needs to delete every scam
     recommendation_votes = models.IntegerField(blank=True, null=True) # best from Recommendation command
     
@@ -147,6 +150,27 @@ class MonsterBase(models.Model):
 
     class Meta:
         ordering = ['name']
+
+class MonsterHoh(models.Model):
+    monster_id = models.ForeignKey(MonsterBase, on_delete=models.PROTECT)
+    date_open = models.DateField()
+    date_close = models.DateField()
+
+    def __str__(self):
+        return str(self.monster_id) + ' ( ' + self.date_open.strftime('%Y-%m-%d') + ' to ' + self.date_close.strftime('%Y-%m-%d') + ' )'
+
+    class Meta:
+        ordering = ['date_open', 'monster_id']
+
+class MonsterFusion(models.Model):
+    monster_id = models.ForeignKey(MonsterBase, on_delete=models.PROTECT)
+    cost = models.IntegerField()
+
+    def __str__(self):
+        return str(self.monster_id)
+
+    class Meta:
+        ordering = ['monster_id']
 
 class MonsterSource(models.Model):
     id = models.IntegerField(primary_key=True, unique=True)
@@ -163,8 +187,8 @@ class Monster(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True) # unit_id
     user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
     base_monster = models.ForeignKey(MonsterBase, on_delete=models.PROTECT) # unit_master_id
-    level = models.IntegerField() # unit_level
-    stars = models.IntegerField() # class
+    level = models.SmallIntegerField() # unit_level
+    stars = models.SmallIntegerField() # class
 
     ############################################
     # all calculated during data upload, since we don't care about base values
@@ -182,12 +206,42 @@ class Monster(models.Model):
     skills = ArrayField( models.IntegerField() ) # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already
     runes = models.ManyToManyField(Rune, related_name='equipped_runes', related_query_name='equipped_runes', blank=True) # runes
     created = models.DateTimeField() # create_time
-    storage = models.BooleanField() # building_id, need to check which one is storage building
     source = models.ForeignKey(MonsterSource, on_delete=models.PROTECT) # source
+    locked = models.BooleanField() # unit_lock_list - if it's in the array
+    storage = models.BooleanField() # building_id, need to check which one is storage building
+    
 
     def __str__(self):
         return str(self.base_monster) + ' ( ID: ' + str(self.id) + ' )'
 
+    class Meta:
+        ordering = ['-stars', '-level', 'base_monster']
+
 class MonsterRep(models.Model):
-    wizard_id = models.ForeignKey(Wizard, on_delete=models.PROTECT) # wizard_info
-    monster_id = models.ForeignKey(Monster, on_delete=models.PROTECT) # rep_unit_id in profile JSON - wizard_info part
+    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_info
+    monster_id = models.ForeignKey(Monster, on_delete=models.CASCADE) # rep_unit_id in profile JSON - wizard_info part
+
+class Deck(models.Model):
+    DECK_TYPES = [
+        (1, 'Arena'),
+        (2, 'Guild War'),
+        (3, 'Raid'),
+        (4, 'Lab Normal'),
+        (5, 'Lab Rescue'),
+        (6, 'ToA'),
+        (7, 'Lab Speed Limit'),
+        (8, 'Lab Time Limit'),
+        (9, 'Lab Cooldown'),
+        (10, 'Lab Explode'),
+        (11, 'Lab Boss'),
+    ]
+
+    id = models.BigAutoField(primary_key=True)
+    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE)
+    place = models.IntegerField(choices=DECK_TYPES) # deck_list.deck_type
+    number = models.SmallIntegerField() # deck_list.deck_seq
+    monsters = models.ManyToManyField(Monster, related_name='monsters_in_deck', related_query_name='monsters_in_deck') # deck_list.unit_id_list
+    leader = models.ForeignKey(Monster, on_delete=models.CASCADE) # deck_list.leader_unit_id
+
+    class Meta:
+        ordering = ['wizard_id', 'place', 'number']

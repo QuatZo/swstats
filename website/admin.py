@@ -1,11 +1,11 @@
 from django.contrib import admin
-from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep
+from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck
 
 
 class WizardAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'mana', 'crystals', 'crystals_paid', 'last_login', 'country', 'lang', 'level', 'energy', 'energy_max', 'arena_wing', 'glory_point', 'guild_point',
-        'rta_point', 'rta_mark', 'event_coin'
+        'rta_point', 'rta_mark', 'event_coin', 'antibot_count', 'raid_level', 'storage_capacity'
     )
 
 class RuneSetAdmin(admin.ModelAdmin):
@@ -32,7 +32,7 @@ class MonsterSourceAdmin(admin.ModelAdmin):
 class MonsterAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'user_id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'skills', 'get_runes',
-        'created', 'storage', 'source'
+        'created', 'source', 'storage', 'locked'
     )
     
     filter_horizontal=('runes', )
@@ -43,6 +43,18 @@ class MonsterAdmin(admin.ModelAdmin):
 class MonsterRepAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'wizard_id', 'monster_id' )
 
+class MonsterHohAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'monster_id', 'date_open', 'date_close' )
+
+class MonsterFusionAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'monster_id', 'cost' )
+
+class DeckAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'wizard_id', 'place', 'number', 'get_monsters', 'leader' )
+
+    def get_monsters(self, obj):
+        return "\n".join([str(monster) for monster in obj.monsters.all()])
+
 # Register your models here.
 admin.site.register(Wizard, WizardAdmin)
 admin.site.register(RuneSet, RuneSetAdmin)
@@ -52,3 +64,6 @@ admin.site.register(MonsterBase, MonsterBaseAdmin)
 admin.site.register(MonsterSource, MonsterSourceAdmin)
 admin.site.register(Monster, MonsterAdmin)
 admin.site.register(MonsterRep, MonsterRepAdmin)
+admin.site.register(MonsterHoh, MonsterHohAdmin)
+admin.site.register(MonsterFusion, MonsterFusionAdmin)
+admin.site.register(Deck, DeckAdmin)

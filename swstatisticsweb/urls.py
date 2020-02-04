@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from website import views
@@ -20,9 +21,13 @@ from rest_framework import routers, serializers, viewsets
 
 router = routers.DefaultRouter()
 router.register(r'upload', views.UploadViewSet, 'upload')
-router.register(r'monsterfamilyupload', views.MonsterFamilyUploadViewSet, 'monsterfamilyupload')
-router.register(r'monstersourceupload', views.MonsterSourceUploadViewSet, 'monstersourceupload')
-router.register(r'monsterbaseupload', views.MonsterBaseUploadViewSet, 'monsterbaseupload')
+
+if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabled ( i.e. when in need to update whole Database )
+    router.register(r'monsterfamilyupload', views.MonsterFamilyUploadViewSet, 'monsterfamilyupload')
+    router.register(r'monstersourceupload', views.MonsterSourceUploadViewSet, 'monstersourceupload')
+    router.register(r'monsterbaseupload', views.MonsterBaseUploadViewSet, 'monsterbaseupload')
+    router.register(r'monsterhohupload', views.MonsterHohUploadViewSet, 'monsterhohupload')
+    router.register(r'monsterfusionupload', views.MonsterFusionUploadViewSet, 'monsterfusionupload')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
