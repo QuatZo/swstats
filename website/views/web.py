@@ -5,10 +5,61 @@ from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, Mo
 
 # Create your views here.
 def get_homepage(request):
-    return render( request, 'website/index.html' )
+    runes = Rune.objects.all()
+    monsters = Monster.objects.all()
+    rune_best = runes.order_by('-efficiency').first()
+    rune_equipped = Rune.objects.filter(equipped=True).count()
+    monster_best = monsters.order_by('-avg_eff').first()
+    monster_cdmg = monsters.order_by('-crit_dmg').first()
+
+    MESSAGES = [
+        {
+            'id': 1,
+            'title': 'Highest rune efficiency',
+            'text': f'The most efficient rune stored in database has {rune_best.efficiency}% efficiency.',
+            'arg': rune_best.id,
+        },
+        {
+            'id': 2,
+            'title': 'Equipped runes',
+            'text': f'From {runes.count()} runes in database, only {rune_equipped} are equipped. it gives us {round(rune_equipped / runes.count() * 100, 2)}% \'useless\' runes.',
+        },
+        {
+            'id': 3,
+            'title': 'Highest average efficiency',
+            'text': f'{str(monster_best)} has the highest average efficiency, amounting to {monster_best.avg_eff}%',
+            'arg': monster_best.id,
+        },
+        {
+            'id': 4,
+            'title': 'Highest critical damage value',
+            'text': f'Highest Critical Damage value has {str(monster_cdmg)} with an amazing {monster_cdmg.crit_dmg}%',
+            'arg': monster_best.id,
+        },
+    ]
+
+    context = {
+        'messages': MESSAGES,
+    }
+
+    return render( request, 'website/index.html', context )
+
+def get_runes(request):
+    runes = Rune.objects.all().order_by('-efficiency')
+    amount = min(100, runes.count())
+    runes = runes[:amount]
+
+    substats_names = runes.first().get_substats_display() 
+
+    context = {
+        'amount': amount,
+        'runes': runes
+    }
+
+    return render( request, 'website/runes/index.html', context)
 
 
-def specific_rune(request, rune_id):
+def get_specific_rune(request, rune_id):
     rune = get_object_or_404(Rune, id=rune_id)
     context = { 'rune': rune, }
 

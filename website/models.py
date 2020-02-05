@@ -53,17 +53,17 @@ class Rune(models.Model):
     )
 
     RUNE_EFFECTS = (
-        (1, 'HP +'),
-        (2, 'HP %'),
-        (3, 'ATK +'),
-        (4, 'ATK %'),
-        (5, 'DEF +'),
-        (6, 'DEF %'),
-        (8, 'SPD +'),
-        (9, 'CRate %'),
-        (10, 'CDmg %'),
-        (11, 'RES %'),
-        (12, 'ACC %'),
+        (1, 'HP+'),
+        (2, 'HP%'),
+        (3, 'ATK+'),
+        (4, 'ATK%'),
+        (5, 'DEF+'),
+        (6, 'DEF%'),
+        (8, 'SPD'),
+        (9, 'CRate%'),
+        (10, 'CDmg%'),
+        (11, 'RES%'),
+        (12, 'ACC%'),
     )
 
     id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
@@ -93,6 +93,20 @@ class Rune(models.Model):
     # ^ OR models.ForeignKey for Monster [what with Inventory then?]
     # ^ OR occupied as a Boolean variable and then Foreign Key with possibility of being NULL
     # ^ OR occupied as a Boolean variable and then Monster has its key in class, there is only info if occupied [then needs to make a Trigger]
+
+    def get_substats_display(self):
+        effects = dict(self.RUNE_EFFECTS)
+        strings = list()
+        for substat in self.substats:
+            if substat != 0:
+                strings.append(effects[substat])
+            else: 
+                strings.append('-')
+        return strings
+
+    def get_substat_display(self, substat):
+        effects = dict(self.RUNE_EFFECTS)
+        return effects[substat]
 
     def __str__(self):
         return str(self.get_quality_display()) + ' ' + str(self.rune_set) + ' ' + str(self.get_primary_display()) + str(self.primary_value) + ' (slot: ' + str(self.slot) + ', eff: ' + str(self.efficiency) + ')'
@@ -207,6 +221,7 @@ class Monster(models.Model):
     runes = models.ManyToManyField(Rune, related_name='equipped_runes', related_query_name='equipped_runes', blank=True) # runes
     created = models.DateTimeField() # create_time
     source = models.ForeignKey(MonsterSource, on_delete=models.PROTECT) # source
+    transmog = models.BooleanField() # costume_master_id
     locked = models.BooleanField() # unit_lock_list - if it's in the array
     storage = models.BooleanField() # building_id, need to check which one is storage building
     
@@ -236,7 +251,7 @@ class Deck(models.Model):
         (11, 'Lab Boss'),
     ]
 
-    id = models.BigAutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True, unique=True)
     wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE)
     place = models.IntegerField(choices=DECK_TYPES) # deck_list.deck_type
     number = models.SmallIntegerField() # deck_list.deck_seq
@@ -245,3 +260,69 @@ class Deck(models.Model):
 
     class Meta:
         ordering = ['wizard_id', 'place', 'number']
+
+class Building(models.Model):
+    AREA_TYPE = (
+        (0, 'Arena'),
+        (1, 'Guild'),
+    )
+
+    id = models.IntegerField(primary_key=True, unique=True)
+    area = models.IntegerField(choices=AREA_TYPE)
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name + ' [ ' + str(self.get_area_display()) + ' ]'
+
+    class Meta:
+        ordering = ['area', 'name']
+
+class WizardBuilding(models.Model):
+    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE)
+    building_id = models.ForeignKey(Building, on_delete=models.CASCADE)
+    level = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)], default=0)
+
+    def __str__(self):
+        return str(self.wizard_id) + ' ' + str(self.building_id) + ' ( level ' + str(self.level) + ' )'
+
+    class Meta:
+        ordering = ['wizard_id', '-level', 'building_id']
+
+
+class Arena(models.Model):
+    RANKS = (
+        (901, 'Beginner'),
+
+        (1001, 'Challenger I'),
+        (1002, 'Challenger II'),
+        (1003, 'Challenger III'),
+
+        (2001, 'Fighter I'),
+        (2002, 'Fighter II'),
+        (2003, 'Fighter III'),
+
+        (3001, 'Conqueror I'),
+        (3002, 'Conqueror II'),
+        (3003, 'Conqueror III'),
+
+        (4001, 'Guardian I'),
+        (4002, 'Guardian II'),
+        (4003, 'Guardian III'),
+
+        (5001, 'Legend'),
+    )
+
+    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
+    wins = models.IntegerField() # arena_win
+    loses = models.IntegerField() # arena_lose
+    rank = models.IntegerField(choices=RANKS) # rating_id
+    def_1 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="first_def_monster", null=True, default=None) # defense_unit_list: unit_id & pos_id
+    def_2 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="second_def_monster", null=True, default=None)
+    def_3 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="third_def_monster", null=True, default=None)
+    def_4 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="fourth_def_monster", null=True, default=None)
+
+    def __str__(self):
+        return str(self.wizard_id) + ': ' + str(self.get_rank_display()) + ' ( W' + str(self.wins) + '/' + str(self.loses) + 'L )'
+
+    class Meta:
+        ordering = ['-rank', '-wins', 'loses']

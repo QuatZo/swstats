@@ -29,11 +29,12 @@ if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabl
     router.register(r'monsterbaseupload', views.MonsterBaseUploadViewSet, 'monsterbaseupload')
     router.register(r'monsterhohupload', views.MonsterHohUploadViewSet, 'monsterhohupload')
     router.register(r'monsterfusionupload', views.MonsterFusionUploadViewSet, 'monsterfusionupload')
+    router.register(r'buildingupload', views.BuildingUploadViewSet, 'buildingupload')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('runes/', views.RuneView), # - not working for all runes
-    url(r'^$', views.get_homepage),
-    path('runes/<int:rune_id>/', views.specific_rune),
+    url(r'^$', views.get_homepage, name='home'),
+    path('runes/', views.get_runes, name='runes'),
+    path('runes/<int:rune_id>/', views.get_specific_rune, name='specific_rune'),
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]

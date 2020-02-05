@@ -2,7 +2,7 @@ from django.http import HttpResponse
 
 from rest_framework import viewsets, permissions, status
 
-from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck
+from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena
 
 import copy
 import math
@@ -214,6 +214,23 @@ class MonsterFusionUploadViewSet(viewsets.ViewSet):
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
+class BuildingUploadViewSet(viewsets.ViewSet):
+     def create(self, request):
+        if request.data:
+            for temp_building in request.data:
+                building = dict()
+                ########################################
+                # Building Model
+                building['id'] = temp_building['id']
+                building['area'] = temp_building['area']
+                building['name'] = temp_building['name']
+                ########################################
+
+                obj, created = Building.objects.update_or_create( id=building['id'], defaults=building, )
+            return HttpResponse(status=status.HTTP_201_CREATED)
+        
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
 class UploadViewSet(viewsets.ViewSet):
     def create(self, request):
         # prepare dictionaries for every command
@@ -291,10 +308,10 @@ class UploadViewSet(viewsets.ViewSet):
                     eff_curr, eff_max = calc_efficiency(temp_rune)
                     rune['efficiency'] = eff_curr
                     rune['efficiency_max'] = eff_max
-                    rune['equipped'] = temp_rune['occupied_type'] - 1 # needs more testing
+                    rune['equipped'] = True if temp_rune['occupied_type'] == 1 else False
                     ########################################
                     obj, created = Rune.objects.update_or_create( id=rune['id'], defaults=rune, )
-                print("Runes done.")
+                print("Runes done")
 
                 print("Monsters")
                 for temp_monster in data['unit_list']:
@@ -330,13 +347,14 @@ class UploadViewSet(viewsets.ViewSet):
 
                     monster['created'] = temp_monster['create_time']
                     monster['source'] = MonsterSource.objects.get(id=temp_monster['source'])
+                    monster['transmog'] = True if temp_monster['costume_master_id'] else False
                     monster['storage'] = True if temp_monster['building_id'] == 5 else False # temporarily building_id = 5 is Storage
                     monster['locked'] = True if temp_monster['unit_id'] in data['unit_lock_list'] else False
                     ########################################
                     obj, created = Monster.objects.update_or_create( id=monster['id'], defaults=monster, )
                     obj.runes.set(monster_runes)
                     obj.save()
-                print("Monsters done.")
+                print("Monsters done")
 
 
                 ########################################
@@ -346,7 +364,7 @@ class UploadViewSet(viewsets.ViewSet):
                     'wizard_id': Wizard.objects.get(id=wizard['id']), 
                     'monster_id': Monster.objects.get(id=temp_wizard['rep_unit_id'])
                 }, )
-                print("Wizard's rep monsters done.")
+                print("Wizard's rep monsters done")
                 ########################################
 
                 ########################################
@@ -362,7 +380,40 @@ class UploadViewSet(viewsets.ViewSet):
                     obj, created = Deck.objects.update_or_create( wizard_id=wizard['id'], place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
                     obj.monsters.set(deck_monsters)
                     obj.save()
-                print("Wizard's decks done.")
+                print("Wizard's decks done")
+                ########################################
+
+                ########################################
+                # Wizard Building Model
+                print("Wizard's buildings")
+                for temp_building in Building.objects.all():
+                    building = dict()
+                    building['wizard_id'] = Wizard.objects.get(id=wizard['id'])
+                    building['building_id'] = temp_building
+                    building['level'] = 0
+                    obj, created = WizardBuilding.objects.get_or_create( wizard_id=building['wizard_id'], building_id=building['building_id'], defaults=building, )
+
+                for deco in data['deco_list']:
+                    building = dict()
+                    building['wizard_id'] = Wizard.objects.get(id=deco['wizard_id'])
+                    building['building_id'] = Building.objects.get(id=deco['master_id'])
+                    building['level'] = deco['level']
+                    obj, created = WizardBuilding.objects.update_or_create( wizard_id=building['wizard_id'], building_id=building['building_id'], defaults=building, )
+                print("Wizard's buildings done")
+                ########################################
+
+                ########################################
+                # Arena Model
+                print("Arena")
+                arena = dict()
+                arena['wizard_id'] = Wizard.objects.get(id=wizard['id'])
+                arena['wins'] = data['pvp_info']['arena_win']
+                arena['loses'] = data['pvp_info']['arena_lose']
+                arena['rank'] = data['pvp_info']['rating_id']
+                for _def in data['defense_unit_list']:
+                    arena['def_' + str(_def['pos_id'])] = Monster.objects.get(id=_def['unit_id'])
+                obj, created = Arena.objects.update_or_create( wizard_id=wizard['id'], defaults=arena, )
+                print("Arena done")
                 ########################################
 
             return HttpResponse(status=status.HTTP_201_CREATED)

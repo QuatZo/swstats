@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  {% load static %}
+  <head>
+    {% block styles %}
+        <link rel="stylesheet" type="text/css" href="{% static 'website/css/style.css' %}">
+    {% endblock %}
+    {% block bootstrap %}
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% endblock %}
+      <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    {% block fontawesome %}
+        <script src="https://kit.fontawesome.com/db771f92f8.js" crossorigin="anonymous"></script>
+    {% endblock %}
+    <meta charset="utf-8">
+    <title>
+        {% block title %}
+            Summoners War Statistics
+        {% endblock%}
+    </title>
+  </head>
+  <body>
+    {% block navbar %}
+        <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+            <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">SW Statistics</a>
+            <ul class="navbar-nav px-3">
+                <li class="nav-item">
+                    <a class="nav-link" href="https://getbootstrap.com/">Built with Bootstrap </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="http://github.com/quatzo">Created by QuatZo</a>
+                </li>
+            </ul>
+        </nav>
+    {% endblock %}
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == "home" %}active{% endif %}" href="{% url 'home' %}" >
+                        <span data-feather="home"></span>
+                        Homepage
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes'%}" >
+                        <span data-feather="hexagon"></span>
+                        Runes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span data-feather="users"></span>
+                        Monsters
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span data-feather="award"></span>
+                        Arena
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span class="far fa-building feather"></span>
+                        Buildings
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span data-feather="layers"></span>
+                        Decks
+                    </a>
+                </li>
+                </ul>
+
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Future updates</span>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">
+                            <span class="fas fa-medal feather"></span>
+                            Guild
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">
+                            <span class="fas fa-medal feather"></span>
+                            RTA
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">
+                            <span class="fas fa-skull-crossbones feather"></span>
+                            World Boss
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">
+                            <span class="fas fa-dungeon feather"></span>
+                            Dungeons
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">
+                            <span class="fas fa-ghost feather"></span>
+                            Dimension Hole
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            </nav>
+
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">{% block content_title %}Introduction{% endblock %}</h1>
+                </div>
+
+                {% block content %}{% endblock %}
+                
+
+                <h2>{% block content_table_title %}{% endblock %}</h2>
+                <div class="table-responsive">
+                    {% block table %} {% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+    {% block feather %}
+    <script>
+      feather.replace()
+    </script>
+    {% endblock %}
+  </body>
+</html>
