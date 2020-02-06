@@ -168,3 +168,15 @@ body {
         min-width: 80px;
     }
 }
+
+.title .btn{
+    float: right;
+    background-color: #1f1f1f;
+    border-color: #1f1f1f;
+    color: #ededed;
+}
+
+.title .btn:hover{
+    background-color: #007bff;
+    border-color: #007bff;
+}

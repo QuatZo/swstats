@@ -2,6 +2,39 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+class Guild(models.Model):
+    GUILD_RANKS = (
+        (1011, 'Challenger'),
+
+        (2011, 'Fighter I'),
+        (2012, 'Fighter II'),
+        (2013, 'Fighter III'),
+
+        (3011, 'Conqueror I'),
+        (3012, 'Conqueror II'),
+        (3013, 'Conqueror III'),
+
+        (4011, 'Guardian I'),
+        (4012, 'Guardian II'),
+        (4013, 'Guardian III'),
+
+        (5001, 'Legend'),
+    )
+
+    id = models.IntegerField(primary_key=True, unique=True) # guild.guild_info.guild_id
+    level = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(30)]) # guild.guild_info.level
+    members_max = 30
+    members_amount = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(members_max)]) # guild.guild_info.member_now
+    gw_best_place = models.IntegerField() # guildwar_ranking_stat.best.rank
+    gw_best_ranking = models.IntegerField(choices=GUILD_RANKS) # guildwar_ranking_stat.best.rating_id
+    last_update = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.id) + ' ( ' + str(self.members_amount) + '/' + str(self.members_max) + ', ' + str(self.gw_best_ranking) + ' [ Rank: ' + str(self.gw_best_place) + ' ])'
+
+    class Meta:
+        ordering = ['-gw_best_place', '-gw_best_ranking', '-level', '-members_amount', 'id']
+
 class Wizard(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
     mana = models.BigIntegerField() # wizard_mana
@@ -22,6 +55,8 @@ class Wizard(models.Model):
     antibot_count = models.IntegerField() # quiz_reward_info.reward_count
     raid_level = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)]) # raid_info_list.available_stage_id
     storage_capacity = models.SmallIntegerField() # unit_depository_slots.number
+    guild = models.ForeignKey(Guild, blank=True, null=True, on_delete=models.SET_NULL)
+    last_update = models.DateTimeField()
 
     def __str__(self):
         return str(self.id)
@@ -290,7 +325,7 @@ class WizardBuilding(models.Model):
 
 
 class Arena(models.Model):
-    RANKS = (
+    ARENA_RANKS = (
         (901, 'Beginner'),
 
         (1001, 'Challenger I'),
@@ -315,7 +350,7 @@ class Arena(models.Model):
     wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
     wins = models.IntegerField() # arena_win
     loses = models.IntegerField() # arena_lose
-    rank = models.IntegerField(choices=RANKS) # rating_id
+    rank = models.IntegerField(choices=ARENA_RANKS) # rating_id
     def_1 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="first_def_monster", null=True, default=None) # defense_unit_list: unit_id & pos_id
     def_2 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="second_def_monster", null=True, default=None)
     def_3 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="third_def_monster", null=True, default=None)
@@ -326,3 +361,30 @@ class Arena(models.Model):
 
     class Meta:
         ordering = ['-rank', '-wins', 'loses']
+
+class HomunculusSkill(models.Model):
+    id = models.IntegerField(primary_key=True, unique=True) # id
+    name = models.CharField(max_length=50)  # name
+    description = models.CharField(max_length=512) # description
+    depth = models.SmallIntegerField() # depth
+
+    def __str__(self):
+        return self.name + ' [ Depth: ' + str(self.depth) + ' ]'
+
+    class Meta:
+        ordering = ['depth', 'id']
+
+class WizardHomunculus(models.Model):
+    homunculus_id = models.ForeignKey(Monster, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
+    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
+    skill_1 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_1", null=True, default=None) # homunculus_skill_list[el].skill_id
+    skill_1_plus = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_1_upgrade", null=True, default=None)
+    skill_2 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_2", null=True, default=None)
+    skill_2_plus = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_2_upgrade", null=True, default=None)
+    skill_3 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_3", null=True, default=None)
+
+    def __str__(self):
+        return str(self.homunculus_id) + '( ' + ', '.join([str(self.skill_1), str(self.skill_1_plus), str(self.skill_2), str(self.skill_2_plus), str(self.skill_3)]) + ' )'
+
+    class Meta:
+        ordering = ['wizard_id', 'homunculus_id']

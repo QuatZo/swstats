@@ -49,11 +49,15 @@ def get_runes(request):
     amount = min(100, runes.count())
     runes = runes[:amount]
 
-    substats_names = runes.first().get_substats_display() 
+    fastest_runes = Rune.objects.filter(substats__contains=[8]).order_by('-substats_values') # doesn't work as intended, currentyl a placeholder for template
+    fastest_amount = min(100, fastest_runes.count())
+    fastest_runes = fastest_runes[:fastest_amount]
 
     context = {
         'amount': amount,
-        'runes': runes
+        'runes': runes,
+        'fastest_runes': fastest_runes,
+        'fastest_amount': fastest_amount,
     }
 
     return render( request, 'website/runes/index.html', context)

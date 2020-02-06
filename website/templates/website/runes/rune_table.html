@@ -1,0 +1,69 @@
+{% load zip_substats %}
+<h2 class="title">
+    {{ text }}
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
+        Show/Hide 
+    </button>
+</h2>
+<table class="table table-hover table-striped table-sm collapse" id="{{ collapse_id }}">
+    <thead>
+        <tr>
+            <th scope="col">Quality</th>
+            <th scope="col">Slot</th>
+            <th scope="col">Stars</th>
+            <th scope="col">Set</th>
+            <th scope="col">Level</th>
+            <th scope="col">Primary</th>
+            <th scope="col">Value</th>
+            <th scope="col">Innate</th>
+            <th scope="col">Value</th>
+            <th scope="col">Sub #1</th>
+            <th scope="col">Value</th>
+            <th scope="col">Sub #2</th>
+            <th scope="col">Value</th>
+            <th scope="col">Sub #3</th>
+            <th scope="col">Value</th>
+            <th scope="col">Sub #4</th>
+            <th scope="col">Value</th>
+            <th scope="col">Original Quality</th>
+            <th scope="col">Eff.</th>
+            <th scope="col">Eff. Max</th>
+            <th scope="col">Equipped</th>
+            <th scope="col">Check</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rune in runes %}
+            <tr>
+                <th scope="row">{{ rune.get_quality_display }}</th>
+                <td>{{ rune.slot }}</td>
+                <td>{{ rune.stars }}</td>
+                <td>{{ rune.rune_set }}</td>
+                <td>{{ rune.upgrade_curr }}</td>
+                <td>{{ rune.get_primary_display }}</td>
+                <td>{{ rune.primary_value }}</td>
+                <td>{{ rune.get_innate_display }}</td>
+                <td>{{ rune.innate_value }}</td>
+
+                {% for substat, value, enchant in rune|zip_substats%}
+                    <td>{{ substat }}</td>
+                    <td>{{ value }}</td>
+                {% endfor %}
+
+                <td>{{ rune.get_quality_original_display }}</td>
+                <td>{{ rune.efficiency }}</td>
+                <td>{{ rune.efficiency_max }}</td>
+                <td> {% if rune.equipped %}
+                    <span data-feather="check" style="color: green;"></span>
+                    {% else %}
+                    <span data-feather="slash" style="color: red;"></span>
+                    {% endif %}
+                <td>
+                    <a href={% url 'specific_rune' rune_id=rune.id %}>
+                        <span data-feather="info"></span>
+                    <a/>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

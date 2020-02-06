@@ -1,11 +1,14 @@
 from django.contrib import admin
-from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena
+from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild
 
+
+class GuildAdmin(admin.ModelAdmin):
+    list_display = ('id', 'level', 'members_max', 'members_amount', 'gw_best_place', 'gw_best_ranking', 'last_update')
 
 class WizardAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'mana', 'crystals', 'crystals_paid', 'last_login', 'country', 'lang', 'level', 'energy', 'energy_max', 'arena_wing', 'glory_point', 'guild_point',
-        'rta_point', 'rta_mark', 'event_coin', 'antibot_count', 'raid_level', 'storage_capacity'
+        'rta_point', 'rta_mark', 'event_coin', 'antibot_count', 'raid_level', 'storage_capacity', 'guild', 'last_update'
     )
 
 class RuneSetAdmin(admin.ModelAdmin):
@@ -67,7 +70,15 @@ class ArenaAdmin(admin.ModelAdmin):
     def ratio(self, obj):
         return round(obj.wins / obj.loses, 2) if obj.loses > 0 else 0
 
+class HomunculusSkillAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'name', 'description', 'depth' )
+    
+class WizardHomunculusAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'wizard_id', 'homunculus_id', 'skill_1', 'skill_1_plus', 'skill_2', 'skill_2_plus', 'skill_3' )
+    
+
 # Register your models here.
+admin.site.register(Guild, GuildAdmin)
 admin.site.register(Wizard, WizardAdmin)
 admin.site.register(RuneSet, RuneSetAdmin)
 admin.site.register(Rune, RuneAdmin)
@@ -82,3 +93,5 @@ admin.site.register(Deck, DeckAdmin)
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(WizardBuilding, WizardBuildingAdmin)
 admin.site.register(Arena, ArenaAdmin)
+admin.site.register(HomunculusSkill, HomunculusSkillAdmin)
+admin.site.register(WizardHomunculus, WizardHomunculusAdmin)

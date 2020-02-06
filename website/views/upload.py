@@ -2,10 +2,11 @@ from django.http import HttpResponse
 
 from rest_framework import viewsets, permissions, status
 
-from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena
+from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild
 
 import copy
 import math
+from datetime import datetime
 
 def calc_efficiency(rune):
     primary = rune['pri_eff']
@@ -217,16 +218,17 @@ class MonsterFusionUploadViewSet(viewsets.ViewSet):
 class BuildingUploadViewSet(viewsets.ViewSet):
      def create(self, request):
         if request.data:
-            for temp_building in request.data:
-                building = dict()
-                ########################################
-                # Building Model
-                building['id'] = temp_building['id']
-                building['area'] = temp_building['area']
-                building['name'] = temp_building['name']
-                ########################################
-
+            for building in request.data:
                 obj, created = Building.objects.update_or_create( id=building['id'], defaults=building, )
+            return HttpResponse(status=status.HTTP_201_CREATED)
+        
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+class HomunculusUploadViewSet(viewsets.ViewSet):
+     def create(self, request):
+        if request.data:
+            for homie in request.data:
+                obj, created = HomunculusSkill.objects.update_or_create( id=homie['id'], defaults=homie, )
             return HttpResponse(status=status.HTTP_201_CREATED)
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
@@ -242,23 +244,65 @@ class UploadViewSet(viewsets.ViewSet):
             if request.data["command"] == "HubUserLogin":
                 data = request.data
 
+                print("Checking if guild", data['guild']['guild_info']['guild_id'], "exists...")
+                guild = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])
+                guild_uptodate = False
+                if guild.exists():
+                    print("Guild profile exists... Checking if it's up-to-date...")
+                    guild = guild.filter(last_update__gte=datetime.utcfromtimestamp(data['tvalue']))
+                    if guild.exists():
+                        print("Guild profile is up-to-date.")
+                        guild_uptodate = True
+                    else:
+                        print("Updating guild profile", data['guild']['guild_info']['guild_id'])
+                        guild.delete()
+                else:
+                    print("Guild profile does NOT exists. Starting first-time guild profile upload for", data['guild']['guild_info']['guild_id'])
+
+                if not guild_uptodate:
+                    ########################################
+                    # Guild Model
+                    print("Guild")
+                    guild = dict()
+                    temp_guild = data['guild']['guild_info']
+                    temp_gw_best = data['guildwar_ranking_stat']['best']
+                    guild['id'] = temp_guild['guild_id']
+                    guild['level'] = temp_guild['level']
+                    guild['members_amount'] = temp_guild['member_now']
+                    guild['gw_best_place'] = temp_gw_best['rank']
+                    guild['gw_best_ranking'] = temp_gw_best['rating_id']
+                    guild['last_update'] = datetime.utcfromtimestamp(data['tvalue'])
+                    obj, created = Guild.objects.update_or_create( id=guild['id'], defaults=guild, )
+                    print("Guild done")
+                    ########################################
+
                 print("Checking if profile", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ") exists...")
                 wiz = Wizard.objects.filter(id=data['wizard_info']['wizard_id'])
-                if wiz:
-                    print("Profile exists overwriting...")
-                    wiz.delete()
+                wizard_uptodate = False
+                if wiz.exists():
+                    print("Profile exists... Checking if it's up-to-date...")
+                    wizard = wiz.filter(last_update__gte=datetime.utcfromtimestamp(data['tvalue']))
+                    if wizard.exists():
+                        print("Wizard profile is up-to-date.")
+                        wizard_uptodate = True
+                    else:
+                        print("Updating profile", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ")")
+                        wiz.delete()
                 else:
-                    print("Starting profile upload for", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ")")
+                    print("Profile does NOT exists. Starting first-time profile upload for", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ")")
+
+                if wizard_uptodate:
+                    return HttpResponse(status=status.HTTP_200_OK)
 
                 temp_wizard = data['wizard_info']
                 temp_runes = data['runes']
                 for monster in data['unit_list']:
                     for rune in monster['runes']:
                         temp_runes.append(rune)
-
                 ########################################
                 # Wizard Model
                 print("Wizard")
+                wizard = dict()
                 wizard['id'] = temp_wizard['wizard_id']
                 wizard['mana'] = temp_wizard['wizard_mana']
                 wizard['crystals'] = temp_wizard['wizard_crystal']
@@ -278,6 +322,8 @@ class UploadViewSet(viewsets.ViewSet):
                 wizard['antibot_count'] = data['quiz_reward_info']['reward_count']
                 wizard['raid_level'] = data['raid_info_list'][0]['available_stage_id']
                 wizard['storage_capacity'] = data['unit_depository_slots']['number']
+                wizard['last_update'] = datetime.utcfromtimestamp(data['tvalue'])
+                wizard['guild'] = Guild.objects.get(id=guild['id'])
                 obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
                 print("Wizard done")
                 ########################################
@@ -414,6 +460,39 @@ class UploadViewSet(viewsets.ViewSet):
                     arena['def_' + str(_def['pos_id'])] = Monster.objects.get(id=_def['unit_id'])
                 obj, created = Arena.objects.update_or_create( wizard_id=wizard['id'], defaults=arena, )
                 print("Arena done")
+                ########################################
+
+                ########################################
+                # Wizard Homunculus Model
+                print("Homunculus")
+                homunculus = data['homunculus_skill_list']
+                homies = dict()
+
+                for el in homunculus:
+                    if el['unit_id'] not in homies.keys():
+                        homies[el['unit_id']] = dict()
+                        homies[el['unit_id']]['wizard_id'] = Wizard.objects.get(id=el['wizard_id'])
+                        homies[el['unit_id']]['homunculus_id'] = Monster.objects.get(id=el['unit_id'])
+                        homies[el['unit_id']]['skill_1'] = None
+                        homies[el['unit_id']]['skill_1_plus'] =  None
+                        homies[el['unit_id']]['skill_2'] = None
+                        homies[el['unit_id']]['skill_2_plus'] = None
+                        homies[el['unit_id']]['skill_3'] = None
+
+                    if el['skill_depth'] == 1:
+                        homies[el['unit_id']]['skill_1'] = HomunculusSkill.objects.get(id=el['skill_id'])
+                    elif el['skill_depth'] == 2:
+                        homies[el['unit_id']]['skill_1_plus'] = HomunculusSkill.objects.get(id=el['skill_id'])
+                    elif el['skill_depth'] == 3:
+                        homies[el['unit_id']]['skill_2'] = HomunculusSkill.objects.get(id=el['skill_id'])
+                    elif el['skill_depth'] == 4:
+                        homies[el['unit_id']]['skill_2_plus'] = HomunculusSkill.objects.get(id=el['skill_id'])
+                    elif el['skill_depth'] == 5:
+                        homies[el['unit_id']]['skill_3'] = HomunculusSkill.objects.get(id=el['skill_id'])
+
+                for homie in homies.values():
+                    obj, created = WizardHomunculus.objects.update_or_create( wizard_id=homie['wizard_id'], homunculus_id=homie['homunculus_id'], defaults=homie, )
+                print("Homunculus done")
                 ########################################
 
             return HttpResponse(status=status.HTTP_201_CREATED)

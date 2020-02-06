@@ -139,11 +139,9 @@
 
                 {% block content %}{% endblock %}
                 
-
-                <h2>{% block content_table_title %}{% endblock %}</h2>
-                <div class="table-responsive">
-                    {% block table %} {% endblock %}
-                </div>
+                {% block table %} 
+                    <div class="table-responsive"></div>
+                {% endblock %}
             </main>
         </div>
     </div>
