@@ -22,11 +22,13 @@
             Summoners War Statistics
         {% endblock%}
     </title>
+
+    <script src="{% static 'website/js/script.js' %}"></script>
   </head>
   <body>
     {% block navbar %}
-        <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-            <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">SW Statistics</a>
+        <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow" id="sidebar-upper">
+            <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"><span class="text">SW Statistics</span> <span data-feather="menu" id="sidebar-toggler"></span></a>
             <ul class="navbar-nav px-3">
                 <li class="nav-item">
                     <a class="nav-link" href="https://getbootstrap.com/">Built with Bootstrap </a>
@@ -39,79 +41,91 @@
     {% endblock %}
     <div class="container-fluid">
         <div class="row">
-            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <nav class="col-md-2 d-md-block bg-light sidebar" id="sidebar-lower">
             <div class="sidebar-sticky">
                 <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == "home" %}active{% endif %}" href="{% url 'home' %}" >
                         <span data-feather="home"></span>
-                        Homepage
+                        <span class="text">Homepage</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes'%}" >
                         <span data-feather="hexagon"></span>
-                        Runes
+                        <span class="text">Runes</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <span data-feather="users"></span>
-                        Monsters
+                        <span class="text">Monsters</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <span data-feather="award"></span>
-                        Arena
+                        <span class="text">Arena</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <span class="far fa-building feather"></span>
-                        Buildings
+                        <span class="text">Buildings</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <span data-feather="layers"></span>
-                        Decks
+                        <span class="text">Decks</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span class="fas fa-hands-helping feather"></span>
+                        <span class="text">Contribute</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span class="fas fa-clipboard-list feather"></span>
+                        <span class="text">Credits</span>
                     </a>
                 </li>
                 </ul>
 
                 <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>Future updates</span>
+                    <span class="text">Future updates</span>
                 </h6>
                 <ul class="nav flex-column mb-2">
                     <li class="nav-item">
                         <a class="nav-link disabled" href="#">
                             <span class="fas fa-medal feather"></span>
-                            Guild
+                            <span class="text">Guild</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link disabled" href="#">
                             <span class="fas fa-medal feather"></span>
-                            RTA
+                            <span class="text">RTA</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link disabled" href="#">
                             <span class="fas fa-skull-crossbones feather"></span>
-                            World Boss
+                            <span class="text">World Boss</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link disabled" href="#">
                             <span class="fas fa-dungeon feather"></span>
-                            Dungeons
+                            <span class="text">Dungeons</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link disabled" href="#">
                             <span class="fas fa-ghost feather"></span>
-                            Dimension Hole
+                            <span class="text">Dimension Hole</span>
                         </a>
                     </li>
                 </ul>

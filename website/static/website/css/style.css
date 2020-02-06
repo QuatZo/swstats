@@ -31,6 +31,18 @@ body {
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
 }
 
+.navbar a{
+    cursor: default;
+}
+
+.navbar a svg{
+    float: right;
+    vertical-align: middle;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+}
+
 .sidebar-sticky {
     position: fixed;
     top: 50px;
@@ -71,15 +83,11 @@ body {
     text-transform: uppercase;
 }
 
+
 [role="main"] {
-    padding-top: 133px; /* Space for fixed navbar */
+    padding-top: 48px; /* Space for fixed navbar */
 }
 
-@media (min-width: 768px) {
-    [role="main"] {
-        padding-top: 48px; /* Space for fixed navbar */
-    }
-}
 
 .navbar-brand {
     padding-top: .75rem;
@@ -87,6 +95,7 @@ body {
     font-size: 1rem;
     background-color: rgba(0, 0, 0, .25);
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+    display: flex;
 }
 
 .navbar-nav{
@@ -117,4 +126,45 @@ body {
 .carousel-caption a{
     text-decoration: none;
     color: #f1f1f1;
+}
+
+.navbar.toggled .navbar-brand{
+    max-width: 80px;
+    min-width: 80px;
+}
+
+.sidebar.toggled{
+    max-width: 80px;
+    min-width: 80px;
+}
+
+.navbar.toggled .text,
+.sidebar.toggled .text
+{
+    display: none;
+}
+
+.sidebar.toggled .feather{
+    width: 35px;
+    height: 35px;
+    font-size: 35px;
+    margin-right: 10px;
+}
+
+.sidebar.toggled ~ [role="main"] {
+    max-width: calc(100% - 80px);
+    flex: 0 0 calc(100% - 80px);
+}
+
+@media (max-width: 768px) {
+    [role="main"],
+    .sidebar.toggled ~ [role="main"]
+    {
+        margin: 0 !important;
+    }
+
+    .sidebar.toggled{
+        max-width: 80px;
+        min-width: 80px;
+    }
 }
