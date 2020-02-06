@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, render
+from django.db.models import F
 
 from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion
 
@@ -49,7 +50,7 @@ def get_runes(request):
     amount = min(100, runes.count())
     runes = runes[:amount]
 
-    fastest_runes = Rune.objects.filter(substats__contains=[8]).order_by('-substats_values') # doesn't work as intended, currentyl a placeholder for template
+    fastest_runes = Rune.objects.all().order_by(F('sub_speed').desc(nulls_last=True))
     fastest_amount = min(100, fastest_runes.count())
     fastest_runes = fastest_runes[:fastest_amount]
 

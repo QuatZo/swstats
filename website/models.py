@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
+# Create your models here.
 class Guild(models.Model):
     GUILD_RANKS = (
         (1011, 'Challenger'),
@@ -72,7 +74,6 @@ class RuneSet(models.Model):
     class Meta:
         ordering = ['name']
 
-# Create your models here.
 class Rune(models.Model):
     RUNE_QUALITIES = (
         (1, 'Common'),
@@ -115,10 +116,22 @@ class Rune(models.Model):
     primary_value = models.IntegerField() # pri_eff[1]
     innate = models.SmallIntegerField(choices=RUNE_EFFECTS) # prefix_eff[0]
     innate_value = models.IntegerField() # prefix_eff[1]
-    substats = ArrayField( models.SmallIntegerField(choices=RUNE_EFFECTS) ) # sec_eff[i][0]
-    substats_values = ArrayField( models.IntegerField() ) # sec_eff[i][1]
-    substats_enchants = ArrayField( models.IntegerField() ) # sec_eff[i][2]
-    substats_grindstones = ArrayField( models.IntegerField() ) # sec_eff[i][3]
+    
+    ########################################
+    # Substats
+    sub_hp_flat = models.SmallIntegerField(blank=True, null=True)
+    sub_hp = models.SmallIntegerField(blank=True, null=True)
+    sub_atk_flat = models.SmallIntegerField(blank=True, null=True)
+    sub_atk = models.SmallIntegerField(blank=True, null=True)
+    sub_def_flat = models.SmallIntegerField(blank=True, null=True)
+    sub_def = models.SmallIntegerField(blank=True, null=True)
+    sub_speed = models.SmallIntegerField(blank=True, null=True)
+    sub_crit_rate = models.SmallIntegerField(blank=True, null=True)
+    sub_crit_dmg = models.SmallIntegerField(blank=True, null=True)
+    sub_res = models.SmallIntegerField(blank=True, null=True)
+    sub_acc = models.SmallIntegerField(blank=True, null=True)
+    ########################################
+
     quality_original = models.SmallIntegerField(choices=RUNE_QUALITIES) # extra
     efficiency = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
     efficiency_max = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views

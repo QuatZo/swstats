@@ -180,3 +180,27 @@ body {
     background-color: #007bff;
     border-color: #007bff;
 }
+
+tr.orig-quality-Legend,
+tr.orig-quality-Ancient.Legend
+{
+    background-color: rgb(255, 173, 73, .15);
+}
+
+tr.orig-quality-Hero,
+tr.orig-quality-Ancient.Hero
+{
+    background-color: rgb(255, 0, 255, .15);
+}
+
+tr.orig-quality-Rare,
+tr.orig-quality-Ancient.Rare
+{
+    background-color: rgb(0, 0, 255, .15);
+}
+
+tr.orig-quality-Magic,
+tr.orig-quality-Ancient.Magic
+{
+    background-color: rgb(0, 255, 0, .15);
+}

@@ -323,7 +323,7 @@ class UploadViewSet(viewsets.ViewSet):
                 wizard['raid_level'] = data['raid_info_list'][0]['available_stage_id']
                 wizard['storage_capacity'] = data['unit_depository_slots']['number']
                 wizard['last_update'] = datetime.utcfromtimestamp(data['tvalue'])
-                wizard['guild'] = Guild.objects.get(id=guild['id'])
+                wizard['guild'] = Guild.objects.get(id=data['guild']['guild_info']['guild_id'])
                 obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
                 print("Wizard done")
                 ########################################
@@ -346,10 +346,21 @@ class UploadViewSet(viewsets.ViewSet):
                     rune['primary_value'] = temp_rune['pri_eff'][1]
                     rune['innate'] = temp_rune['prefix_eff'][0]
                     rune['innate_value'] = temp_rune['prefix_eff'][1]
-                    rune['substats'] = [sub[0] for sub in temp_rune['sec_eff']]
-                    rune['substats_values'] = [sub[1] for sub in temp_rune['sec_eff']]
-                    rune['substats_enchants'] = [sub[2] for sub in temp_rune['sec_eff']]
-                    rune['substats_grindstones'] = [sub[3] for sub in temp_rune['sec_eff']]
+
+                    for sub in temp_rune['sec_eff']:
+                        val = sub[1] + sub[3] if sub[3] else sub[1]
+                        if sub[0] == 1: rune['sub_hp_flat'] = val
+                        if sub[0] == 2: rune['sub_hp'] = val
+                        if sub[0] == 3: rune['sub_atk_flat'] = val
+                        if sub[0] == 4: rune['sub_atk'] = val
+                        if sub[0] == 5: rune['sub_def_flat'] = val
+                        if sub[0] == 6: rune['sub_def'] = val
+                        if sub[0] == 8: rune['sub_speed'] = val
+                        if sub[0] == 9: rune['sub_crit_rate'] = val
+                        if sub[0] == 10: rune['sub_crit_dmg'] = val
+                        if sub[0] == 11: rune['sub_res'] = val
+                        if sub[0] == 12: rune['sub_acc'] = val
+
                     rune['quality_original'] = temp_rune['extra']
                     eff_curr, eff_max = calc_efficiency(temp_rune)
                     rune['efficiency'] = eff_curr

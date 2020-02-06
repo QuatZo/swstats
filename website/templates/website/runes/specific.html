@@ -1,33 +1,12 @@
 {% extends "website/base.html" %}
+{% load add_str %}
+{% load to_list %}
 
-{% block content_title %}Rune {{ rune }}{% endblock %}
-
-{% block content %}
-    {% if rune %}
-		<ul>
-			<li>ID: {{ rune.id }}</li>
-			<li>User ID: {{ rune.user_id }}</li>
-			<li>Slot: {{ rune.slot }}</li>
-			<li>Quality: {{ rune.get_quality_display }}</li>
-			<li>Stars: {{ rune.stars }}</li>
-			<li>Rune set: {{ rune.rune_set }}</li>
-			<li>Level: {{ rune.upgrade_curr }}</li>
-			<li>Sell for: {{ rune.sell_value }}</li>
-			<li>Primary stat: {{ rune.get_primary_display }}{{ rune.primary_value }}</li>
-			<li>Init stat: +{{ rune.innate_value }} {{ rune.get_innate_display }}</li>
-			<li>Substats: 
-				<ul>
-					{% for substat in rune.substats %}
-						{% if substat != 0 %}
-							<li>{{ substat }}</li>
-						{% endif %}
-					{% endfor %}
-				</ul>
-			</li>
-			<li>Quality Original: {{ rune.get_quality_original_display }}</li>
-			<li>Equipped: {{ rune.equipped }}</li>
-		</ul>
+{% block table %}
+	{% if rune %}
+		{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune ( ID: "|add_str:rune.id|add_str:" )" collapse_id="rune-"|add_str:rune.id collapsed=""%}
+		And here will be some info who has this rune, in what decks this monster is etc. etc.
 	{% else %}
-		<p>Didn't find any rune with given ID</p>
+		<p>There will be 404 Error or something because no rune like this.</p>
 	{% endif %}
 {% endblock %}

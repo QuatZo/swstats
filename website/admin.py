@@ -17,7 +17,8 @@ class RuneSetAdmin(admin.ModelAdmin):
 class RuneAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'user_id', 'slot', 'quality', 'stars', 'rune_set', 'upgrade_limit', 'upgrade_curr', 'base_value', 'sell_value', 'primary', 'primary_value', 
-        'innate', 'innate_value', 'substats', 'substats_values', 'substats_enchants', 'substats_grindstones', 'quality_original', 'efficiency', 'efficiency_max', 'equipped'
+        'innate', 'innate_value', 'sub_hp_flat', 'sub_hp', 'sub_atk_flat', 'sub_atk', 'sub_def_flat', 'sub_def', 'sub_speed', 'sub_crit_rate', 'sub_crit_dmg', 
+        'sub_res', 'sub_acc', 'quality_original', 'efficiency', 'efficiency_max', 'equipped'
     )
 
 class MonsterFamilyAdmin(admin.ModelAdmin):

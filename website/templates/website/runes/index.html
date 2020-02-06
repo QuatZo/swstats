@@ -1,5 +1,4 @@
 {% extends "website/base.html" %}
-{% load zip_substats %}
 {% load add_str %}
 {% block content_title%}
     Runes
@@ -11,12 +10,12 @@
 
 {% block table %}
     {% with "Top "|add_str:amount|add_str:" runes" as text %}
-        {% include "website/runes/rune_table.html" with runes=runes collapse_id="top_runes" text=text %}
+        {% include "website/runes/rune_table.html" with runes=runes collapse_id="top_runes" text=text collapsed="collapse" %}
     {% endwith %}
 
     
     {% with "Fastest "|add_str:fastest_amount|add_str:" runes" as text %}
-        {% include "website/runes/rune_table.html" with runes=fastest_runes collapse_id="fastest_runes" text=text %}
+        {% include "website/runes/rune_table.html" with runes=fastest_runes collapse_id="fastest_runes" text=text collapsed="collapse" %}
     {% endwith %}
 {% endblock %}
 
