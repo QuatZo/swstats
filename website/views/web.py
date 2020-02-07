@@ -17,25 +17,25 @@ def get_homepage(request):
         {
             'id': 1,
             'title': 'Highest rune efficiency',
-            'text': f'The most efficient rune stored in database has {rune_best.efficiency}% efficiency.',
-            'arg': rune_best.id,
+            'text': f'The most efficient rune stored in database has {rune_best.efficiency if rune_best else 0}% efficiency.',
+            'arg': rune_best.id if rune_best else 0,
         },
         {
             'id': 2,
             'title': 'Equipped runes',
-            'text': f'From {runes.count()} runes in database, only {rune_equipped} are equipped. it gives us {round(rune_equipped / runes.count() * 100, 2)}% \'useless\' runes.',
+            'text': f'From {runes.count()} runes in database, only {rune_equipped} are equipped. it gives us {round(rune_equipped / runes.count() * 100, 2) if runes.count() else 0}% \'useless\' runes.',
         },
         {
             'id': 3,
             'title': 'Highest average efficiency',
-            'text': f'{str(monster_best)} has the highest average efficiency, amounting to {monster_best.avg_eff}%',
-            'arg': monster_best.id,
+            'text': f'{str(monster_best)} has the highest average efficiency, amounting to {monster_best.avg_eff if monster_best else 0}%',
+            'arg': monster_best.id if monster_best else 0,
         },
         {
             'id': 4,
             'title': 'Highest critical damage value',
-            'text': f'Highest Critical Damage value has {str(monster_cdmg)} with an amazing {monster_cdmg.crit_dmg}%',
-            'arg': monster_best.id,
+            'text': f'Highest Critical Damage value has {str(monster_cdmg)} with an amazing {monster_cdmg.crit_dmg if monster_cdmg else 0}%',
+            'arg': monster_cdmg.id if monster_best else 0,
         },
     ]
 

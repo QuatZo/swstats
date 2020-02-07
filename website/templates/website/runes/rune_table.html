@@ -1,83 +1,96 @@
 {% load add_str %}
+{% load add_reverse_str %}
+{% load rune_grinded_val %}
+
 <h2 class="title">
     {{ text }}
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
         Show/Hide 
     </button>
 </h2>
-<table class="table table-hover table-sm {{ collapsed }}" id="{{ collapse_id }}">
-    <thead>
-        <tr>
-            <th scope="col">Check</th>
-            <th scope="col">Quality</th>
-            <th scope="col">Slot</th>
-            <th scope="col">Stars</th>
-            <th scope="col">Set</th>
-            <th scope="col">Level</th>
-            <th scope="col">Primary</th>
-            <th scope="col">Value</th>
-            <th scope="col">Innate</th>
-            <th scope="col">Value</th>
-            <th scope="col">HP+</th>
-            <th scope="col">HP%</th>
-            <th scope="col">ATK+</th>
-            <th scope="col">ATK%</th>
-            <th scope="col">DEF+</th>
-            <th scope="col">DEF%</th>
-            <th scope="col">SPD</th>
-            <th scope="col">CRATE</th>
-            <th scope="col">CDMG</th>
-            <th scope="col">RES</th>
-            <th scope="col">ACC</th>
-            <!-- <th scope="col">Original Quality</th> because background color -->
-            <th scope="col">Eff.</th>
-            <th scope="col">Eff. Max</th>
-            <th scope="col">Equipped</th>
-            <th scope="col">Check</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for rune in runes %}
-            <tr class="{{ "orig-quality-"|add_str:rune.get_quality_original_display }}">
-                <th scope="row">
-                    <a href={% url 'specific_rune' rune_id=rune.id %}>
-                        <span data-feather="info"></span>
-                    <a/>
-                </th>
-                <td>{{ rune.get_quality_display }}</td>
-                <td>{{ rune.slot }}</td>
-                <td>{{ rune.stars }}</td>
-                <td>{{ rune.rune_set }}</td>
-                <td>{{ rune.upgrade_curr }}</td>
-                <td>{{ rune.get_primary_display }}</td>
-                <td>{{ rune.primary_value }}</td>
-                <td>{{ rune.get_innate_display }}</td>
-                <td>{{ rune.innate_value|default:"-" }}</td>
-                <td>{{ rune.sub_hp_flat|default:"-" }}</td>
-                <td>{{ rune.sub_hp|default:"-" }}</td>
-                <td>{{ rune.sub_atk_flat|default:"-" }}</td>
-                <td>{{ rune.sub_atk|default:"-" }}</td>
-                <td>{{ rune.sub_def_flat|default:"-" }}</td>
-                <td>{{ rune.sub_def|default:"-" }}</td>
-                <td>{{ rune.sub_speed|default:"-" }}</td>
-                <td>{{ rune.sub_crit_rate|default:"-" }}</td>
-                <td>{{ rune.sub_crit_dmg|default:"-" }}</td>
-                <td>{{ rune.sub_res|default:"-" }}</td>
-                <td>{{ rune.sub_acc|default:"-" }}</td>
-                <!--<td>{{ rune.get_quality_original_display }}</td> because background color -->
-                <td>{{ rune.efficiency }}</td>
-                <td>{{ rune.efficiency_max }}</td>
-                <td> {% if rune.equipped %}
-                    <span data-feather="check" style="color: green;"></span>
-                    {% else %}
-                    <span data-feather="slash" style="color: red;"></span>
-                    {% endif %}
-                <td>
-                    <a href={% url 'specific_rune' rune_id=rune.id %}>
-                        <span data-feather="info"></span>
-                    <a/>
-                </td>
+<div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Check</th>
+                <th scope="col">Quality</th>
+                <th scope="col">Slot</th>
+                <th scope="col">Stars</th>
+                <th scope="col">Set</th>
+                <th scope="col">Level</th>
+                <th scope="col">Primary</th>
+                <th scope="col">Value</th>
+                <th scope="col">Innate</th>
+                <th scope="col">Value</th>
+                <th scope="col">HP+</th>
+                <th scope="col">HP%</th>
+                <th scope="col">ATK+</th>
+                <th scope="col">ATK%</th>
+                <th scope="col">DEF+</th>
+                <th scope="col">DEF%</th>
+                <th scope="col">SPD</th>
+                <th scope="col">CRATE</th>
+                <th scope="col">CDMG</th>
+                <th scope="col">RES</th>
+                <th scope="col">ACC</th>
+                <!-- <th scope="col">Original Quality</th> because background color -->
+                <th scope="col">Eff.</th>
+                <th scope="col">Eff. Max</th>
+                <th scope="col">Equipped</th>
+                <th scope="col">Locked</th>
+                <th scope="col">Check</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for rune in runes %}
+                <tr class="{{ "orig-quality-"|add_str:rune.get_quality_original_display }}">
+                    <th scope="row">
+                        <a href={% url 'specific_rune' rune_id=rune.id %}>
+                            <span data-feather="info"></span>
+                        <a/>
+                    </th>
+                    <td>{{ rune.get_quality_display }}</td>
+                    <td>{{ rune.slot }}</td>
+                    <td>{{ rune.stars }}</td>
+                    <td>{{ rune.rune_set }}</td>
+                    <td>{{ rune.upgrade_curr }}</td>
+                    <td>{{ rune.get_primary_display }}</td>
+                    <td>{{ rune.primary_value }}</td>
+                    <td>{{ rune.get_innate_display }}</td>
+                    <td>{{ rune.innate_value }}</td>
+                    <td>{{ rune.sub_hp_flat|rune_grinded_val }}<sup>{{ rune.sub_hp_flat.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_hp|rune_grinded_val }}<sup>{{ rune.sub_hp.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_atk_flat|rune_grinded_val }}<sup>{{ rune.sub_atk_flat.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_atk|rune_grinded_val }}<sup>{{ rune.sub_atk.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_def_flat|rune_grinded_val }}<sup>{{ rune.sub_def_flat.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_def|rune_grinded_val }}<sup>{{ rune.sub_def.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_speed|rune_grinded_val }}<sup>{{ rune.sub_speed.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_crit_rate|rune_grinded_val }}<sup>{{ rune.sub_crit_rate.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_crit_dmg|rune_grinded_val }}<sup>{{ rune.sub_crit_dmg.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_res|rune_grinded_val }}<sup>{{ rune.sub_res.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <td>{{ rune.sub_acc|rune_grinded_val }}<sup>{{ rune.sub_acc.1|default:""|add_reverse_str:"+" }}</sup></td>
+                    <!--<td>{{ rune.get_quality_original_display }}</td> because background color -->
+                    <td>{{ rune.efficiency }}</td>
+                    <td>{{ rune.efficiency_max }}</td>
+                    <td> {% if rune.equipped %}
+                        <span data-feather="check" style="color: green;"></span>
+                        {% else %}
+                        <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>
+                    <td> {% if rune.locked %}
+                        <span data-feather="check" style="color: green;"></span>
+                        {% else %}
+                        <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href={% url 'specific_rune' rune_id=rune.id %}>
+                            <span data-feather="info"></span>
+                        <a/>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

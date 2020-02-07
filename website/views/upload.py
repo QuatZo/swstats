@@ -2,7 +2,7 @@ from django.http import HttpResponse
 
 from rest_framework import viewsets, permissions, status
 
-from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild
+from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem
 
 import copy
 import math
@@ -233,6 +233,23 @@ class HomunculusUploadViewSet(viewsets.ViewSet):
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
+class ItemUploadViewSet(viewsets.ViewSet):
+     def create(self, request):
+        if request.data:
+            for temp_item in request.data:
+                item = dict()
+                ########################################
+                # Item Model
+                item['item_id'] = temp_item['item_master_id']
+                item['item_type'] = temp_item['item_master_type']
+                item['name'] = temp_item['name']
+                ########################################
+
+                obj, created = Item.objects.update_or_create( item_type=item['item_type'], item_id=item['item_id'], defaults=item, )
+            return HttpResponse(status=status.HTTP_201_CREATED)
+        
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
 class UploadViewSet(viewsets.ViewSet):
     def create(self, request):
         # prepare dictionaries for every command
@@ -348,24 +365,24 @@ class UploadViewSet(viewsets.ViewSet):
                     rune['innate_value'] = temp_rune['prefix_eff'][1]
 
                     for sub in temp_rune['sec_eff']:
-                        val = sub[1] + sub[3] if sub[3] else sub[1]
-                        if sub[0] == 1: rune['sub_hp_flat'] = val
-                        if sub[0] == 2: rune['sub_hp'] = val
-                        if sub[0] == 3: rune['sub_atk_flat'] = val
-                        if sub[0] == 4: rune['sub_atk'] = val
-                        if sub[0] == 5: rune['sub_def_flat'] = val
-                        if sub[0] == 6: rune['sub_def'] = val
-                        if sub[0] == 8: rune['sub_speed'] = val
-                        if sub[0] == 9: rune['sub_crit_rate'] = val
-                        if sub[0] == 10: rune['sub_crit_dmg'] = val
-                        if sub[0] == 11: rune['sub_res'] = val
-                        if sub[0] == 12: rune['sub_acc'] = val
+                        if sub[0] == 1: rune['sub_hp_flat'] = [sub[1], sub[3]]
+                        elif sub[0] == 2: rune['sub_hp'] = [sub[1], sub[3]]
+                        elif sub[0] == 3: rune['sub_atk_flat'] = [sub[1], sub[3]]
+                        elif sub[0] == 4: rune['sub_atk'] = [sub[1], sub[3]]
+                        elif sub[0] == 5: rune['sub_def_flat'] = [sub[1], sub[3]]
+                        elif sub[0] == 6: rune['sub_def'] = [sub[1], sub[3]]
+                        elif sub[0] == 8: rune['sub_speed'] = [sub[1], sub[3]]
+                        elif sub[0] == 9: rune['sub_crit_rate'] = [sub[1], sub[3]]
+                        elif sub[0] == 10: rune['sub_crit_dmg'] = [sub[1], sub[3]]
+                        elif sub[0] == 11: rune['sub_res'] = [sub[1], sub[3]]
+                        elif sub[0] == 12: rune['sub_acc'] = [sub[1], sub[3]]
 
                     rune['quality_original'] = temp_rune['extra']
                     eff_curr, eff_max = calc_efficiency(temp_rune)
                     rune['efficiency'] = eff_curr
                     rune['efficiency_max'] = eff_max
                     rune['equipped'] = True if temp_rune['occupied_type'] == 1 else False
+                    rune['locked'] = True if temp_rune['rune_id'] in data['rune_lock_list'] else False
                     ########################################
                     obj, created = Rune.objects.update_or_create( id=rune['id'], defaults=rune, )
                 print("Runes done")
@@ -413,6 +430,17 @@ class UploadViewSet(viewsets.ViewSet):
                     obj.save()
                 print("Monsters done")
 
+                ########################################
+                # Wizard RTA Runes Model
+                print("Wizard's RTA Runes on monsters")
+                if 'world_arena_rune_equip_list' in data.keys():
+                    for rta_rune in data['world_arena_rune_equip_list']:
+                        obj, created = RuneRTA.objects.update_or_create( rune_id=rta_rune['rune_id'], defaults={
+                            'monster_id': Monster.objects.get(id=rta_rune['occupied_id']),
+                            'rune_id': Rune.objects.get(id=rta_rune['rune_id']),
+                        }, )
+                print("Wizard's RTA Runes on monsters done")
+                ########################################
 
                 ########################################
                 # Wizard Rep Monster Model
@@ -504,6 +532,18 @@ class UploadViewSet(viewsets.ViewSet):
                 for homie in homies.values():
                     obj, created = WizardHomunculus.objects.update_or_create( wizard_id=homie['wizard_id'], homunculus_id=homie['homunculus_id'], defaults=homie, )
                 print("Homunculus done")
+                ########################################
+
+                ########################################
+                # Wizard Item Model
+                print("Inventory")
+                for temp_item in data['inventory_info']:
+                    item = dict()
+                    item['wizard_id'] = Wizard.objects.get(id=temp_item['wizard_id'])
+                    item['master_item_id'] = Item.objects.get(item_id=temp_item['item_master_id'], item_type=temp_item['item_master_type'])
+                    item['quantity'] = temp_item['item_quantity']
+                    obj, created = WizardItem.objects.update_or_create( wizard_id=item['wizard_id'], master_item_id=item['master_item_id'], defaults=item, )
+                print("Inventory done")
                 ########################################
 
             return HttpResponse(status=status.HTTP_201_CREATED)

@@ -31,6 +31,7 @@ if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabl
     router.register(r'monsterfusionupload', views.MonsterFusionUploadViewSet, 'monsterfusionupload')
     router.register(r'buildingupload', views.BuildingUploadViewSet, 'buildingupload')
     router.register(r'homunculusupload', views.HomunculusUploadViewSet, 'homunculusupload')
+    router.register(r'itemupload', views.ItemUploadViewSet, 'itemupload')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

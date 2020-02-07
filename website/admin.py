@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild
+from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem
 
 
 class GuildAdmin(admin.ModelAdmin):
@@ -18,7 +18,7 @@ class RuneAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'user_id', 'slot', 'quality', 'stars', 'rune_set', 'upgrade_limit', 'upgrade_curr', 'base_value', 'sell_value', 'primary', 'primary_value', 
         'innate', 'innate_value', 'sub_hp_flat', 'sub_hp', 'sub_atk_flat', 'sub_atk', 'sub_def_flat', 'sub_def', 'sub_speed', 'sub_crit_rate', 'sub_crit_dmg', 
-        'sub_res', 'sub_acc', 'quality_original', 'efficiency', 'efficiency_max', 'equipped'
+        'sub_res', 'sub_acc', 'quality_original', 'efficiency', 'efficiency_max', 'equipped', 'locked'
     )
 
 class MonsterFamilyAdmin(admin.ModelAdmin):
@@ -76,7 +76,16 @@ class HomunculusSkillAdmin(admin.ModelAdmin):
     
 class WizardHomunculusAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'wizard_id', 'homunculus_id', 'skill_1', 'skill_1_plus', 'skill_2', 'skill_2_plus', 'skill_3' )
-    
+
+class RuneRTAAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'monster_id', 'rune_id' )
+
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'item_id', 'item_type', 'name')
+
+class WizardItemAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'wizard_id', 'master_item_id', 'quantity' )
+
 
 # Register your models here.
 admin.site.register(Guild, GuildAdmin)
@@ -96,3 +105,6 @@ admin.site.register(WizardBuilding, WizardBuildingAdmin)
 admin.site.register(Arena, ArenaAdmin)
 admin.site.register(HomunculusSkill, HomunculusSkillAdmin)
 admin.site.register(WizardHomunculus, WizardHomunculusAdmin)
+admin.site.register(RuneRTA, RuneRTAAdmin)
+admin.site.register(Item, ItemAdmin)
+admin.site.register(WizardItem, WizardItemAdmin)

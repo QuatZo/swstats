@@ -119,23 +119,24 @@ class Rune(models.Model):
     
     ########################################
     # Substats
-    sub_hp_flat = models.SmallIntegerField(blank=True, null=True)
-    sub_hp = models.SmallIntegerField(blank=True, null=True)
-    sub_atk_flat = models.SmallIntegerField(blank=True, null=True)
-    sub_atk = models.SmallIntegerField(blank=True, null=True)
-    sub_def_flat = models.SmallIntegerField(blank=True, null=True)
-    sub_def = models.SmallIntegerField(blank=True, null=True)
-    sub_speed = models.SmallIntegerField(blank=True, null=True)
-    sub_crit_rate = models.SmallIntegerField(blank=True, null=True)
-    sub_crit_dmg = models.SmallIntegerField(blank=True, null=True)
-    sub_res = models.SmallIntegerField(blank=True, null=True)
-    sub_acc = models.SmallIntegerField(blank=True, null=True)
+    sub_hp_flat = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_hp = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_atk_flat = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_atk = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_def_flat = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_def = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_speed = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_crit_rate = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_crit_dmg = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_res = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    sub_acc = ArrayField(models.SmallIntegerField(), blank=True, null=True)
     ########################################
 
     quality_original = models.SmallIntegerField(choices=RUNE_QUALITIES) # extra
     efficiency = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
     efficiency_max = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
     equipped = models.BooleanField() # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
+    locked = models.BooleanField() # rune_lock_list
     # ^ OR same as JSON (,type if type different than monster then id = 0)
     # ^ OR models.BigIntegerField 
     # ^ OR models.ForeignKey for Monster [what with Inventory then?]
@@ -284,6 +285,18 @@ class MonsterRep(models.Model):
     wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_info
     monster_id = models.ForeignKey(Monster, on_delete=models.CASCADE) # rep_unit_id in profile JSON - wizard_info part
 
+class RuneRTA(models.Model):
+    monster_id = models.ForeignKey(Monster, on_delete=models.CASCADE)
+    rune_id = models.ForeignKey(Rune, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.rune_id) + " on " + str(self.monster_id)
+
+    class Meta:
+        verbose_name = 'Rune RTA'
+        verbose_name_plural = 'Runes RTA'
+        ordering = ['monster_id', 'rune_id']
+
 class Deck(models.Model):
     DECK_TYPES = [
         (1, 'Arena'),
@@ -401,3 +414,42 @@ class WizardHomunculus(models.Model):
 
     class Meta:
         ordering = ['wizard_id', 'homunculus_id']
+
+class Item(models.Model):
+    ITEM_TYPES = (
+        (6, "?"),
+        (9, "Scroll"),
+        (11, "Essence"),
+        (12, "Monster Pieces"),
+        (15, "??"),
+        (16, "???"),
+        (19, "????"),
+        (20, "????????"),
+        (29, "Crafting Material"),
+        (37, "?????"),
+        (57, "??????"),
+        (58, "???????"),
+        (61, "Evolve Material"),
+    )
+
+    item_id = models.IntegerField()
+    item_type = models.SmallIntegerField(choices=ITEM_TYPES)
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['item_type', 'item_id']
+
+
+class WizardItem(models.Model):
+    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE)
+    master_item_id = models.ForeignKey(Item, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+
+    def __str__(self):
+        return 'x' + str(self.quantity) + ' ' + str(self.master_item_id)
+
+    class Meta:
+        ordering = ['wizard_id', 'master_item_id', '-quantity']
