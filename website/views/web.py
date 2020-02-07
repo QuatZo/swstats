@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404, render
-from django.db.models import F
-
+from django.db.models import F, Avg, Min, Max
 from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion
 
+import json
 
 # Create your views here.
 def get_homepage(request):
@@ -47,18 +47,68 @@ def get_homepage(request):
 
 def get_runes(request):
     runes = Rune.objects.all().order_by('-efficiency')
-    amount = min(100, runes.count())
-    runes = runes[:amount]
 
-    fastest_runes = Rune.objects.all().order_by(F('sub_speed').desc(nulls_last=True))
+    avg_eff_above_runes = list()
+    avg_eff_below_runes = list()
+    avg_eff = runes.aggregate(Avg('efficiency'))['efficiency__avg']
+
+    min_eff = runes.aggregate(Min('efficiency'))['efficiency__min']
+    max_eff = runes.aggregate(Max('efficiency'))['efficiency__max']
+    rnge = max_eff - min_eff # range
+
+    INTERVALS = 40
+
+    points = [round(min_eff + (max_eff - min_eff) / INTERVALS * i, 2) for i in range(INTERVALS + 1)]
+    limits = [[points[i], points[i + 1]] for i in range(INTERVALS)]
+    distribution = [0 for _ in range(INTERVALS)]
+
+    for rune in runes:
+        for i in range(INTERVALS):
+            if i == INTERVALS - 1: # last one, so we need to include max
+                if rune.efficiency >= limits[i][0] and rune.efficiency <= limits[i][1]:
+                    distribution[i] += 1
+                    break
+            elif rune.efficiency >= limits[i][0] and rune.efficiency < limits[i][1]:
+                    distribution[i] += 1
+                    break
+
+    for rune in runes:
+        if rune.efficiency >= avg_eff:
+            avg_eff_above_runes.append({
+                'x': rune.id,
+                'y': rune.efficiency
+            })
+        else:
+            avg_eff_below_runes.append({
+                'x': rune.id,
+                'y': rune.efficiency
+            })
+
+    best_amount = min(100, runes.count())
+    best_runes = runes[:best_amount]
+
+    fastest_runes = runes.order_by(F('sub_speed').desc(nulls_last=True))
     fastest_amount = min(100, fastest_runes.count())
     fastest_runes = fastest_runes[:fastest_amount]
 
     context = {
-        'amount': amount,
-        'runes': runes,
+        # chart best
+        'avg_eff_above_runes': json.dumps(avg_eff_above_runes),
+        'avg_eff_above_quantity': len(avg_eff_above_runes),
+        'avg_eff_below_runes': json.dumps(avg_eff_below_runes),
+        'avg_eff_below_quantity': len(avg_eff_below_runes),
+        'avg_eff': round(avg_eff, 2),
+
+        # chart distribution
+        'distribution': distribution,
+        'means': points,
+
+        # tables
+        'best_amount': best_amount,
+        'best_runes': best_runes,
         'fastest_runes': fastest_runes,
         'fastest_amount': fastest_amount,
+        
     }
 
     return render( request, 'website/runes/index.html', context)

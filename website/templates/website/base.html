@@ -16,7 +16,9 @@
     {% block fontawesome %}
         <script src="https://kit.fontawesome.com/db771f92f8.js" crossorigin="anonymous"></script>
     {% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <meta charset="utf-8">
+    {% block custom_script %} {% endblock %}
     <title>
         {% block title %}
             Summoners War Statistics
@@ -139,9 +141,7 @@
 
                 {% block content %}{% endblock %}
                 
-                {% block table %} 
-                    
-                {% endblock %}
+                {% block table %}{% endblock %}
             </main>
         </div>
     </div>
