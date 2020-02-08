@@ -19,7 +19,7 @@
                         <p>{{ message.text }}</p>
                         {% if message.arg %}
                             <div type="button" class="btn btn-outline-light">
-                                <a class="nav-link" href="{% url 'specific_rune' rune_id=message.arg %}">Check this out!</a>
+                                <a class="nav-link" href="{% url 'rune_by_id' rune_id=message.arg %}">Check this out!</a>
                             </div>
                         {% endif %}
                     </div>

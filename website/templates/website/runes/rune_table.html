@@ -45,7 +45,7 @@
             {% for rune in runes %}
                 <tr class="{{ "orig-quality-"|add_str:rune.get_quality_original_display }}">
                     <th scope="row">
-                        <a href={% url 'specific_rune' rune_id=rune.id %}>
+                        <a href={% url 'rune_by_id' rune_id=rune.id %}>
                             <span data-feather="info"></span>
                         <a/>
                     </th>
@@ -85,12 +85,16 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href={% url 'specific_rune' rune_id=rune.id %}>
+                        <a href={% url 'rune_by_id' rune_id=rune.id %}>
                             <span data-feather="info"></span>
                         <a/>
                     </td>
+                    
                 </tr>
             {% endfor %}
+            <script>
+                feather.replace()
+            </script>
         </tbody>
     </table>
 </div>

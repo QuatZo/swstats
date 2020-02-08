@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404, render
-from django.db.models import F, Avg, Min, Max
+from django.db.models import F, Avg, Min, Max, Sum, Count
 from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion
+import matplotlib.cm as cm
+import numpy as np
 
 import json
 
@@ -51,6 +53,30 @@ def get_runes(request):
     avg_eff_above_runes = list()
     avg_eff_below_runes = list()
     avg_eff = runes.aggregate(Avg('efficiency'))['efficiency__avg']
+
+    group_by_set = runes.values('rune_set__name').annotate(total=Count('rune_set')).order_by('-total')
+    set_name = list()
+    set_count = list()
+
+    for group in group_by_set:
+        set_name.append(group['rune_set__name'])
+        set_count.append(group['total'])
+
+    set_colors = cm.Dark2(np.linspace(0, 1, len(set_name)))
+    set_rgb_colors = [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in set_colors]
+
+    group_by_slot = runes.values('slot').annotate(total=Count('slot')).order_by('slot')
+    slot_number = list()
+    slot_count = list()
+
+    for group in group_by_slot:
+        slot_number.append(group['slot'])
+        slot_count.append(group['total'])
+
+    slot_colors = cm.Dark2(np.linspace(0, 1, len(slot_number)))
+    slot_rgb_colors = [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in slot_colors]
+
+
 
     min_eff = runes.aggregate(Min('efficiency'))['efficiency__min']
     max_eff = runes.aggregate(Max('efficiency'))['efficiency__max']
@@ -103,6 +129,16 @@ def get_runes(request):
         'distribution': distribution,
         'means': points,
 
+        # chart group by set
+        'set_name': set_name,
+        'set_count': set_count,
+        'set_color': set_rgb_colors,
+
+        # chart group by slot
+        'slot_number': slot_number,
+        'slot_count': slot_count,
+        'slot_color': slot_rgb_colors,
+
         # tables
         'best_amount': best_amount,
         'best_runes': best_runes,
@@ -111,12 +147,22 @@ def get_runes(request):
         
     }
 
-    return render( request, 'website/runes/index.html', context)
+    return render( request, 'website/runes/rune_index.html', context)
 
-
-def get_specific_rune(request, rune_id):
+def get_rune_by_id(request, rune_id):
     rune = get_object_or_404(Rune, id=rune_id)
     context = { 'rune': rune, }
 
-    return render( request, 'website/runes/specific.html', context )
+    return render( request, 'website/runes/rune_by_id.html', context )
 
+def get_rune_filter_set(request, set_name):
+    runes = Rune.objects.filter(rune_set__name=set_name).order_by('-efficiency')
+    context = { 'runes': runes, 'set_name': set_name }
+
+    return render( request, 'website/runes/rune_filter_set.html', context )
+
+def get_rune_filter_slot(request, slot):
+    runes = Rune.objects.filter(slot=slot).order_by('-efficiency')
+    context = { 'runes': runes, 'slot': slot}
+
+    return render( request, 'website/runes/rune_filter_slot.html', context )

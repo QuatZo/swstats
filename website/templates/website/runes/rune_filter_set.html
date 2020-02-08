@@ -1,0 +1,12 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+{% load to_list %}
+
+{% block table %}
+	{% if runes %}
+		{% include "website/runes/rune_table.html" with runes=runes text="Runes ( Set: "|add_str:set_name|add_str:" )" collapse_id="runes-"|add_str:set_name collapsed="" collapsed="collapse" %}
+		And here will be some info , in what decks this monster is etc. etc.
+	{% else %}
+		<p>There will be 404 Error or something because no runes like this.</p>
+	{% endif %}
+{% endblock %}

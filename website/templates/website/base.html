@@ -2,29 +2,21 @@
 <html lang="en">
   {% load static %}
   <head>
-    {% block styles %}
-        <link rel="stylesheet" type="text/css" href="{% static 'website/css/style.css' %}">
-    {% endblock %}
-    {% block bootstrap %}
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    {% endblock %}
-      <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    {% block fontawesome %}
-        <script src="https://kit.fontawesome.com/db771f92f8.js" crossorigin="anonymous"></script>
-    {% endblock %}
+    <link rel="stylesheet" type="text/css" href="{% static 'website/css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://kit.fontawesome.com/db771f92f8.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" charset="utf-8">
     {% block custom_script %} {% endblock %}
     <title>
         {% block title %}
             Summoners War Statistics
         {% endblock%}
     </title>
-
     <script src="{% static 'website/js/script.js' %}"></script>
   </head>
   <body>
@@ -44,94 +36,97 @@
     <div class="container-fluid">
         <div class="row">
             <nav class="col-md-2 d-md-block bg-light sidebar" id="sidebar-lower">
-            <div class="sidebar-sticky">
-                <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == "home" %}active{% endif %}" href="{% url 'home' %}" >
-                        <span data-feather="home"></span>
-                        <span class="text">Homepage</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes'%}" >
-                        <span data-feather="hexagon"></span>
-                        <span class="text">Runes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <span data-feather="users"></span>
-                        <span class="text">Monsters</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <span data-feather="award"></span>
-                        <span class="text">Arena</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <span class="far fa-building feather"></span>
-                        <span class="text">Buildings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <span data-feather="layers"></span>
-                        <span class="text">Decks</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <span class="fas fa-hands-helping feather"></span>
-                        <span class="text">Contribute</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <span class="fas fa-clipboard-list feather"></span>
-                        <span class="text">Credits</span>
-                    </a>
-                </li>
-                </ul>
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == "home" %}active{% endif %}" href="{% url 'home' %}" >
+                            <span data-feather="home"></span>
+                            <span class="text">Homepage</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes'%}" >
+                            <span data-feather="hexagon"></span>
+                            <span class="text">Runes</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span data-feather="users"></span>
+                            <span class="text">Monsters</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span data-feather="award"></span>
+                            <span class="text">Arena</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span class="far fa-building feather"></span>
+                            <span class="text">Buildings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span data-feather="layers"></span>
+                            <span class="text">Decks</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span class="fas fa-hands-helping feather"></span>
+                            <span class="text">Contribute</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span class="fas fa-clipboard-list feather"></span>
+                            <span class="text">Credits</span>
+                        </a>
+                    </li>
+                    </ul>
 
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span class="text">Future updates</span>
-                </h6>
-                <ul class="nav flex-column mb-2">
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#">
-                            <span class="fas fa-medal feather"></span>
-                            <span class="text">Guild</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#">
-                            <span class="fas fa-medal feather"></span>
-                            <span class="text">RTA</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#">
-                            <span class="fas fa-skull-crossbones feather"></span>
-                            <span class="text">World Boss</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#">
-                            <span class="fas fa-dungeon feather"></span>
-                            <span class="text">Dungeons</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#">
-                            <span class="fas fa-ghost feather"></span>
-                            <span class="text">Dimension Hole</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span class="text">Future updates</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <span class="fas fa-medal feather"></span>
+                                <span class="text">Guild</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <span class="fas fa-medal feather"></span>
+                                <span class="text">RTA</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <span class="fas fa-skull-crossbones feather"></span>
+                                <span class="text">World Boss</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <span class="fas fa-dungeon feather"></span>
+                                <span class="text">Dungeons</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <span class="fas fa-ghost feather"></span>
+                                <span class="text">Dimension Hole</span>
+                            </a>
+                        </li>
+                        <script>
+                            feather.replace()
+                        </script>
+                    </ul>
+                </div>
             </nav>
 
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
@@ -145,10 +140,5 @@
             </main>
         </div>
     </div>
-    {% block feather %}
-    <script>
-      feather.replace()
-    </script>
-    {% endblock %}
   </body>
 </html>

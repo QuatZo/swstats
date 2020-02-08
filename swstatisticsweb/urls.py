@@ -37,6 +37,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^$', views.get_homepage, name='home'),
     path('runes/', views.get_runes, name='runes'),
-    path('runes/<int:rune_id>/', views.get_specific_rune, name='specific_rune'),
+    path('runes/id/<int:rune_id>/', views.get_rune_by_id, name='rune_by_id'),
+    path('runes/set/<str:set_name>/', views.get_rune_filter_set, name='rune_filter_set'),
+    path('runes/slot/<int:slot>/', views.get_rune_filter_slot, name='rune_filter_slot'),
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]

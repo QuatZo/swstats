@@ -1,0 +1,205 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    Runes ( average efficiency: {{ avg_eff }}% )
+{% endblock %}
+
+{% block content %} 
+
+<!-- All Runes Chart -->
+<div class='chart'>
+    <canvas id="chart-all-runes" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-all-runes').getContext('2d');
+    let avgEffAboveRunes = {{ avg_eff_above_runes|safe }};
+    let avgEffBelowRunes = {{ avg_eff_below_runes|safe }};
+    var chartAllRunes = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Above Average ({{ avg_eff_above_quantity }})',
+                data: avgEffAboveRunes,
+                backgroundColor: 'rgba(255, 0, 132, 0.2)',
+                borderColor: ['rgba(255, 0, 132, 1)'],
+                borderWidth: 1,
+            },
+            {
+                label: 'Below Average ({{ avg_eff_below_quantity }})',
+                data: avgEffBelowRunes,
+                backgroundColor: 'rgba(0, 0, 132, 0.2)',
+                borderColor: ['rgba(0, 0, 132, 1)'],
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            onClick: handleClickRunesAll,
+            maintainAspectRatio: false,
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += Math.round(tooltipItem.yLabel * 100) / 100;
+                        label += '% efficiency'
+                        return label;
+                    }
+                }
+            }
+        }
+    });
+    function handleClickRunesAll(evt) {   
+        var activeElement = chartAllRunes.getElementAtEvent(evt);
+        if(activeElement.length > 0){
+            var index = activeElement[0]._index;
+            if(avgEffAboveRunes.length >= index && avgEffAboveRunes[index].y >= {{ avg_eff }}){
+                document.location.href = 'id/' + avgEffAboveRunes[index].x
+            }
+            else if(avgEffBelowRunes.length >= index && avgEffBelowRunes[index].y < {{ avg_eff }}){
+                document.location.href = 'id/' + avgEffBelowRunes[index].x
+            }
+        }
+            
+    };
+</script>
+
+<!-- Normal Distribution Chart -->
+<div class='chart'>
+    <canvas id="chart-normal-distribution" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-normal-distribution').getContext('2d');
+    var chartNormalDistribution = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ means }},
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: "rgba(25,192,20,0.3)",
+                data: {{ distribution }},
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Rune Efficiency Normal Distribution'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }]
+            },
+            legend: { display: false }
+        }
+    });
+</script>
+
+<div class='chart'>
+    <!-- Runes By Set Chart -->
+    <div class='chart-2'>
+        <canvas id="chart-rune-set" />
+    </div>
+    <script>
+        var ctx = document.getElementById('chart-rune-set').getContext('2d');
+        var runeSets = {{ set_name|safe }}
+        var chartRuneSet = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: runeSets,
+                datasets: [{
+                    label: "Quantity",
+                    type: "bar",
+                    backgroundColor: {{ set_color|safe }},
+                    data: {{ set_count|safe }},
+                }]
+            },
+            options: {
+            onClick: handleClickRunesSet,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Rune Quanitity Per Set'
+                },
+                scales: {
+                    xAxes: [{
+                        categoryPercentage: 1.0,
+                        barPercentage: 1.0
+                    }]
+                },
+                legend: { display: false }
+            }
+        }
+    );
+    function handleClickRunesSet(evt) {   
+        var activeElement = chartRuneSet.getElementAtEvent(evt);
+        if(activeElement.length > 0){
+            var index = activeElement[0]._index;
+            document.location.href = 'set/' + runeSets[index]
+        }
+    };
+    </script>
+
+    <!-- Runes By Slot Chart -->
+    <div class='chart-2' style="margin-left: 10%">
+        <canvas id="chart-rune-slot" />
+    </div>
+    <script>
+        var ctx = document.getElementById('chart-rune-slot').getContext('2d');
+        var chartRuneSlot = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ slot_number|safe }},
+                datasets: [{
+                    label: "Quantity",
+                    type: "bar",
+                    backgroundColor: {{ slot_color|safe }},
+                    data: {{ slot_count|safe }},
+                }]
+            },
+            options: {
+            onClick: handleClickRunesSlot,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Rune Quanitity Per Slot'
+                },
+                scales: {
+                    xAxes: [{
+                        categoryPercentage: 1.0,
+                        barPercentage: 1.0
+                    }]
+                },
+                legend: { display: false }
+            }
+        }
+    );
+    function handleClickRunesSlot(evt) {   
+        var activeElement = chartRuneSlot.getElementAtEvent(evt);
+        if(activeElement.length > 0){
+            var index = activeElement[0]._index;
+            document.location.href = 'slot/' + (index + 1) // 1-6 slots, 0-5 indexes
+        }
+    };
+    </script>
+</div>
+{% endblock %}
+
+{% block table %}
+    {% with "Top "|add_str:best_amount|add_str:" runes" as text %}
+        {% include "website/runes/rune_table.html" with runes=best_runes collapse_id="top_runes" text=text collapsed="collapse" %}
+    {% endwith %}
+
+    
+    {% with "Fastest "|add_str:fastest_amount|add_str:" runes" as text %}
+        {% include "website/runes/rune_table.html" with runes=fastest_runes collapse_id="fastest_runes" text=text collapsed="collapse" %}
+    {% endwith %}
+{% endblock %}
+
+
