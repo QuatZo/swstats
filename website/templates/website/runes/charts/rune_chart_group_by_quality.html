@@ -1,0 +1,48 @@
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-rune-quality" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-rune-quality').getContext('2d');
+    var runeQualities = {{ name|safe }}
+    var chartRuneQuality = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: runeQualities,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: {{ color|safe }},
+                data: {{ count|safe }},
+            }]
+        },
+        options: {
+        onClick: handleClickRunesQuality,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Rune Quanitity Per Quality'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false }
+        }
+    }
+);
+function handleClickRunesQuality(evt) {   
+    var activeElement = chartRuneQuality.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        document.location.href =  window.location.origin + '/runes/quality/' + runeQualities[index]
+    }
+};
+</script>

@@ -209,6 +209,7 @@ tr.orig-quality-Ancient.Magic
 .chart{
     width: 100%;
     height: 25vh;
+    min-height: 180px;
     display: flex;
 }
 
@@ -217,6 +218,11 @@ tr.orig-quality-Ancient.Magic
 .chart-2{
     width: 45%;
     height: 25vh;
+    min-height: 180px;
+}
+
+.chart-2.right{
+    margin-left: 10%;
 }
 
 h2.title,

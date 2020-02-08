@@ -1,0 +1,58 @@
+<div class='{{ class|default:'chart' }}'>
+    <canvas id="chart-all-runes" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-all-runes').getContext('2d');
+    let avgEffAboveRunes = {{ above|safe }};
+    let avgEffBelowRunes = {{ below|safe }};
+    var chartAllRunes = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Above Average ({{ above_quantity }})',
+                data: avgEffAboveRunes,
+                backgroundColor: 'rgba(255, 0, 132, 0.2)',
+                borderColor: ['rgba(255, 0, 132, 1)'],
+                borderWidth: 1,
+            },
+            {
+                label: 'Below Average ({{ below_quantity }})',
+                data: avgEffBelowRunes,
+                backgroundColor: 'rgba(0, 0, 132, 0.2)',
+                borderColor: ['rgba(0, 0, 132, 1)'],
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            onClick: handleClickRunesAll,
+            maintainAspectRatio: false,
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += Math.round(tooltipItem.yLabel * 100) / 100;
+                        label += '% efficiency'
+                        return label;
+                    }
+                }
+            }
+        }
+    });
+    function handleClickRunesAll(evt) {   
+        var activeElement = chartAllRunes.getElementAtEvent(evt);
+        if(activeElement.length > 0){
+            var index = activeElement[0]._index;
+            if(avgEffAboveRunes.length >= index && avgEffAboveRunes[index].y >= {{ avg_eff }}){
+                document.location.href = window.location.origin + '/runes/id/' + avgEffAboveRunes[index].x
+            }
+            else if(avgEffBelowRunes.length >= index && avgEffBelowRunes[index].y < {{ avg_eff }}){
+                document.location.href = window.location.origin + '/runes/id/' + avgEffBelowRunes[index].x
+            }
+        }
+            
+    };
+</script>

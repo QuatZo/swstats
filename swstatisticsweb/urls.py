@@ -40,5 +40,6 @@ urlpatterns = [
     path('runes/id/<int:rune_id>/', views.get_rune_by_id, name='rune_by_id'),
     path('runes/set/<str:set_name>/', views.get_rune_filter_set, name='rune_filter_set'),
     path('runes/slot/<int:slot>/', views.get_rune_filter_slot, name='rune_filter_slot'),
+    path('runes/quality/<str:quality>/', views.get_rune_filter_quality, name='rune_filter_quality'),
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]

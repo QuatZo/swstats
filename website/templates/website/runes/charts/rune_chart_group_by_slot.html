@@ -1,0 +1,47 @@
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-rune-slot" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-rune-slot').getContext('2d');
+    var chartRuneSlot = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ number|safe }},
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: {{ color|safe }},
+                data: {{ count|safe }},
+            }]
+        },
+        options: {
+        onClick: handleClickRunesSlot,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Rune Quanitity Per Slot'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false }
+        }
+    }
+);
+function handleClickRunesSlot(evt) {   
+    var activeElement = chartRuneSlot.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        document.location.href =  window.location.origin + '/runes/slot/' + (index + 1) // 1-6 slots, 0-5 indexes
+    }
+};
+</script>

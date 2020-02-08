@@ -163,6 +163,16 @@ class Rune(models.Model):
     class Meta:
         ordering = ['slot', 'rune_set', '-efficiency', '-stars']
 
+    @classmethod
+    def get_rune_quality(cls, number):
+        return dict(cls.RUNE_QUALITIES)[number]
+
+    @classmethod
+    def get_rune_quality_id(cls, name):
+        for key, quality in dict(cls.RUNE_QUALITIES).items():
+            if quality == name:
+                return key
+
 class MonsterFamily(models.Model):
     id = models.IntegerField(primary_key=True, unique=True) # unit_master_id, first 3 characters
     name = models.CharField(max_length=30) # mapping

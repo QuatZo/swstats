@@ -2,7 +2,7 @@
 {% load add_str %}
 
 {% block content_title %}
-    Slot {{ slot }} Runes ( average efficiency: {{ avg_eff }}% )
+    Runes ( average efficiency: {{ avg_eff }}% )
 {% endblock %}
 
 {% block content %} 
@@ -17,8 +17,8 @@
     <!-- Runes Grouped By Set Chart -->
     {% include "website/runes/charts/rune_chart_group_by_set.html" with name=set_name color=set_color count=set_count class='chart-2' %}
 
-    <!-- Runes Grouped By Quality Chart -->
-    {% include "website/runes/charts/rune_chart_group_by_quality.html" with name=quality_name color=quality_color count=quality_count class='chart-2 right' %}
+    <!-- Runes Grouped By Slot Chart -->
+    {% include "website/runes/charts/rune_chart_group_by_slot.html" with number=slot_number color=slot_color count=slot_count class='chart-2 right'%}
 </div>
 {% endblock %}
 
