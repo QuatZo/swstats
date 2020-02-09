@@ -1,23 +1,33 @@
+{{ above|json_script:'above'}}
+{{ below|json_script:'below'}}
+{{ above_quantity|json_script:'above-quantity'}}
+{{ below_quantity|json_script:'below-quantity'}}
+{{ avg_eff|json_script:'avg-eff'}}
+
 <div class='{{ class|default:'chart' }}'>
     <canvas id="chart-all-runes" />
 </div>
 <script>
     var ctx = document.getElementById('chart-all-runes').getContext('2d');
-    let avgEffAboveRunes = {{ above|safe }};
-    let avgEffBelowRunes = {{ below|safe }};
+    var above = JSON.parse(document.getElementById('above').textContent);
+    var below = JSON.parse(document.getElementById('below').textContent);
+    var aboveQuantity = JSON.parse(document.getElementById('above-quantity').textContent);
+    var belowQuantity = JSON.parse(document.getElementById('below-quantity').textContent);
+    var avgEff = JSON.parse(document.getElementById('avg-eff').textContent);
+
     var chartAllRunes = new Chart(ctx, {
         type: 'scatter',
         data: {
             datasets: [{
-                label: 'Above Average ({{ above_quantity }})',
-                data: avgEffAboveRunes,
+                label: 'Above Average (' + aboveQuantity + ')',
+                data: above,
                 backgroundColor: 'rgba(255, 0, 132, 0.2)',
                 borderColor: ['rgba(255, 0, 132, 1)'],
                 borderWidth: 1,
             },
             {
-                label: 'Below Average ({{ below_quantity }})',
-                data: avgEffBelowRunes,
+                label: 'Below Average (' + belowQuantity + ')',
+                data: below,
                 backgroundColor: 'rgba(0, 0, 132, 0.2)',
                 borderColor: ['rgba(0, 0, 132, 1)'],
                 borderWidth: 1,
@@ -46,11 +56,11 @@
         var activeElement = chartAllRunes.getElementAtEvent(evt);
         if(activeElement.length > 0){
             var index = activeElement[0]._index;
-            if(avgEffAboveRunes.length >= index && avgEffAboveRunes[index].y >= {{ avg_eff }}){
-                document.location.href = window.location.origin + '/runes/id/' + avgEffAboveRunes[index].x
+            if(above.length >= index && above[index].y >= avgEff ){
+                document.location.href = window.location.origin + '/runes/id/' + above[index].x
             }
-            else if(avgEffBelowRunes.length >= index && avgEffBelowRunes[index].y < {{ avg_eff }}){
-                document.location.href = window.location.origin + '/runes/id/' + avgEffBelowRunes[index].x
+            else if(below.length >= index && below[index].y < avgEff ){
+                document.location.href = window.location.origin + '/runes/id/' + below[index].x
             }
         }
             

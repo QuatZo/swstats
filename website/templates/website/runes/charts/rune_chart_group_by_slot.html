@@ -1,17 +1,25 @@
+{{ number|json_script:'slot-numbers'}}
+{{ color|json_script:'slot-colors'}}
+{{ count|json_script:'slot-count'}}
+
 <div class='{{ class|default:'chart' }}'>
         <canvas id="chart-rune-slot" />
 </div>
 <script>
     var ctx = document.getElementById('chart-rune-slot').getContext('2d');
+    var runeSlots = JSON.parse(document.getElementById('slot-numbers').textContent);
+    var slotColors = JSON.parse(document.getElementById('slot-colors').textContent);
+    var slotCounts = JSON.parse(document.getElementById('slot-count').textContent);
+
     var chartRuneSlot = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: {{ number|safe }},
+            labels: runeSlots,
             datasets: [{
                 label: "Quantity",
                 type: "bar",
-                backgroundColor: {{ color|safe }},
-                data: {{ count|safe }},
+                backgroundColor: slotColors,
+                data: slotCounts,
             }]
         },
         options: {
@@ -19,7 +27,7 @@
             maintainAspectRatio: false,
             title: {
                 display: true,
-                text: 'Rune Quanitity Per Slot'
+                text: 'Rune Quantity Per Slot'
             },
             scales: {
                 xAxes: [{
@@ -41,7 +49,7 @@ function handleClickRunesSlot(evt) {
     var activeElement = chartRuneSlot.getElementAtEvent(evt);
     if(activeElement.length > 0){
         var index = activeElement[0]._index;
-        document.location.href =  window.location.origin + '/runes/slot/' + (index + 1) // 1-6 slots, 0-5 indexes
+        addParam(document.location.href, 'slot', runeSlots[index])
     }
 };
 </script>

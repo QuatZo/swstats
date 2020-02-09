@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, render
-from django.db.models import F, Avg, Min, Max, Sum, Count
+from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from django.utils.encoding import force_text
 from website.models import RuneSet, Rune, Monster
 
@@ -54,6 +54,9 @@ def create_rgb_colors(length):
 
 def get_rune_list_avg_eff(runes):
     """Return the avg efficiency of given runes, incl. these runes splitted into two sets (above & equal, below)."""
+    if not runes.count():
+        return { 'above': [], 'below': [], 'avg': 0 }
+
     avg_eff = runes.aggregate(Avg('efficiency'))['efficiency__avg']
     avg_eff_above_runes = list()
     avg_eff_below_runes = list()
@@ -74,6 +77,9 @@ def get_rune_list_avg_eff(runes):
 
 def get_rune_list_normal_distribution(runes, parts):
     """Return sets of runes in specific number of parts, to make Normal Distribution chart."""
+    if not runes.count():
+        return { 'distribution': [], 'scope': [], 'interval': parts }
+
     min_eff = runes.aggregate(Min('efficiency'))['efficiency__min']
     max_eff = runes.aggregate(Max('efficiency'))['efficiency__max']
     delta = (max_eff - min_eff) / parts
@@ -142,20 +148,111 @@ def get_rune_list_grouped_by_quality(runes):
 
     return { 'name': quality_name, 'quantity': quality_count, 'length': len(quality_name) }
 
+def get_rune_list_grouped_by_quality_original(runes):
+    """Return names, amount of qualities and quantity of runes for every original quality in given runes list."""
+    group_by_quality_original = runes.values('quality_original').annotate(total=Count('quality_original')).order_by('-total')
+    quality_original_name = list()
+    quality_original_count = list()
+
+    for group in group_by_quality_original:
+        quality_original_name.append(Rune().get_rune_quality(group['quality_original']))
+        quality_original_count.append(group['total'])
+
+    return { 'name': quality_original_name, 'quantity': quality_original_count, 'length': len(quality_original_name) }
+
+def get_rune_list_grouped_by_main_stat(runes):
+    """Return names, amount of qualities and quantity of runes for every main stat type in given runes list."""
+    group_by_main_stat = runes.values('primary').annotate(total=Count('primary')).order_by('-total')
+    main_stat_name = list()
+    main_stat_count = list()
+
+    for group in group_by_main_stat:
+        main_stat_name.append(Rune().get_rune_primary(group['primary']))
+        main_stat_count.append(group['total'])
+
+    return { 'name': main_stat_name, 'quantity': main_stat_count, 'length': len(main_stat_name) }
+
+def get_rune_list_grouped_by_stars(runes):
+    """Return numbers, amount of stars and quantity of runes for every star in given runes list."""
+    group_by_stars = runes.values('stars').annotate(total=Count('stars')).order_by('stars')
+    stars = dict()
+    stars_number = list()
+    stars_count = list()
+
+    for group in group_by_stars:
+        temp_stars = group['stars'] % 10 # ancient runes have 11-16 stars, instead of 1-6
+        if temp_stars not in stars.keys():
+            stars[temp_stars] = 0
+        stars[temp_stars] += group['total']
+
+    for key, val in stars.items():
+        stars_number.append(key)
+        stars_count.append(val)
+
+    return { 'number': stars_number, 'quantity': stars_count, 'length': len(stars_number) }
 
 # Create your views here.
 def get_runes(request):
-    runes = Rune.objects.all().order_by('-efficiency')    
+    # request.GET.get('key')
+    runes = Rune.objects.all().order_by('-efficiency')   
+    is_filter = False 
+    filters = list()
+
+    if request.GET:
+        is_filter = True
+
+    if request.GET.get('set'):
+        filters.append('Set: ' + request.GET.get('set'))
+        runes = runes.filter(rune_set__name=request.GET.get('set'))
+
+    if request.GET.get('slot'):
+        try:
+            slot = int(request.GET.get('slot'))
+        except ValueError:
+            slot = 0
+        filters.append('Slot: ' + str(slot))
+        runes = runes.filter(slot=slot)
+    
+    if request.GET.get('quality'):
+        filters.append('Quality: ' + request.GET.get('quality'))
+        quality_id = Rune().get_rune_quality_id(request.GET.get('quality'))
+        runes = runes.filter(quality=quality_id)
+    
+    if request.GET.get('quality-original'):
+        filters.append('Original Quality: ' + request.GET.get('quality-original'))
+        quality_original_id = Rune().get_rune_quality_id(request.GET.get('quality-original'))
+        runes = runes.filter(quality_original=quality_original_id)
+
+    if request.GET.get('main-stat'):
+        main_stat = request.GET.get('main-stat').replace('plus', '+').replace('percent', '%')
+        filters.append('Main Stat: ' + main_stat)
+        main_stat_id = Rune().get_rune_primary_id(main_stat)
+        runes = runes.filter(primary=main_stat_id)
+    
+    if request.GET.get('stars'):
+        try:
+            stars = int(request.GET.get('stars')) % 10
+        except ValueError:
+            stars = 0
+        filters.append('Stars: ' + str(stars))
+        runes = runes.filter(Q(stars=stars) | Q(stars=stars + 10)) # since ancient runes have 11-16
 
     avg_eff_runes = get_rune_list_avg_eff(runes)
     normal_distribution_runes = get_rune_list_normal_distribution(runes, 40)
     runes_by_set = get_rune_list_grouped_by_set(runes)
     runes_by_slot = get_rune_list_grouped_by_slot(runes)
     runes_by_quality = get_rune_list_grouped_by_quality(runes)
+    runes_by_quality_original = get_rune_list_grouped_by_quality_original(runes)
+    runes_by_main_stat = get_rune_list_grouped_by_main_stat(runes)
+    runes_by_stars = get_rune_list_grouped_by_stars(runes)
     best_runes = get_rune_list_best(runes, 100)
     fastest_runes = get_rune_list_fastest(runes, 100)
 
     context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
         # chart best
         'avg_eff_above_runes': avg_eff_runes['above'],
         'avg_eff_above_quantity': len(avg_eff_runes['above']),
@@ -182,6 +279,21 @@ def get_runes(request):
         'quality_name': runes_by_quality['name'],
         'quality_count': runes_by_quality['quantity'],
         'quality_color': create_rgb_colors(runes_by_quality['length']),
+
+        # chart group by original quality
+        'quality_original_name': runes_by_quality_original['name'],
+        'quality_original_count': runes_by_quality_original['quantity'],
+        'quality_original_color': create_rgb_colors(runes_by_quality_original['length']),
+
+        # chart group by main stat
+        'main_stat_name': runes_by_main_stat['name'],
+        'main_stat_count': runes_by_main_stat['quantity'],
+        'main_stat_color': create_rgb_colors(runes_by_main_stat['length']),
+
+        # chart group by stars
+        'stars_number': runes_by_stars['number'],
+        'stars_count': runes_by_stars['quantity'],
+        'stars_color': create_rgb_colors(runes_by_stars['length']),
 
         # table best by efficiency
         'best_runes': best_runes,
@@ -199,144 +311,3 @@ def get_rune_by_id(request, rune_id):
     context = { 'rune': rune, }
 
     return render( request, 'website/runes/rune_by_id.html', context )
-
-def get_rune_filter_set(request, set_name):
-    runes = Rune.objects.filter(rune_set__name=set_name).order_by('-efficiency')
-
-    avg_eff_runes = get_rune_list_avg_eff(runes)
-    normal_distribution_runes = get_rune_list_normal_distribution(runes, 20)
-    runes_by_quality = get_rune_list_grouped_by_quality(runes)
-    runes_by_slot = get_rune_list_grouped_by_slot(runes)
-    best_runes = get_rune_list_best(runes, 100)
-    fastest_runes = get_rune_list_fastest(runes, 100)
-
-    context = {
-        'set': set_name,
-
-        # chart best
-        'avg_eff_above_runes': avg_eff_runes['above'],
-        'avg_eff_above_quantity': len(avg_eff_runes['above']),
-        'avg_eff_below_runes': avg_eff_runes['below'],
-        'avg_eff_below_quantity': len(avg_eff_runes['below']),
-        'avg_eff': round(avg_eff_runes['avg'], 2),
-
-        # chart distribution
-        'all_distribution': normal_distribution_runes['distribution'],
-        'all_means': normal_distribution_runes['scope'],
-        'all_color': create_rgb_colors(normal_distribution_runes['interval']),
-
-        # chart group by quality
-        'quality_name': runes_by_quality['name'],
-        'quality_count': runes_by_quality['quantity'],
-        'quality_color': create_rgb_colors(runes_by_quality['length']),
-
-        # chart group by slot
-        'slot_number': runes_by_slot['number'],
-        'slot_count': runes_by_slot['quantity'],
-        'slot_color': create_rgb_colors(runes_by_slot['length']),
-
-        # table best by efficiency
-        'best_runes': best_runes,
-        'best_amount': len(best_runes),
-
-        # table best by speed
-        'fastest_runes': fastest_runes,
-        'fastest_amount': len(fastest_runes),
-    }
-
-    return render( request, 'website/runes/rune_filter_set.html', context )
-
-def get_rune_filter_slot(request, slot):
-    runes = Rune.objects.filter(slot=slot).order_by('-efficiency')
-
-    avg_eff_runes = get_rune_list_avg_eff(runes)
-    normal_distribution_runes = get_rune_list_normal_distribution(runes, 20)
-    runes_by_set = get_rune_list_grouped_by_set(runes)
-    runes_by_quality = get_rune_list_grouped_by_quality(runes)
-    best_runes = get_rune_list_best(runes, 100)
-    fastest_runes = get_rune_list_fastest(runes, 100)
-
-    context = {
-        'slot': slot,
-
-        # chart best
-        'avg_eff_above_runes': avg_eff_runes['above'],
-        'avg_eff_above_quantity': len(avg_eff_runes['above']),
-        'avg_eff_below_runes': avg_eff_runes['below'],
-        'avg_eff_below_quantity': len(avg_eff_runes['below']),
-        'avg_eff': round(avg_eff_runes['avg'], 2),
-
-        # chart distribution
-        'all_distribution': normal_distribution_runes['distribution'],
-        'all_means': normal_distribution_runes['scope'],
-        'all_color': create_rgb_colors(normal_distribution_runes['interval']),
-
-        # chart group by set
-        'set_name': runes_by_set['name'],
-        'set_count': runes_by_set['quantity'],
-        'set_color': create_rgb_colors(runes_by_set['length']),
-
-        # chart group by quality
-        'quality_name': runes_by_quality['name'],
-        'quality_count': runes_by_quality['quantity'],
-        'quality_color': create_rgb_colors(runes_by_quality['length']),
-
-        # table best by efficiency
-        'best_runes': best_runes,
-        'best_amount': len(best_runes),
-
-        # table best by speed
-        'fastest_runes': fastest_runes,
-        'fastest_amount': len(fastest_runes),
-    }
-
-    return render( request, 'website/runes/rune_filter_slot.html', context )
-
-def get_rune_filter_quality(request, quality):
-    quality_id = Rune().get_rune_quality_id(quality)
-    runes = Rune.objects.filter(quality=quality_id).order_by('-efficiency')    
-
-    avg_eff_runes = get_rune_list_avg_eff(runes)
-    normal_distribution_runes = get_rune_list_normal_distribution(runes, 40)
-    runes_by_set = get_rune_list_grouped_by_set(runes)
-    runes_by_slot = get_rune_list_grouped_by_slot(runes)
-    runes_by_quality = get_rune_list_grouped_by_quality(runes)
-    best_runes = get_rune_list_best(runes, 100)
-    fastest_runes = get_rune_list_fastest(runes, 100)
-
-    context = {
-        # chart best
-        'avg_eff_above_runes': avg_eff_runes['above'],
-        'avg_eff_above_quantity': len(avg_eff_runes['above']),
-        'avg_eff_below_runes': avg_eff_runes['below'],
-        'avg_eff_below_quantity': len(avg_eff_runes['below']),
-        'avg_eff': round(avg_eff_runes['avg'], 2),
-
-        # chart distribution
-        'all_distribution': normal_distribution_runes['distribution'],
-        'all_means': normal_distribution_runes['scope'],
-        'all_color': create_rgb_colors(normal_distribution_runes['interval']),
-
-        # chart group by set
-        'set_name': runes_by_set['name'],
-        'set_count': runes_by_set['quantity'],
-        'set_color': create_rgb_colors(runes_by_set['length']),
-
-        # chart group by slot
-        'slot_number': runes_by_slot['number'],
-        'slot_count': runes_by_slot['quantity'],
-        'slot_color': create_rgb_colors(runes_by_slot['length']),
-
-        # table best by efficiency
-        'best_runes': best_runes,
-        'best_amount': len(best_runes),
-
-        # table best by speed
-        'fastest_runes': fastest_runes,
-        'fastest_amount': len(fastest_runes),
-    }
-
-    return render( request, 'website/runes/rune_filter_quality.html', context)
-
-
-

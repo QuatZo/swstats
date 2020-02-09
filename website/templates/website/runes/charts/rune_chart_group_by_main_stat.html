@@ -1,0 +1,56 @@
+{{ name|json_script:'main-stat-names'}}
+{{ color|json_script:'main-stat-colors'}}
+{{ count|json_script:'main-stat-count'}}
+
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-rune-main-stat" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-rune-main-stat').getContext('2d');
+    var runeMainStats = JSON.parse(document.getElementById('main-stat-names').textContent);
+    var mainStatColors = JSON.parse(document.getElementById('main-stat-colors').textContent);
+    var mainStatCounts = JSON.parse(document.getElementById('main-stat-count').textContent);
+
+    var chartRuneMainStat = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: runeMainStats,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: mainStatColors,
+                data: mainStatCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickRunesMainStat,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Rune Quantity Per Main Stat'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false }
+        }
+    }
+);
+function handleClickRunesMainStat(evt) {   
+    var activeElement = chartRuneMainStat.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        var stat = runeMainStats[index].replace('+', 'plus').replace('%', 'percent')
+        addParam(document.location.href, 'main-stat', stat)
+    }
+};
+</script>

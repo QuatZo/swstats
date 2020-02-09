@@ -1,0 +1,55 @@
+{{ name|json_script:'quality-original-names'}}
+{{ color|json_script:'quality-original-colors'}}
+{{ count|json_script:'quality-original-count'}}
+
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-rune-quality-original" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-rune-quality-original').getContext('2d');
+    var runeQualitiesOriginal = JSON.parse(document.getElementById('quality-original-names').textContent);
+    var qualityOriginalColors = JSON.parse(document.getElementById('quality-original-colors').textContent);
+    var qualityOriginalCounts = JSON.parse(document.getElementById('quality-original-count').textContent);
+
+    var chartRuneQualityOriginal = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: runeQualitiesOriginal,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: qualityOriginalColors,
+                data: qualityOriginalCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickRunesQualityOriginal,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Rune Quantity Per Original Quality'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false }
+        }
+    }
+);
+function handleClickRunesQualityOriginal(evt) {   
+    var activeElement = chartRuneQualityOriginal.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'quality-original', runeQualitiesOriginal[index])
+    }
+};
+</script>

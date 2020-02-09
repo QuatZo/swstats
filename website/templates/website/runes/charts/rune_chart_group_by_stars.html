@@ -1,0 +1,55 @@
+{{ number|json_script:'stars-numbers'}}
+{{ color|json_script:'stars-colors'}}
+{{ count|json_script:'stars-count'}}
+
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-rune-stars" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-rune-stars').getContext('2d');
+    var runeStars = JSON.parse(document.getElementById('stars-numbers').textContent);
+    var starsColors = JSON.parse(document.getElementById('stars-colors').textContent);
+    var starsCounts = JSON.parse(document.getElementById('stars-count').textContent);
+
+    var chartRuneStars = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: runeStars,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: starsColors,
+                data: starsCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickRunesStars,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Rune Quantity Per Stars'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false }
+        }
+    }
+);
+function handleClickRunesStars(evt) {   
+    var activeElement = chartRuneStars.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'stars', runeStars[index])
+    }
+};
+</script>

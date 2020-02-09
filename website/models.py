@@ -76,6 +76,7 @@ class RuneSet(models.Model):
 
 class Rune(models.Model):
     RUNE_QUALITIES = (
+        (0, 'Unknown'), # old runes before 'extra' addition for every rune in JSON file
         (1, 'Common'),
         (2, 'Magic'),
         (3, 'Rare'),
@@ -171,6 +172,17 @@ class Rune(models.Model):
     def get_rune_quality_id(cls, name):
         for key, quality in dict(cls.RUNE_QUALITIES).items():
             if quality == name:
+                return key
+
+    @classmethod
+    def get_rune_primary(cls, number):
+        return dict(cls.RUNE_EFFECTS)[number]
+
+    @classmethod
+    def get_rune_primary_id(cls, name):
+        for key, primary in dict(cls.RUNE_EFFECTS).items():
+            stat = name.replace('plus', '+').replace('percent', '%')
+            if primary == stat:
                 return key
 
 class MonsterFamily(models.Model):
