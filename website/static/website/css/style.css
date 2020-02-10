@@ -233,3 +233,8 @@ h1.h2
     -ms-user-select: none;
     user-select: none
 }
+
+.rank{
+    min-height: 10vh;
+    padding: 15px 0;
+}

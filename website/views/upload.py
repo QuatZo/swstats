@@ -439,7 +439,9 @@ class UploadViewSet(viewsets.ViewSet):
                             'monster_id': Monster.objects.get(id=rta_rune['occupied_id']),
                             'rune_id': Rune.objects.get(id=rta_rune['rune_id']),
                         }, )
-                print("Wizard's RTA Runes on monsters done")
+                    print("Wizard's RTA Runes on monsters done")
+                else:
+                    print("Given JSON file is before an RTA Rune Management Update!")
                 ########################################
 
                 ########################################

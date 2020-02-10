@@ -1,12 +1,14 @@
 from django.shortcuts import get_object_or_404, render
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from django.utils.encoding import force_text
-from website.models import RuneSet, Rune, Monster
+
+from website.models import RuneSet, Rune, Monster, RuneRTA
+from website.serializers import RuneSerializer
 
 import matplotlib.cm as cm
 import numpy as np
 
-
+# homepage
 def get_homepage(request):
     """Return the homepage with carousel messages & introduction."""
     runes = Rune.objects.all()
@@ -48,10 +50,12 @@ def get_homepage(request):
 
     return render( request, 'website/index.html', context )
 
+# bar chart colors
 def create_rgb_colors(length):
     """Return the array of 'length', which contains 'rgba(r, g, b, a)' strings for Chart.js."""
     return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
 
+# rune list w/ filters
 def get_rune_list_avg_eff(runes):
     """Return the avg efficiency of given runes, incl. these runes splitted into two sets (above & equal, below)."""
     if not runes.count():
@@ -191,9 +195,43 @@ def get_rune_list_grouped_by_stars(runes):
 
     return { 'number': stars_number, 'quantity': stars_count, 'length': len(stars_number) }
 
+# specific rune ranking
+def get_rune_rank_eff(runes, rune):
+    """Return place of rune based on efficiency."""
+    return runes.filter(efficiency__gte=rune.efficiency).count()
+
+# specific rune ranking
+def get_rune_rank_substat(runes, rune, substat):
+    """Return place of rune based on given substat."""
+    substats = {
+        'sub_hp_flat': rune.sub_hp_flat,
+        'sub_hp': rune.sub_hp,
+        'sub_atk_flat': rune.sub_atk_flat,
+        'sub_atk': rune.sub_atk,
+        'sub_def_flat': rune.sub_def_flat,
+        'sub_def': rune.sub_def,
+        'sub_speed': rune.sub_speed,
+        'sub_crit_rate': rune.sub_crit_rate,
+        'sub_crit_dmg': rune.sub_crit_dmg,
+        'sub_res': rune.sub_res,
+        'sub_acc': rune.sub_acc,
+    }
+
+    if substats[substat] is None:
+        return runes.count()
+
+    rank = 1
+    value = sum(substats[substat])
+
+    for temp_rune in runes.raw(f'SELECT id, {substat} FROM website_rune WHERE {substat} IS NOT NULL'):
+        temp_rune = temp_rune.__dict__
+        if temp_rune[substat] is not None and sum(temp_rune[substat]) > value:
+            rank += 1
+
+    return rank
+
 # Create your views here.
 def get_runes(request):
-    # request.GET.get('key')
     runes = Rune.objects.all().order_by('-efficiency')   
     is_filter = False 
     filters = list()
@@ -308,6 +346,33 @@ def get_runes(request):
 
 def get_rune_by_id(request, rune_id):
     rune = get_object_or_404(Rune, id=rune_id)
-    context = { 'rune': rune, }
+    runes = Rune.objects.all()
+    monster = Monster.objects.filter(runes__id=rune.id)
+    try:
+        rta_monster = RuneRTA.objects.filter(rune_id=rune.id).first().monster_id
+    except AttributeError:
+        rta_monster = None
+
+    ranks = {
+        'efficiency': get_rune_rank_eff(runes, rune),
+        'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat'),
+        'hp': get_rune_rank_substat(runes, rune, 'sub_hp'),
+        'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat'),
+        'atk': get_rune_rank_substat(runes, rune, 'sub_atk'),
+        'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat'),
+        'def': get_rune_rank_substat(runes, rune, 'sub_def'),
+        'speed': get_rune_rank_substat(runes, rune, 'sub_speed'),
+        'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate'),
+        'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg'),
+        'res': get_rune_rank_substat(runes, rune, 'sub_res'),
+        'acc': get_rune_rank_substat(runes, rune, 'sub_acc'),
+    }
+
+    context = { 
+        'rune': rune, 
+        'monster': monster, 
+        'rta_monster': rta_monster,
+        'ranks': ranks,
+    }
 
     return render( request, 'website/runes/rune_by_id.html', context )

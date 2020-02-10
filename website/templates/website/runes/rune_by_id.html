@@ -1,11 +1,44 @@
 {% extends "website/base.html" %}
 {% load add_str %}
+{% load add_reverse_str %}
 {% load to_list %}
+{% load rune_grinded_val %}
 
 {% block table %}
 	{% if rune %}
-		{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune ( ID: "|add_str:rune.id|add_str:" )" collapse_id="rune-"|add_str:rune.id collapsed=""%}
-		And here will be some info who has this rune, in what decks this monster is etc. etc.
+		{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune ( ID: "|add_str:rune.id|add_str:" )" collapse_id="rune-"|add_str:rune.id collapsed="show"%}
+		<h2 class="title">
+			Substats Ranking
+			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 
+				Show/Hide 
+			</button>
+		</h2>
+		<div class="row show" id="substat-row">
+			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.efficiency value=rune.efficiency|add_str:'%' %}
+			{% include "website/runes/rune_card.html" with header='Flat HP' rank=ranks.hp_flat value=rune.sub_hp_flat|rune_grinded_val:True|add_reverse_str:'+' %}
+			{% include "website/runes/rune_card.html" with header='HP%' rank=ranks.hp value=rune.sub_hp|rune_grinded_val:True|add_str:'%' %}
+			{% include "website/runes/rune_card.html" with header='Flat ATK' rank=ranks.atk_flat value=rune.sub_atk_flat|rune_grinded_val:True|add_reverse_str:'+' %}
+			{% include "website/runes/rune_card.html" with header='ATK%' rank=ranks.atk value=rune.sub_atk|rune_grinded_val:True|add_str:'%' %}
+			{% include "website/runes/rune_card.html" with header='Flat DEF' rank=ranks.def_flat value=rune.sub_def_flat|rune_grinded_val:True|add_reverse_str:'+' %}
+			{% include "website/runes/rune_card.html" with header='DEF%' rank=ranks.def value=rune.sub_def|rune_grinded_val:True|add_str:'%' %}
+			{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.speed value=rune.sub_speed|rune_grinded_val:True %}
+			{% include "website/runes/rune_card.html" with header='Critical Rate' rank=ranks.crit_rate value=rune.sub_crit_rate|rune_grinded_val:True|add_str:'%' %}
+			{% include "website/runes/rune_card.html" with header='Critical Damage' rank=ranks.crit_dmg value=rune.sub_crit_dmg|rune_grinded_val:True|add_str:'%' %}
+			{% include "website/runes/rune_card.html" with header='Resistance' rank=ranks.res value=rune.sub_res|rune_grinded_val:True|add_str:'%' %}
+			{% include "website/runes/rune_card.html" with header='Accuracy' rank=ranks.acc value=rune.sub_acc|rune_grinded_val:True|add_str:'%' %}
+		</div>
+
+		<h2 class="title">
+			Monsters
+			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-row" aria-expanded="true" aria-controls="#monster-row"> 
+				Show/Hide 
+			</button>
+		</h2>
+		<div class="row show" id="monster-row">
+			In Monster Card will be some info, how many runes equipped, avg efficiency, hp/def/atk/spd, stars, level and maybe some comps. Card will be 100% width, to store all this info.
+			<!-- {% include "website/runes/rune_card.html" with PvE=MONSTER %}
+			{% include "website/runes/rune_card.html" with RTA=MONSTER %} -->
+		</div>
 	{% else %}
 		<p>There will be 404 Error or something because no rune like this.</p>
 	{% endif %}

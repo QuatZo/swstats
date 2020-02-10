@@ -39,24 +39,24 @@ class Guild(models.Model):
 
 class Wizard(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
-    mana = models.BigIntegerField() # wizard_mana
-    crystals = models.IntegerField() # wizard_crystal
-    crystals_paid = models.IntegerField() # wizard_crystal_paid - need some analysis, because it can be a total-time or actual value, need more JSON files before doing something with its data
-    last_login = models.DateTimeField() # wizard_last_login
-    country = models.CharField(max_length=5) # wizard_last_country
-    lang = models.CharField(max_length=5) # wizard_last_lang
-    level = models.SmallIntegerField() # wizard_level
-    energy = models.IntegerField() # wizard_energy
-    energy_max = models.SmallIntegerField() # energy_max
-    arena_wing = models.IntegerField() # arena_energy
-    glory_point = models.IntegerField() # honor_point
-    guild_point = models.IntegerField() # guild_point
-    rta_point = models.IntegerField() # honor_medal
-    rta_mark = models.IntegerField() # honor_mark - don't know what it is, for now 
-    event_coin = models.IntegerField() # event_coint - Ancient Coins
-    antibot_count = models.IntegerField() # quiz_reward_info.reward_count
-    raid_level = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)]) # raid_info_list.available_stage_id
-    storage_capacity = models.SmallIntegerField() # unit_depository_slots.number
+    mana = models.BigIntegerField(blank=True, null=True, default=None) # wizard_mana
+    crystals = models.IntegerField(blank=True, null=True, default=None) # wizard_crystal
+    crystals_paid = models.IntegerField(blank=True, null=True, default=None) # wizard_crystal_paid - need some analysis, because it can be a total-time or actual value, need more JSON files before doing something with its data
+    last_login = models.DateTimeField(blank=True, null=True, default=None) # wizard_last_login
+    country = models.CharField(max_length=5, blank=True, null=True, default=None) # wizard_last_country
+    lang = models.CharField(max_length=5, blank=True, null=True, default=None) # wizard_last_lang
+    level = models.SmallIntegerField(blank=True, null=True, default=None) # wizard_level
+    energy = models.IntegerField(blank=True, null=True, default=None) # wizard_energy
+    energy_max = models.SmallIntegerField(blank=True, null=True, default=None) # energy_max
+    arena_wing = models.IntegerField(blank=True, null=True, default=None) # arena_energy
+    glory_point = models.IntegerField(blank=True, null=True, default=None) # honor_point
+    guild_point = models.IntegerField(blank=True, null=True, default=None) # guild_point
+    rta_point = models.IntegerField(blank=True, null=True, default=None) # honor_medal
+    rta_mark = models.IntegerField(blank=True, null=True, default=None) # honor_mark - don't know what it is, for now 
+    event_coin = models.IntegerField(blank=True, null=True, default=None) # event_coint - Ancient Coins
+    antibot_count = models.IntegerField(blank=True, null=True, default=None) # quiz_reward_info.reward_count
+    raid_level = models.SmallIntegerField(blank=True, null=True, default=None, validators=[MinValueValidator(1), MaxValueValidator(5)]) # raid_info_list.available_stage_id
+    storage_capacity = models.SmallIntegerField(blank=True, null=True, default=None) # unit_depository_slots.number
     guild = models.ForeignKey(Guild, blank=True, null=True, on_delete=models.SET_NULL)
     last_update = models.DateTimeField()
 
