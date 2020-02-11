@@ -1,9 +1,8 @@
 from django.shortcuts import get_object_or_404, render
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count
-from django.utils.encoding import force_text
+from django.db import connection
 
-from website.models import RuneSet, Rune, Monster, RuneRTA
-from website.serializers import RuneSerializer
+from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase
 
 import matplotlib.cm as cm
 import numpy as np
@@ -17,12 +16,14 @@ def get_homepage(request):
     rune_equipped = Rune.objects.filter(equipped=True).count()
     monster_best = monsters.order_by('-avg_eff').first()
     monster_cdmg = monsters.order_by('-crit_dmg').first()
+    monster_speed = monsters.order_by('-speed').first()
 
     MESSAGES = [
         {
             'id': 1,
             'title': 'Highest rune efficiency',
             'text': f'The most efficient rune stored in database has {rune_best.efficiency if rune_best else 0}% efficiency.',
+            'type': 'rune',
             'arg': rune_best.id if rune_best else 0,
         },
         {
@@ -34,13 +35,22 @@ def get_homepage(request):
             'id': 3,
             'title': 'Highest average efficiency',
             'text': f'{str(monster_best)} has the highest average efficiency, amounting to {monster_best.avg_eff if monster_best else 0}%',
+            'type': 'monster',
             'arg': monster_best.id if monster_best else 0,
         },
         {
             'id': 4,
             'title': 'Highest critical damage value',
             'text': f'Highest Critical Damage value has {str(monster_cdmg)} with an amazing {monster_cdmg.crit_dmg if monster_cdmg else 0}%',
+            'type': 'monster',
             'arg': monster_cdmg.id if monster_best else 0,
+        },
+        {
+            'id': 5,
+            'title': 'Fastest monster',
+            'text': f'Can something be faster than Flash? Yes! Such a monster is  {str(monster_speed)} with an amazing {monster_speed.speed if monster_speed else 0} SPD',
+            'type': 'monster',
+            'arg': monster_speed.id if monster_speed else 0,
         },
     ]
 
@@ -200,7 +210,6 @@ def get_rune_rank_eff(runes, rune):
     """Return place of rune based on efficiency."""
     return runes.filter(efficiency__gte=rune.efficiency).count()
 
-# specific rune ranking
 def get_rune_rank_substat(runes, rune, substat):
     """Return place of rune based on given substat."""
     substats = {
@@ -229,6 +238,84 @@ def get_rune_rank_substat(runes, rune, substat):
             rank += 1
 
     return rank
+
+# monster list w/ filters
+def get_monster_list_over_time(monsters):
+    """Return amount of monsters acquired over time."""
+    temp_monsters = monsters.order_by('created')
+
+    time_values = list()
+    time_quantity = list()
+
+    for monster in temp_monsters:
+        if (monster.created).strftime("%Y-%m-%d") not in time_values: # only monsters per day
+            time_values.append((monster.created).strftime("%Y-%m-%d"))
+            time_quantity.append(temp_monsters.filter(created__lte=(monster.created).strftime("%Y-%m-%d")).count())
+    
+    return { 'time': time_values, 'quantity': time_quantity }
+
+def get_monster_list_best(monsters, x):
+    """Return TopX (or all, if there is no X elements in list) efficient monsters."""
+    return monsters[:min(x, monsters.count())]
+
+def get_monster_list_fastest(monsters, x):
+    """Return TopX (or all, if there is no X elements in list) fastest monsters."""
+    fastest_monsters = monsters.order_by(F('speed').desc(nulls_last=True))
+    fastest_monsters = fastest_monsters[:min(x, fastest_monsters.count())]
+
+    return fastest_monsters
+
+def get_monster_list_group_by_attribute(monsters):
+    """Return names, amount of attributes and quantity of monsters for every attribute in given monsters list."""
+    group_by_attribute = monsters.values('base_monster__attribute').annotate(total=Count('base_monster__attribute')).order_by('-total')
+
+    attribute_name = list()
+    attribute_count = list()
+
+    for group in group_by_attribute:
+        attribute_name.append(MonsterBase(attribute=group['base_monster__attribute']).get_attribute_display())
+        attribute_count.append(group['total'])
+
+    return { 'name': attribute_name, 'quantity': attribute_count, 'length': len(attribute_name) }
+
+def get_monster_list_group_by_type(monsters):
+    """Return names, amount of types and quantity of monsters for every type in given monsters list."""
+    group_by_type = monsters.values('base_monster__archetype').annotate(total=Count('base_monster__archetype')).order_by('-total')
+
+    type_name = list()
+    type_count = list()
+
+    for group in group_by_type:
+        type_name.append(MonsterBase(archetype=group['base_monster__archetype']).get_archetype_display())
+        type_count.append(group['total'])
+
+    return { 'name': type_name, 'quantity': type_count, 'length': len(type_name) }
+
+def get_monster_list_group_by_base_class(monsters):
+    """Return number, amount of base class and quantity of monsters for every base class in given monsters list."""
+    group_by_base_class = monsters.values('base_monster__base_class').annotate(total=Count('base_monster__base_class')).order_by('-total')
+
+    base_class_number = list()
+    base_class_count = list()
+
+    for group in group_by_base_class:
+        base_class_number.append(group['base_monster__base_class'])
+        base_class_count.append(group['total'])
+
+    return { 'number': base_class_number, 'quantity': base_class_count, 'length': len(base_class_number) }
+
+def get_monster_list_group_by_storage(monsters):
+    """Return amount of monsters in/out of storage monsters list."""
+    group_by_storage = monsters.values('storage').annotate(total=Count('storage')).order_by('-total')
+
+    storage_value = list()
+    storage_count = list()
+
+    for group in group_by_storage:
+        storage_value.append(str(group['storage']))
+        storage_count.append(group['total'])
+
+    return { 'value': storage_value, 'quantity': storage_count, 'length': len(storage_value) }
 
 # Create your views here.
 def get_runes(request):
@@ -344,8 +431,8 @@ def get_runes(request):
 
     return render( request, 'website/runes/rune_index.html', context)
 
-def get_rune_by_id(request, rune_id):
-    rune = get_object_or_404(Rune, id=rune_id)
+def get_rune_by_id(request, arg_id):
+    rune = get_object_or_404(Rune, id=arg_id)
     runes = Rune.objects.all()
     monster = Monster.objects.filter(runes__id=rune.id)
     try:
@@ -376,3 +463,91 @@ def get_rune_by_id(request, rune_id):
     }
 
     return render( request, 'website/runes/rune_by_id.html', context )
+
+def get_monsters(request):
+    monsters = Monster.objects.all().order_by('-avg_eff')   
+    is_filter = False 
+    filters = list()
+
+    if request.GET:
+        is_filter = True
+
+    if request.GET.get('attribute'):
+        filters.append('Attribute: ' + request.GET.get('attribute'))
+        monsters = monsters.filter(base_monster__attribute=MonsterBase().get_attribute_id(request.GET.get('attribute')))
+
+    if request.GET.get('type'):
+        filters.append('Type: ' + request.GET.get('type'))
+        monsters = monsters.filter(base_monster__archetype=MonsterBase().get_archetype_id(request.GET.get('type')))
+    
+    if request.GET.get('base-class'):
+        filters.append('Base Class: ' + request.GET.get('base-class'))
+        monsters = monsters.filter(base_monster__base_class=request.GET.get('base-class'))
+    
+    if request.GET.get('storage'):
+        filters.append('Storage: ' + request.GET.get('storage'))
+        monsters = monsters.filter(storage=request.GET.get('storage'))
+
+    if request.GET.get('main-stat'):
+        filters.append('Main Stat: ' + request.GET.get('main-stat'))
+    
+    if request.GET.get('stars'):
+        filters.append('Stars: ' + request.GET.get('stars'))
+
+
+    best_monsters = get_monster_list_best(monsters, 100)
+    fastest_monsters = get_monster_list_fastest(monsters, 100)
+    monsters_over_time = get_monster_list_over_time(monsters)
+    monsters_by_attribute = get_monster_list_group_by_attribute(monsters)
+    monsters_by_type = get_monster_list_group_by_type(monsters)
+    monsters_by_base_class = get_monster_list_group_by_base_class(monsters)
+    monsters_by_storage = get_monster_list_group_by_storage(monsters)
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # chart monster by acquiration date
+        'time_timeline': monsters_over_time['time'],
+        'time_count': monsters_over_time['quantity'],
+
+        # chart monster by attribute
+        'attribute_name': monsters_by_attribute['name'],
+        'attribute_count': monsters_by_attribute['quantity'],
+        'attribute_color': create_rgb_colors(monsters_by_attribute['length']),
+
+        # chart monster by type (archetype)
+        'type_name': monsters_by_type['name'],
+        'type_count': monsters_by_type['quantity'],
+        'type_color': create_rgb_colors(monsters_by_type['length']),
+
+        # chart monster by base class
+        'base_class_number': monsters_by_base_class['number'],
+        'base_class_count': monsters_by_base_class['quantity'],
+        'base_class_color': create_rgb_colors(monsters_by_base_class['length']),
+
+        # chart monster by storage
+        'storage_value': monsters_by_storage['value'],
+        'storage_count': monsters_by_storage['quantity'],
+        'storage_color': create_rgb_colors(monsters_by_storage['length']),
+
+        # table best by efficiency
+        'best_monsters': best_monsters,
+        'best_amount': len(best_monsters),
+
+        # table best by speed
+        'fastest_monsters': fastest_monsters,
+        'fastest_amount': len(fastest_monsters),
+    }
+
+    return render( request, 'website/monsters/monster_index.html', context)
+
+def get_monster_by_id(request, arg_id):
+    monster = get_object_or_404(Monster, id=arg_id)
+    context = { 
+        'monster': monster, 
+    }
+
+    return render( request, 'website/monsters/monster_by_id.html', context )
+

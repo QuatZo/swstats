@@ -1,33 +1,32 @@
-{{ number|json_script:'stars-numbers'}}
-{{ color|json_script:'stars-colors'}}
-{{ count|json_script:'stars-count'}}
-
+{{ value|json_script:'storage-value'}}
+{{ color|json_script:'storage-colors'}}
+{{ count|json_script:'storage-count'}}
 <div class='{{ class|default:'chart' }}'>
-        <canvas id="chart-rune-stars" />
+    <canvas id="chart-monster-storage" />
 </div>
 <script>
-    var ctx = document.getElementById('chart-rune-stars').getContext('2d');
-    var runeStars = JSON.parse(document.getElementById('stars-numbers').textContent);
-    var starsColors = JSON.parse(document.getElementById('stars-colors').textContent);
-    var starsCounts = JSON.parse(document.getElementById('stars-count').textContent);
+    var ctx = document.getElementById('chart-monster-storage').getContext('2d');
+    var monsterStorage = JSON.parse(document.getElementById('storage-value').textContent);
+    var storageColors = JSON.parse(document.getElementById('storage-colors').textContent);
+    var storageCounts = JSON.parse(document.getElementById('storage-count').textContent);
 
-    var chartRuneStars = new Chart(ctx, {
+    var chartMonsterStorage = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: runeStars,
+            labels: monsterStorage,
             datasets: [{
                 label: "Quantity",
                 type: "bar",
-                backgroundColor: starsColors,
-                data: starsCounts,
+                backgroundColor: storageColors,
+                data: storageCounts,
             }]
         },
         options: {
-            onClick: handleClickRunesStars,
+        onClick: handleClickMonstersStorage,
             maintainAspectRatio: false,
             title: {
                 display: true,
-                text: 'Rune Quantity Per Stars'
+                text: 'Monster Quantity Per Storage'
             },
             scales: {
                 xAxes: [{
@@ -52,11 +51,11 @@
         }
     }
 );
-function handleClickRunesStars(evt) {   
-    var activeElement = chartRuneStars.getElementAtEvent(evt);
+function handleClickMonstersStorage(evt) {   
+    var activeElement = chartMonsterStorage.getElementAtEvent(evt);
     if(activeElement.length > 0){
         var index = activeElement[0]._index;
-        addParam(document.location.href, 'stars', runeStars[index])
+        addParam(document.location.href, 'storage', monsterStorage[index])
     }
 };
 </script>

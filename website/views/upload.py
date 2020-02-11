@@ -413,7 +413,6 @@ class UploadViewSet(viewsets.ViewSet):
                     monster['skills'] = [skill[1] for skill in temp_monster['skills']]
                    
                     monster_runes = [Rune.objects.get(id=rune['rune_id']) for rune in temp_monster['runes']]
-                    # monster['runes'].set(monster_runes)
                     sum_eff = 0
                     for monster_rune in monster_runes:
                         sum_eff += monster_rune.efficiency
@@ -422,7 +421,11 @@ class UploadViewSet(viewsets.ViewSet):
                     monster['created'] = temp_monster['create_time']
                     monster['source'] = MonsterSource.objects.get(id=temp_monster['source'])
                     monster['transmog'] = True if temp_monster['costume_master_id'] else False
-                    monster['storage'] = True if temp_monster['building_id'] == 5 else False # temporarily building_id = 5 is Storage
+                    monster['storage'] = False
+                    for building in data['building_list']:
+                        if building['building_id'] == temp_monster['building_id'] and building['building_master_id'] == 25:
+                            monster['storage'] = True
+                            break
                     monster['locked'] = True if temp_monster['unit_id'] in data['unit_lock_list'] else False
                     ########################################
                     obj, created = Monster.objects.update_or_create( id=monster['id'], defaults=monster, )

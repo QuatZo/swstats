@@ -1,0 +1,99 @@
+{% load check_skillups %}
+{% load international_date %}
+{% load add_str %}
+{% load add_reverse_str %}
+
+<h2 class="title">
+    {{ text }}
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
+        Show/Hide 
+    </button>
+</h2>
+<div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Monster</th>
+                <th scope="col">Level</th>
+                <th scope="col">Stars</th>
+                <th scope="col">Nat</th>
+                <th scope="col">HP</th>
+                <th scope="col">Attack</th>
+                <th scope="col">Defense</th>
+                <th scope="col">Speed</th>
+                <th scope="col">Resistance</th>
+                <th scope="col">Accuracy</th>
+                <th scope="col">Crit Rate</th>
+                <th scope="col">Crit Dmg</th>
+                <th scope="col">Avg Eff</th>
+                <th scope="col">Skill #1</th>
+                <th scope="col">Skill #2</th>
+                <th scope="col">Skill #3</th>
+                <th scope="col">Skill #4</th>
+                <th scope="col">Acquired</th>
+                <th scope="col">Transmog</th>
+                <th scope="col">Storage</th>
+                <th scope="col">Awakened</th>
+                <th scope="col">Locked</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for monster in monsters %}
+                <tr onclick="goToMonster('{% url "monster_by_id" arg_id=monster.id %}')" style="cursor: pointer;">
+                    <td>{{ monster.base_monster }}</td>
+                    <td>{{ monster.level }}</td>
+                    <td>{{ monster.stars }}*</td>
+                    <td>{{ monster.base_monster.base_class }}*</td>
+                    <td>{{ monster.hp }}</td>
+                    <td>{{ monster.attack }}</td>
+                    <td>{{ monster.defense }}</td>
+                    <td>{{ monster.speed }}</td>
+                    <td>{{ monster.res }}%</td>
+                    <td>{{ monster.acc }}%</td>
+                    <td>{{ monster.crit_rate }}%</td>
+                    <td>{{ monster.crit_dmg }}%</td>
+                    <td>{{ monster.avg_eff }}%</td>
+                    {% for skill in monster|check_skillups %}
+                        <td>{% if skill == True %}
+                                <span data-feather="check" style="color: green;"></span>
+                            {% else %}
+                                {{ skill|default:'-' }}
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                    <td>{{ monster.created|international_date }}</td>
+                    <td>{% if monster.transmog %}
+                            <span data-feather="check" style="color: green;"></span>
+                        {% else %}
+                            <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>
+                    <td>{% if monster.storage %}
+                            <span data-feather="check" style="color: green;"></span>
+                        {% else %}
+                            <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>
+                    <td>{% if monster.base_monster.awaken %}
+                            <span data-feather="check" style="color: green;"></span>
+                        {% else %}
+                            <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>
+                    <td> {% if monster.locked %}
+                        <span data-feather="check" style="color: green;"></span>
+                        {% else %}
+                        <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>                    
+                </tr>
+            {% endfor %}
+            <script>
+                feather.replace()
+                function goToMonster(href){
+                    document.location.href = document.location.origin + href;
+                }
+            </script>
+        </tbody>
+    </table>
+</div>

@@ -32,7 +32,7 @@ class Guild(models.Model):
     last_update = models.DateTimeField()
 
     def __str__(self):
-        return str(self.id) + ' ( ' + str(self.members_amount) + '/' + str(self.members_max) + ', ' + str(self.gw_best_ranking) + ' [ Rank: ' + str(self.gw_best_place) + ' ])'
+        return str(self.id) + ' (' + str(self.members_amount) + '/' + str(self.members_max) + ', ' + str(self.gw_best_ranking) + ' [Rank: ' + str(self.gw_best_place) + '])'
 
     class Meta:
         ordering = ['-gw_best_place', '-gw_best_ranking', '-level', '-members_amount', 'id']
@@ -138,11 +138,6 @@ class Rune(models.Model):
     efficiency_max = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate in views
     equipped = models.BooleanField() # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
     locked = models.BooleanField() # rune_lock_list
-    # ^ OR same as JSON (,type if type different than monster then id = 0)
-    # ^ OR models.BigIntegerField 
-    # ^ OR models.ForeignKey for Monster [what with Inventory then?]
-    # ^ OR occupied as a Boolean variable and then Foreign Key with possibility of being NULL
-    # ^ OR occupied as a Boolean variable and then Monster has its key in class, there is only info if occupied [then needs to make a Trigger]
 
     def get_substats_display(self):
         effects = dict(self.RUNE_EFFECTS)
@@ -236,13 +231,25 @@ class MonsterBase(models.Model):
     class Meta:
         ordering = ['name']
 
+    @classmethod
+    def get_attribute_id(cls, name):
+        for key, attribute in dict(cls.MONSTER_ATTRIBUTES).items():
+            if attribute == name:
+                return key
+
+    @classmethod
+    def get_archetype_id(cls, name):
+        for key, archetype in dict(cls.MONSTER_TYPES).items():
+            if archetype == name:
+                return key
+
 class MonsterHoh(models.Model):
     monster_id = models.ForeignKey(MonsterBase, on_delete=models.PROTECT)
     date_open = models.DateField()
     date_close = models.DateField()
 
     def __str__(self):
-        return str(self.monster_id) + ' ( ' + self.date_open.strftime('%Y-%m-%d') + ' to ' + self.date_close.strftime('%Y-%m-%d') + ' )'
+        return str(self.monster_id) + ' (' + self.date_open.strftime('%Y-%m-%d') + ' to ' + self.date_close.strftime('%Y-%m-%d') + ')'
 
     class Meta:
         ordering = ['date_open', 'monster_id']
@@ -296,9 +303,11 @@ class Monster(models.Model):
     locked = models.BooleanField() # unit_lock_list - if it's in the array
     storage = models.BooleanField() # building_id, need to check which one is storage building
     
+    def get_runes_amount(self):
+        print(self.runes)
 
     def __str__(self):
-        return str(self.base_monster) + ' ( ID: ' + str(self.id) + ' )'
+        return str(self.base_monster) + ' (ID: ' + str(self.id) + ')'
 
     class Meta:
         ordering = ['-stars', '-level', 'base_monster']
@@ -366,7 +375,7 @@ class WizardBuilding(models.Model):
     level = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)], default=0)
 
     def __str__(self):
-        return str(self.wizard_id) + ' ' + str(self.building_id) + ' ( level ' + str(self.level) + ' )'
+        return str(self.wizard_id) + ' ' + str(self.building_id) + ' (level ' + str(self.level) + ')'
 
     class Meta:
         ordering = ['wizard_id', '-level', 'building_id']
@@ -405,7 +414,7 @@ class Arena(models.Model):
     def_4 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="fourth_def_monster", null=True, default=None)
 
     def __str__(self):
-        return str(self.wizard_id) + ': ' + str(self.get_rank_display()) + ' ( W' + str(self.wins) + '/' + str(self.loses) + 'L )'
+        return str(self.wizard_id) + ': ' + str(self.get_rank_display()) + ' (W' + str(self.wins) + '/' + str(self.loses) + 'L)'
 
     class Meta:
         ordering = ['-rank', '-wins', 'loses']
@@ -432,7 +441,7 @@ class WizardHomunculus(models.Model):
     skill_3 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_3", null=True, default=None)
 
     def __str__(self):
-        return str(self.homunculus_id) + '( ' + ', '.join([str(self.skill_1), str(self.skill_1_plus), str(self.skill_2), str(self.skill_2_plus), str(self.skill_3)]) + ' )'
+        return str(self.homunculus_id) + '(' + ', '.join([str(self.skill_1), str(self.skill_1_plus), str(self.skill_2), str(self.skill_2_plus), str(self.skill_3)]) + ')'
 
     class Meta:
         ordering = ['wizard_id', 'homunculus_id']

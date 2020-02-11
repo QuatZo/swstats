@@ -12,7 +12,6 @@
     <table class="table table-hover table-sm">
         <thead>
             <tr>
-                <th scope="col">Check</th>
                 <th scope="col">Quality</th>
                 <th scope="col">Slot</th>
                 <th scope="col">Stars</th>
@@ -38,20 +37,14 @@
                 <th scope="col">Eff. Max</th>
                 <th scope="col">Equipped</th>
                 <th scope="col">Locked</th>
-                <th scope="col">Check</th>
             </tr>
         </thead>
         <tbody>
             {% for rune in runes %}
-                <tr class="{{ "orig-quality-"|add_str:rune.get_quality_original_display }}">
-                    <th scope="row">
-                        <a href={% url 'rune_by_id' rune_id=rune.id %}>
-                            <span data-feather="info"></span>
-                        <a/>
-                    </th>
+                <tr class="{{ "orig-quality-"|add_str:rune.get_quality_original_display }}" onclick="goToRune('{% url "rune_by_id" arg_id=rune.id %}')" style="cursor: pointer;">
                     <td>{{ rune.get_quality_display }}</td>
                     <td>{{ rune.slot }}</td>
-                    <td>{{ rune.stars }}</td>
+                    <td>{{ rune.stars }}*</td>
                     <td>{{ rune.rune_set }}</td>
                     <td>{{ rune.upgrade_curr }}</td>
                     <td>{{ rune.get_primary_display }}</td>
@@ -83,17 +76,15 @@
                         {% else %}
                         <span data-feather="slash" style="color: red;"></span>
                         {% endif %}
-                    </td>
-                    <td>
-                        <a href={% url 'rune_by_id' rune_id=rune.id %}>
-                            <span data-feather="info"></span>
-                        <a/>
-                    </td>
-                    
+                    </td>                    
                 </tr>
             {% endfor %}
             <script>
                 feather.replace()
+
+                function goToRune(href){
+                    document.location.href = document.location.origin + href;
+                }
             </script>
         </tbody>
     </table>

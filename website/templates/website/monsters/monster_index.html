@@ -1,0 +1,42 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    Monsters {% if is_filter %} {{ filters }} {% endif %} 
+{% endblock %}
+
+{% block content %} 
+<div class='chart'>
+    {% include "website/monsters/charts/monster_chart_over_time.html" with timeline=time_timeline count=time_count %}
+</div>
+
+<div class='chart'>
+    <!-- Monsters Grouped By Attribute -->
+    {% include "website/monsters/charts/monster_chart_group_by_attribute.html" with name=attribute_name color=attribute_color count=attribute_count class='chart-2' %}
+
+    <!-- Monsters Grouped By Type -->
+    {% include "website/monsters/charts/monster_chart_group_by_type.html" with name=type_name color=type_color count=type_count class='chart-2 right' %}
+</div>
+
+<div class='chart'>
+    <!-- Monsters Grouped By Base Class -->
+    {% include "website/monsters/charts/monster_chart_group_by_base_class.html" with number=base_class_number color=base_class_color count=base_class_count class='chart-2' %}
+
+    <!-- Monsters Grouped By Storage -->
+    {% include "website/monsters/charts/monster_chart_group_by_storage.html" with value=storage_value color=storage_color count=storage_count class='chart-2 right' %}
+</div>
+
+<div class='chart'>
+    <!-- Same as above -->
+</div>
+{% endblock %}
+
+{% block table %}
+    {% with "Top "|add_str:best_amount|add_str:" monsters" as text %}
+        {% include "website/monsters/monster_table.html" with monsters=best_monsters collapse_id="top_monsters" text=text collapsed="collapse" %}
+    {% endwith %}
+
+    {% with "Fastest "|add_str:fastest_amount|add_str:" monsters" as text %}
+        {% include "website/monsters/monster_table.html" with monsters=fastest_monsters collapse_id="fastest_monsters" text=text collapsed="collapse" %}
+    {% endwith %}
+{% endblock %}

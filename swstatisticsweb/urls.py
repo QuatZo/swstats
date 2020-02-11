@@ -37,6 +37,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^$', views.get_homepage, name='home'),
     path('runes/', views.get_runes, name='runes'),
-    path('runes/id/<int:rune_id>/', views.get_rune_by_id, name='rune_by_id'),
+    path('runes/id/<int:arg_id>/', views.get_rune_by_id, name='rune_by_id'),
+    path('monsters/', views.get_monsters, name='monsters'),
+    path('monsters/id/<int:arg_id>/', views.get_monster_by_id, name='monster_by_id'),
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]

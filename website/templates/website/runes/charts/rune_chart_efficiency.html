@@ -14,6 +14,7 @@
     var aboveQuantity = JSON.parse(document.getElementById('above-quantity').textContent);
     var belowQuantity = JSON.parse(document.getElementById('below-quantity').textContent);
     var avgEff = JSON.parse(document.getElementById('avg-eff').textContent);
+    console.log(avgEff)
 
     var chartAllRunes = new Chart(ctx, {
         type: 'scatter',
@@ -49,6 +50,13 @@
                         return label;
                     }
                 }
+            },
+            hover: {
+                onHover: function(e) {
+                    var point = this.getElementAtEvent(e);
+                    if (point.length) e.target.style.cursor = 'pointer';
+                    else e.target.style.cursor = 'default';
+                }
             }
         }
     });
@@ -56,10 +64,12 @@
         var activeElement = chartAllRunes.getElementAtEvent(evt);
         if(activeElement.length > 0){
             var index = activeElement[0]._index;
-            if(above.length >= index && above[index].y >= avgEff ){
+            var datasetIndex = activeElement[0]._datasetIndex
+            
+            if( datasetIndex == 0 ){
                 document.location.href = window.location.origin + '/runes/id/' + above[index].x
             }
-            else if(below.length >= index && below[index].y < avgEff ){
+            else if( datasetIndex == 1 ){
                 document.location.href = window.location.origin + '/runes/id/' + below[index].x
             }
         }

@@ -2,13 +2,13 @@
 {% load add_str %}
 
 {% block content_title %}
-    Runes ( average efficiency: {{ avg_eff }}% ) {% if is_filter %} {{ filters }} {% endif %} 
+    Runes (average efficiency: {{ avg_eff }}%) {% if is_filter %} {{ filters }} {% endif %} 
 {% endblock %}
 
 {% block content %} 
 
 <!-- All Runes Chart -->
-{% include "website/runes/charts/rune_chart_efficiency.html" with above=avg_eff_above_runes above_quantity=avg_eff_above_quantity below=avg_eff_below_runes below_quantity=avg_eff_below_quantity %}
+{% include "website/runes/charts/rune_chart_efficiency.html" with above=avg_eff_above_runes above_quantity=avg_eff_above_quantity below=avg_eff_below_runes below_quantity=avg_eff_below_quantity avg_eff=avg_eff %}
 
 <!-- Normal Distribution Chart -->
 {% include "website/runes/charts/rune_chart_distribution.html" with means=all_means distribution=all_distribution color=all_color %}

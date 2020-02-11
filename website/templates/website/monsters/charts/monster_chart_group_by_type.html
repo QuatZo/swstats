@@ -1,33 +1,33 @@
-{{ number|json_script:'stars-numbers'}}
-{{ color|json_script:'stars-colors'}}
-{{ count|json_script:'stars-count'}}
+{{ name|json_script:'type-names'}}
+{{ color|json_script:'type-colors'}}
+{{ count|json_script:'type-count'}}
 
 <div class='{{ class|default:'chart' }}'>
-        <canvas id="chart-rune-stars" />
+    <canvas id="chart-monster-type" />
 </div>
 <script>
-    var ctx = document.getElementById('chart-rune-stars').getContext('2d');
-    var runeStars = JSON.parse(document.getElementById('stars-numbers').textContent);
-    var starsColors = JSON.parse(document.getElementById('stars-colors').textContent);
-    var starsCounts = JSON.parse(document.getElementById('stars-count').textContent);
+    var ctx = document.getElementById('chart-monster-type').getContext('2d');
+    var monsterTypes = JSON.parse(document.getElementById('type-names').textContent);
+    var typeColors = JSON.parse(document.getElementById('type-colors').textContent);
+    var typeCounts = JSON.parse(document.getElementById('type-count').textContent);
 
-    var chartRuneStars = new Chart(ctx, {
+    var chartMonsterType = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: runeStars,
+            labels: monsterTypes,
             datasets: [{
                 label: "Quantity",
                 type: "bar",
-                backgroundColor: starsColors,
-                data: starsCounts,
+                backgroundColor: typeColors,
+                data: typeCounts,
             }]
         },
         options: {
-            onClick: handleClickRunesStars,
+        onClick: handleClickMonstersType,
             maintainAspectRatio: false,
             title: {
                 display: true,
-                text: 'Rune Quantity Per Stars'
+                text: 'Monster Quantity Per Type'
             },
             scales: {
                 xAxes: [{
@@ -52,11 +52,11 @@
         }
     }
 );
-function handleClickRunesStars(evt) {   
-    var activeElement = chartRuneStars.getElementAtEvent(evt);
+function handleClickMonstersType(evt) {   
+    var activeElement = chartMonsterType.getElementAtEvent(evt);
     if(activeElement.length > 0){
         var index = activeElement[0]._index;
-        addParam(document.location.href, 'stars', runeStars[index])
+        addParam(document.location.href, 'type', monsterTypes[index])
     }
 };
 </script>
