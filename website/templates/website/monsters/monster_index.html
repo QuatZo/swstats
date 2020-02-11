@@ -6,29 +6,32 @@
 {% endblock %}
 
 {% block content %} 
-<div class='chart'>
     {% include "website/monsters/charts/monster_chart_over_time.html" with timeline=time_timeline count=time_count %}
-</div>
+    {% include "website/monsters/charts/monster_chart_group_by_family.html" with name=family_name count=family_count color=family_color %}
 
-<div class='chart'>
-    <!-- Monsters Grouped By Attribute -->
-    {% include "website/monsters/charts/monster_chart_group_by_attribute.html" with name=attribute_name color=attribute_color count=attribute_count class='chart-2' %}
+    <div class='chart'>
+        <!-- Monsters Grouped By Attribute -->
+        {% include "website/monsters/charts/monster_chart_group_by_attribute.html" with name=attribute_name color=attribute_color count=attribute_count class='chart-2' %}
 
-    <!-- Monsters Grouped By Type -->
-    {% include "website/monsters/charts/monster_chart_group_by_type.html" with name=type_name color=type_color count=type_count class='chart-2 right' %}
-</div>
+        <!-- Monsters Grouped By Type -->
+        {% include "website/monsters/charts/monster_chart_group_by_type.html" with name=type_name color=type_color count=type_count class='chart-2 right' %}
+    </div>
 
-<div class='chart'>
-    <!-- Monsters Grouped By Base Class -->
-    {% include "website/monsters/charts/monster_chart_group_by_base_class.html" with number=base_class_number color=base_class_color count=base_class_count class='chart-2' %}
+    <div class='chart'>
+        <!-- Monsters Grouped By Base Class -->
+        {% include "website/monsters/charts/monster_chart_group_by_base_class.html" with number=base_class_number color=base_class_color count=base_class_count class='chart-2' %}
 
-    <!-- Monsters Grouped By Storage -->
-    {% include "website/monsters/charts/monster_chart_group_by_storage.html" with value=storage_value color=storage_color count=storage_count class='chart-2 right' %}
-</div>
+        <!-- Monsters Grouped By Storage -->
+        {% include "website/monsters/charts/monster_chart_group_by_storage.html" with value=storage_value color=storage_color count=storage_count class='chart-2 right' %}
+    </div>
 
-<div class='chart'>
-    <!-- Same as above -->
-</div>
+    <div class='chart'>
+        <!-- Monsters Grouped By Hall of Heroes -->
+        {% include "website/monsters/charts/monster_chart_group_by_hoh.html" with value=hoh_value color=hoh_color count=hoh_count class='chart-2' %}
+
+        <!-- Monsters Grouped By Fusion -->
+        {% include "website/monsters/charts/monster_chart_group_by_fusion.html" with value=fusion_value color=fusion_color count=fusion_count class='chart-2 right' %}
+    </div>
 {% endblock %}
 
 {% block table %}

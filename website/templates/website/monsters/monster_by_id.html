@@ -2,45 +2,51 @@
 {% load add_str %}
 {% load add_reverse_str %}
 {% load to_list %}
-{% load rune_grinded_val %}
 
-<!-- THIS WHOLE FILE IS A TEMPLATE FOR FUTURE SPECIFIC MONSTER PAGE -->
+{% block content_title %}
+	{{ monster }} <br />
+	IMPORTANT: Add to ranking things like #x in Average Efficiency in category "The most efficient Attack-Type monster" or "The most efficient Natural 5 Stars monster"
+{% endblock %}
+
 {% block table %}
-	{% if rune %}
-		{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune ( ID: "|add_str:rune.id|add_str:" )" collapse_id="rune-"|add_str:rune.id collapsed="show"%}
+	{% if monster %}
+		{% include "website/monsters/monster_table.html" with monsters=monster|to_list text="Monster's Stats" collapse_id="monster-"|add_str:monster.id collapsed="show"%}
 		<h2 class="title">
-			Substats Ranking
+			Monster's Cards
 			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 
 				Show/Hide 
 			</button>
 		</h2>
 		<div class="row show" id="substat-row">
-		<!-- Add monster card with decks etc -->
-			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.efficiency value=rune.efficiency|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Flat HP' rank=ranks.hp_flat value=rune.sub_hp_flat|rune_grinded_val:True|add_reverse_str:'+' %}
-			{% include "website/runes/rune_card.html" with header='HP%' rank=ranks.hp value=rune.sub_hp|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Flat ATK' rank=ranks.atk_flat value=rune.sub_atk_flat|rune_grinded_val:True|add_reverse_str:'+' %}
-			{% include "website/runes/rune_card.html" with header='ATK%' rank=ranks.atk value=rune.sub_atk|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Flat DEF' rank=ranks.def_flat value=rune.sub_def_flat|rune_grinded_val:True|add_reverse_str:'+' %}
-			{% include "website/runes/rune_card.html" with header='DEF%' rank=ranks.def value=rune.sub_def|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.speed value=rune.sub_speed|rune_grinded_val:True %}
-			{% include "website/runes/rune_card.html" with header='Critical Rate' rank=ranks.crit_rate value=rune.sub_crit_rate|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Critical Damage' rank=ranks.crit_dmg value=rune.sub_crit_dmg|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Resistance' rank=ranks.res value=rune.sub_res|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Accuracy' rank=ranks.acc value=rune.sub_acc|rune_grinded_val:True|add_str:'%' %}
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.avg_eff value=monster.avg_eff|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="HP" rank=ranks.hp value=monster.hp %}
+			{% include "website/monsters/monster_card.html" with header="Attack" rank=ranks.attack value=monster.attack %}
+			{% include "website/monsters/monster_card.html" with header="Defense" rank=ranks.defense value=monster.defense %}
+			{% include "website/monsters/monster_card.html" with header="Speed" rank=ranks.speed value=monster.speed %}
+			{% include "website/monsters/monster_card.html" with header="Critical Rate" rank=ranks.crit_rate value=monster.crit_rate|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="Critical Damage" rank=ranks.crit_dmg value=monster.crit_dmg|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="Resistance" rank=ranks.res value=monster.res|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="Accuracy" rank=ranks.acc value=monster.acc|add_str:"%" %}
 		</div>
 
-		<h2 class="title">
-			Monsters
-			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-row" aria-expanded="true" aria-controls="#monster-row"> 
-				Show/Hide 
-			</button>
-		</h2>
-		<div class="row show" id="monster-row">
-			In Monster Card will be some info, how many runes equipped, avg efficiency, hp/def/atk/spd, stars, level and maybe some comps. Card will be 100% width, to store all this info.
-			<!-- {% include "website/runes/rune_card.html" with PvE=MONSTER %}
-			{% include "website/runes/rune_card.html" with RTA=MONSTER %} -->
-		</div>
+		{% include "website/runes/rune_table.html" with runes=monster.runes.all text=monster.base_monster|add_str:"'s Runes" collapse_id="monster-"|add_str:monster.id|add_str:"-runes" collapsed="show"%}
+		
+		{% if rta.build %}
+			<h2 class="title">
+				Monster's RTA Cards
+				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row-rta" aria-expanded="true" aria-controls="#substat-row-rta"> 
+					Show/Hide 
+				</button>
+			</h2>
+			<div class="row show" id="substat-row-rta">
+				{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.rta_eff value=rta.rta_eff|add_str:"%" %}
+			</div>
+
+			{% include "website/runes/rune_table.html" with runes=rta.build text=monster.base_monster|add_str:"'s RTA Runes" collapse_id="monster-"|add_str:monster.id|add_str:"-runes-rta" collapsed="show"%}
+		{% endif %}
+	
+		There should be some other Lushen's or decks, don't know yet. Probably first part is better, with some redirect to Decks w/ specific unit (2 buttons: 1 -> base monster, 2 -> actual monster).
+
 	{% else %}
 		<p>There will be 404 Error or something because no monster like this.</p>
 	{% endif %}

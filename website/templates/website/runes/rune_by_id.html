@@ -4,9 +4,14 @@
 {% load to_list %}
 {% load rune_grinded_val %}
 
+{% block content_title %}
+	{{ rune }} <br />
+	IMPORTANT: Add to ranking things like #x in Average Efficiency in category "The most efficient Attack-Type monster" or "The most efficient Natural 5 Stars monster"
+{% endblock %}
+
 {% block table %}
 	{% if rune %}
-		{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune ( ID: "|add_str:rune.id|add_str:" )" collapse_id="rune-"|add_str:rune.id collapsed="show"%}
+		{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune (ID: "|add_str:rune.id|add_str:")" collapse_id="rune-"|add_str:rune.id collapsed="show"%}
 		<h2 class="title">
 			Substats Ranking
 			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 

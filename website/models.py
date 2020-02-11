@@ -302,9 +302,6 @@ class Monster(models.Model):
     transmog = models.BooleanField() # costume_master_id
     locked = models.BooleanField() # unit_lock_list - if it's in the array
     storage = models.BooleanField() # building_id, need to check which one is storage building
-    
-    def get_runes_amount(self):
-        print(self.runes)
 
     def __str__(self):
         return str(self.base_monster) + ' (ID: ' + str(self.id) + ')'

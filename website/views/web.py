@@ -2,8 +2,9 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from django.db import connection
 
-from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase
+from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion
 
+from datetime import timedelta
 import matplotlib.cm as cm
 import numpy as np
 
@@ -250,9 +251,22 @@ def get_monster_list_over_time(monsters):
     for monster in temp_monsters:
         if (monster.created).strftime("%Y-%m-%d") not in time_values: # only monsters per day
             time_values.append((monster.created).strftime("%Y-%m-%d"))
-            time_quantity.append(temp_monsters.filter(created__lte=(monster.created).strftime("%Y-%m-%d")).count())
+            time_quantity.append(temp_monsters.filter(created__lte=(monster.created + timedelta(days=1)).strftime("%Y-%m-%d")).count())
     
     return { 'time': time_values, 'quantity': time_quantity }
+
+def get_monster_list_group_by_family(monsters):
+    """Return name, amount of families and quantity of monsters for every family in given monsters list."""
+    group_by_family = monsters.values('base_monster__family_id__name').annotate(total=Count('base_monster__family_id__name')).order_by('-total')
+
+    family_name = list()
+    family_count = list()
+
+    for group in group_by_family:
+        family_name.append(group['base_monster__family_id__name'])
+        family_count.append(group['total'])
+
+    return { 'name': family_name, 'quantity': family_count, 'length': len(family_name) }
 
 def get_monster_list_best(monsters, x):
     """Return TopX (or all, if there is no X elements in list) efficient monsters."""
@@ -316,6 +330,92 @@ def get_monster_list_group_by_storage(monsters):
         storage_count.append(group['total'])
 
     return { 'value': storage_value, 'quantity': storage_count, 'length': len(storage_value) }
+
+def get_monsters_hoh():
+    base_monsters_hoh = list()
+    for monster in MonsterHoh.objects.all().only('monster_id'):
+        base_monsters_hoh.append(monster.monster_id.id)
+        base_monsters_hoh.append(monster.monster_id.id + 10) # awakened also
+
+    return base_monsters_hoh
+
+def get_monsters_fusion():
+    base_monsters_fusion = list()
+    for monster in MonsterFusion.objects.all().only('monster_id'):
+        base_monsters_fusion.append(monster.monster_id.id)
+        base_monsters_fusion.append(monster.monster_id.id + 10) # awakened also
+
+    return base_monsters_fusion
+
+def get_monster_list_group_by_hoh(monsters):
+    """Return amount of monsters which have been & and not in Hall of Heroes."""
+
+    base_monsters_hoh = get_monsters_hoh()
+    monsters_hoh = monsters.filter(base_monster__in=base_monsters_hoh)
+    monsters_hoh_exclude = monsters.exclude(base_monster__in=base_monsters_hoh)
+
+    hoh_values = list()
+    hoh_quantity = list()
+
+    if monsters_hoh.count() > 0:
+        hoh_values.append(True)
+        hoh_quantity.append(monsters_hoh.count())
+
+    if monsters_hoh_exclude.count() > 0:
+        hoh_values.append(False)
+        hoh_quantity.append(monsters_hoh_exclude.count())
+
+    return { 'value': hoh_values, 'quantity': hoh_quantity, 'length': len(hoh_values) }
+
+def get_monster_list_group_by_fusion(monsters):
+    """Return amount of monsters which have been & and not in Fusion."""
+
+    base_monsters_fusion = get_monsters_fusion()
+    monsters_fusion = monsters.filter(base_monster__in=base_monsters_fusion)
+    monsters_fusion_exclude = monsters.exclude(base_monster__in=base_monsters_fusion)
+
+    fusion_values = list()
+    fusion_quantity = list()
+
+    if monsters_fusion.count() > 0:
+        fusion_values.append(True)
+        fusion_quantity.append(monsters_fusion.count())
+
+    if monsters_fusion_exclude.count() > 0:
+        fusion_values.append(False)
+        fusion_quantity.append(monsters_fusion_exclude.count())
+
+    return { 'value': fusion_values, 'quantity': fusion_quantity, 'length': len(fusion_values) }
+
+# specific monster ranking
+def get_monster_rank_avg_eff(monsters, monster):
+    return monsters.filter(avg_eff__gte=monster.avg_eff).count()
+
+def get_monster_rank_stats(monsters, monster, stat):
+    """Return place of monster based on given stat."""
+    stats = {
+        'hp': monster.hp,
+        'attack': monster.attack,
+        'defense': monster.defense,
+        'speed': monster.speed,
+        'res': monster.res,
+        'acc': monster.acc,
+        'crit_rate': monster.crit_rate,
+        'crit_dmg': monster.crit_dmg,
+    }
+
+    if stats[stat] is None:
+        return monsters.count()
+
+    rank = 1
+    value = stats[stat]
+
+    for temp_monster in monsters.raw(f'SELECT id, {stat} FROM website_monster WHERE {stat} IS NOT NULL'):
+        temp_monster = temp_monster.__dict__
+        if temp_monster[stat] is not None and temp_monster[stat] > value:
+            rank += 1
+
+    return rank
 
 # Create your views here.
 def get_runes(request):
@@ -472,6 +572,11 @@ def get_monsters(request):
     if request.GET:
         is_filter = True
 
+    if request.GET.get('family'):
+        family = request.GET.get('family').replace('_', ' ')
+        filters.append('Family: ' + family)
+        monsters = monsters.filter(base_monster__family_id__name=family)
+
     if request.GET.get('attribute'):
         filters.append('Attribute: ' + request.GET.get('attribute'))
         monsters = monsters.filter(base_monster__attribute=MonsterBase().get_attribute_id(request.GET.get('attribute')))
@@ -488,20 +593,31 @@ def get_monsters(request):
         filters.append('Storage: ' + request.GET.get('storage'))
         monsters = monsters.filter(storage=request.GET.get('storage'))
 
-    if request.GET.get('main-stat'):
-        filters.append('Main Stat: ' + request.GET.get('main-stat'))
+    if request.GET.get('hoh'):
+        filters.append('HoH: ' + request.GET.get('hoh'))
+        if request.GET.get('hoh') == "True":
+            monsters = monsters.filter(base_monster__in=get_monsters_hoh())
+        else:
+            monsters = monsters.exclude(base_monster__in=get_monsters_hoh())
     
-    if request.GET.get('stars'):
-        filters.append('Stars: ' + request.GET.get('stars'))
+    if request.GET.get('fusion'):
+        filters.append('Fusion: ' + request.GET.get('fusion'))
+        if request.GET.get('fusion') == "True":
+            monsters = monsters.filter(base_monster__in=get_monsters_fusion())
+        else:
+            monsters = monsters.exclude(base_monster__in=get_monsters_fusion())
 
 
     best_monsters = get_monster_list_best(monsters, 100)
     fastest_monsters = get_monster_list_fastest(monsters, 100)
     monsters_over_time = get_monster_list_over_time(monsters)
+    monsters_by_family = get_monster_list_group_by_family(monsters)
     monsters_by_attribute = get_monster_list_group_by_attribute(monsters)
     monsters_by_type = get_monster_list_group_by_type(monsters)
     monsters_by_base_class = get_monster_list_group_by_base_class(monsters)
     monsters_by_storage = get_monster_list_group_by_storage(monsters)
+    monsters_by_hoh = get_monster_list_group_by_hoh(monsters)
+    monsters_by_fusion = get_monster_list_group_by_fusion(monsters)
 
     context = {
         # filters
@@ -511,6 +627,11 @@ def get_monsters(request):
         # chart monster by acquiration date
         'time_timeline': monsters_over_time['time'],
         'time_count': monsters_over_time['quantity'],
+
+        # chart monster by family
+        'family_name': monsters_by_family['name'],
+        'family_count': monsters_by_family['quantity'],
+        'family_color': create_rgb_colors(monsters_by_family['length']),
 
         # chart monster by attribute
         'attribute_name': monsters_by_attribute['name'],
@@ -532,6 +653,16 @@ def get_monsters(request):
         'storage_count': monsters_by_storage['quantity'],
         'storage_color': create_rgb_colors(monsters_by_storage['length']),
 
+        # chart monster by hoh
+        'hoh_value': monsters_by_hoh['value'],
+        'hoh_count': monsters_by_hoh['quantity'],
+        'hoh_color': create_rgb_colors(monsters_by_hoh['length']),
+
+        # chart monster by fusion
+        'fusion_value': monsters_by_fusion['value'],
+        'fusion_count': monsters_by_fusion['quantity'],
+        'fusion_color': create_rgb_colors(monsters_by_fusion['length']),
+
         # table best by efficiency
         'best_monsters': best_monsters,
         'best_amount': len(best_monsters),
@@ -544,9 +675,41 @@ def get_monsters(request):
     return render( request, 'website/monsters/monster_index.html', context)
 
 def get_monster_by_id(request, arg_id):
+    monsters = Monster.objects.all()
     monster = get_object_or_404(Monster, id=arg_id)
+    
+    rta_monsters = RuneRTA.objects.filter(monster_id=arg_id)
+    rta_build = list()
+
+    for rta_monster in rta_monsters:
+        rta_build.append(rta_monster.rune_id)
+    
+    try:
+        rta_eff = sum([ rune.efficiency for rune in rta_build ]) / len(rta_build)
+    except ZeroDivisionError:
+        rta_eff = None
+
+    ranks = {
+        'avg_eff': get_monster_rank_avg_eff(monsters, monster),
+        'hp': get_monster_rank_stats(monsters, monster, 'hp'),
+        'attack': get_monster_rank_stats(monsters, monster, 'attack'),
+        'defense': get_monster_rank_stats(monsters, monster, 'defense'),
+        'speed': get_monster_rank_stats(monsters, monster, 'speed'),
+        'res': get_monster_rank_stats(monsters, monster, 'res'),
+        'acc': get_monster_rank_stats(monsters, monster, 'acc'),
+        'crit_rate': get_monster_rank_stats(monsters, monster, 'crit_rate'),
+        'crit_dmg': get_monster_rank_stats(monsters, monster, 'crit_dmg'),
+    }
+
+    rta = {
+        'build': rta_build,
+        'eff': rta_eff,
+    }
+
     context = { 
         'monster': monster, 
+        'ranks': ranks,
+        'rta': rta,
     }
 
     return render( request, 'website/monsters/monster_by_id.html', context )

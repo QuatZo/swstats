@@ -9,6 +9,10 @@
     var monsterStorage = JSON.parse(document.getElementById('storage-value').textContent);
     var storageColors = JSON.parse(document.getElementById('storage-colors').textContent);
     var storageCounts = JSON.parse(document.getElementById('storage-count').textContent);
+    
+    for (i = 0; i < monsterStorage.length; i++) {
+        monsterStorage[i] = monsterStorage[i].toString().charAt(0).toUpperCase() + monsterStorage[i].toString().slice(1);
+    }
 
     var chartMonsterStorage = new Chart(ctx, {
         type: 'bar',

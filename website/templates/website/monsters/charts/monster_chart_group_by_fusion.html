@@ -1,0 +1,65 @@
+{{ value|json_script:'fusion-value'}}
+{{ color|json_script:'fusion-colors'}}
+{{ count|json_script:'fusion-count'}}
+<div class='{{ class|default:'chart' }}'>
+    <canvas id="chart-monster-fusion" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-monster-fusion').getContext('2d');
+    var monsterFusion = JSON.parse(document.getElementById('fusion-value').textContent);
+    var fusionColors = JSON.parse(document.getElementById('fusion-colors').textContent);
+    var fusionCounts = JSON.parse(document.getElementById('fusion-count').textContent);
+
+    for (i = 0; i < monsterFusion.length; i++) {
+        monsterFusion[i] = monsterFusion[i].toString().charAt(0).toUpperCase() + monsterFusion[i].toString().slice(1);
+    }
+
+    var chartMonsterFusion = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: monsterFusion,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: fusionColors,
+                data: fusionCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickMonstersFusion,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Monster Quantity Available as Fusion'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false },
+            hover: {
+                onHover: function(e) {
+                    var point = this.getElementAtEvent(e);
+                    if (point.length) e.target.style.cursor = 'pointer';
+                    else e.target.style.cursor = 'default';
+                }
+            }
+        }
+    }
+);
+function handleClickMonstersFusion(evt) {   
+    var activeElement = chartMonsterFusion.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'fusion', monsterFusion[index])
+    }
+};
+</script>
