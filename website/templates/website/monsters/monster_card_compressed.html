@@ -1,0 +1,64 @@
+{% load add_str %}
+{% load check_text %}
+
+<div class="col-12 col-sm-6 rank">
+    <div class="card">
+        <div class="card-header" onClick="goToMonster('{% url "monster_by_id" arg_id=monster.id %}')" style="cursor: pointer;">
+            {{ name }}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Family</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.base_monster.family_id }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Base Monster</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.base_monster }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Stars</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.stars }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Base Class</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.base_monster.base_class }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Type</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.base_monster.get_archetype_display }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Attribute</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.base_monster.get_attribute_display }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Level</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.level }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Runes Efficiency</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.avg_eff|add_str:"%" }}</div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Runes</b></div>
+                <div class="col-6 col-sm-6"> {% for rune in monster.runes.all %}
+                                                    <a href={% url 'rune_by_id' arg_id=rune.id %}>{{ rune }}</a><br />
+                                                {% endfor %} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Decks</b></div>
+                <div class="col-6 col-sm-6"> There will be link to the monster's decks or even records. The best would be to include images, more info by occupying less place </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Recommendation text ({{ monster.base_monster.recommendation_votes }} votes)</b></div>
+                <div class="col-6 col-sm-6"> {{ monster.base_monster.recommendation_text|check_text }} </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function goToMonster(href){
+        document.location.href = document.location.origin + href;
+    }
+</script>

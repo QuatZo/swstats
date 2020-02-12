@@ -206,12 +206,12 @@ def get_rune_list_grouped_by_stars(runes):
 
     return { 'number': stars_number, 'quantity': stars_count, 'length': len(stars_number) }
 
-# specific rune ranking
+# specific rune
 def get_rune_rank_eff(runes, rune):
     """Return place of rune based on efficiency."""
     return runes.filter(efficiency__gte=rune.efficiency).count()
 
-def get_rune_rank_substat(runes, rune, substat):
+def get_rune_rank_substat(runes, rune, substat, filters=None):
     """Return place of rune based on given substat."""
     substats = {
         'sub_hp_flat': rune.sub_hp_flat,
@@ -230,15 +230,26 @@ def get_rune_rank_substat(runes, rune, substat):
     if substats[substat] is None:
         return runes.count()
 
+    remaining_filters = ""
+    if filters:
+        if 'slot' in filters:
+            remaining_filters += "AND slot=" + str(rune.slot)
+        if 'set' in filters:
+            remaining_filters += "AND rune_set_id=" + str(rune.rune_set.id)
+
     rank = 1
     value = sum(substats[substat])
 
-    for temp_rune in runes.raw(f'SELECT id, {substat} FROM website_rune WHERE {substat} IS NOT NULL'):
+    for temp_rune in runes.raw(f'SELECT id, {substat} FROM website_rune WHERE {substat} IS NOT NULL {remaining_filters}'):
         temp_rune = temp_rune.__dict__
         if temp_rune[substat] is not None and sum(temp_rune[substat]) > value:
             rank += 1
 
     return rank
+
+def get_rune_similar(runes, rune):
+    """Return runes similar to the given one."""
+    return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary).exclude(id=rune.id).order_by('-efficiency')
 
 # monster list w/ filters
 def get_monster_list_over_time(monsters):
@@ -279,6 +290,20 @@ def get_monster_list_fastest(monsters, x):
 
     return fastest_monsters
 
+def get_monster_list_toughest(monsters, x):
+    """Return TopX (or all, if there is no X elements in list) toughest (Effective HP) monsters."""
+    toughest_monsters = monsters.order_by(F('eff_hp').desc(nulls_last=True))
+    toughest_monsters = toughest_monsters[:min(x, toughest_monsters.count())]
+
+    return toughest_monsters
+
+def get_monster_list_toughest_def_break(monsters, x):
+    """Return TopX (or all, if there is no X elements in list) toughest (Effective HP while Defense Broken) monsters."""
+    toughest_def_break_monsters = monsters.order_by(F('eff_hp_def_break').desc(nulls_last=True))
+    toughest_def_break_monsters = toughest_def_break_monsters[:min(x, toughest_def_break_monsters.count())]
+
+    return toughest_def_break_monsters
+
 def get_monster_list_group_by_attribute(monsters):
     """Return names, amount of attributes and quantity of monsters for every attribute in given monsters list."""
     group_by_attribute = monsters.values('base_monster__attribute').annotate(total=Count('base_monster__attribute')).order_by('-total')
@@ -307,7 +332,7 @@ def get_monster_list_group_by_type(monsters):
 
 def get_monster_list_group_by_base_class(monsters):
     """Return number, amount of base class and quantity of monsters for every base class in given monsters list."""
-    group_by_base_class = monsters.values('base_monster__base_class').annotate(total=Count('base_monster__base_class')).order_by('-total')
+    group_by_base_class = monsters.values('base_monster__base_class').annotate(total=Count('base_monster__base_class')).order_by('base_monster__base_class')
 
     base_class_number = list()
     base_class_count = list()
@@ -534,25 +559,39 @@ def get_runes(request):
 def get_rune_by_id(request, arg_id):
     rune = get_object_or_404(Rune, id=arg_id)
     runes = Rune.objects.all()
-    monster = Monster.objects.filter(runes__id=rune.id)
+    monster = Monster.objects.filter(runes__id=rune.id).first()
     try:
         rta_monster = RuneRTA.objects.filter(rune_id=rune.id).first().monster_id
     except AttributeError:
         rta_monster = None
 
+    runes_category_slot = runes.filter(slot=rune.slot)
+    runes_category_set = runes.filter(rune_set=rune.rune_set)
+    runes_category_both = runes.filter(slot=rune.slot, rune_set=rune.rune_set)
+
     ranks = {
-        'efficiency': get_rune_rank_eff(runes, rune),
-        'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat'),
-        'hp': get_rune_rank_substat(runes, rune, 'sub_hp'),
-        'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat'),
-        'atk': get_rune_rank_substat(runes, rune, 'sub_atk'),
-        'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat'),
-        'def': get_rune_rank_substat(runes, rune, 'sub_def'),
-        'speed': get_rune_rank_substat(runes, rune, 'sub_speed'),
-        'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate'),
-        'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg'),
-        'res': get_rune_rank_substat(runes, rune, 'sub_res'),
-        'acc': get_rune_rank_substat(runes, rune, 'sub_acc'),
+        'normal': {
+            'efficiency': get_rune_rank_eff(runes, rune),
+            'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat'),
+            'hp': get_rune_rank_substat(runes, rune, 'sub_hp'),
+            'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat'),
+            'atk': get_rune_rank_substat(runes, rune, 'sub_atk'),
+            'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat'),
+            'def': get_rune_rank_substat(runes, rune, 'sub_def'),
+            'speed': get_rune_rank_substat(runes, rune, 'sub_speed'),
+            'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate'),
+            'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg'),
+            'res': get_rune_rank_substat(runes, rune, 'sub_res'),
+            'acc': get_rune_rank_substat(runes, rune, 'sub_acc'),
+        },
+        'categorized': {
+            'efficiency_slot': get_rune_rank_eff(runes_category_slot, rune),
+            'efficiency_set': get_rune_rank_eff(runes_category_set, rune),
+            'efficiency_both': get_rune_rank_eff(runes_category_both, rune),
+            'speed_slot': get_rune_rank_substat(runes_category_slot, rune, 'sub_speed', ['slot']),
+            'speed_set': get_rune_rank_substat(runes_category_set, rune, 'sub_speed', ['set']),
+            'speed_both': get_rune_rank_substat(runes_category_both, rune, 'sub_speed', ['slot', 'set']),
+        }
     }
 
     context = { 
@@ -560,6 +599,7 @@ def get_rune_by_id(request, arg_id):
         'monster': monster, 
         'rta_monster': rta_monster,
         'ranks': ranks,
+        'similar_runes': get_rune_similar(runes, rune),
     }
 
     return render( request, 'website/runes/rune_by_id.html', context )
@@ -607,9 +647,6 @@ def get_monsters(request):
         else:
             monsters = monsters.exclude(base_monster__in=get_monsters_fusion())
 
-
-    best_monsters = get_monster_list_best(monsters, 100)
-    fastest_monsters = get_monster_list_fastest(monsters, 100)
     monsters_over_time = get_monster_list_over_time(monsters)
     monsters_by_family = get_monster_list_group_by_family(monsters)
     monsters_by_attribute = get_monster_list_group_by_attribute(monsters)
@@ -618,6 +655,10 @@ def get_monsters(request):
     monsters_by_storage = get_monster_list_group_by_storage(monsters)
     monsters_by_hoh = get_monster_list_group_by_hoh(monsters)
     monsters_by_fusion = get_monster_list_group_by_fusion(monsters)
+    best_monsters = get_monster_list_best(monsters, 100)
+    fastest_monsters = get_monster_list_fastest(monsters, 100)
+    toughest_monsters = get_monster_list_toughest(monsters, 100)
+    toughest_def_break_monsters = get_monster_list_toughest_def_break(monsters, 100)
 
     context = {
         # filters
@@ -670,6 +711,14 @@ def get_monsters(request):
         # table best by speed
         'fastest_monsters': fastest_monsters,
         'fastest_amount': len(fastest_monsters),
+
+        # table best by Effective HP
+        'toughest_monsters': toughest_monsters,
+        'toughest_amount': len(toughest_monsters),
+
+        # table best by Effective HP while Defense Broken
+        'toughest_def_break_monsters': toughest_def_break_monsters,
+        'toughest_def_break_amount': len(toughest_def_break_monsters),
     }
 
     return render( request, 'website/monsters/monster_index.html', context)

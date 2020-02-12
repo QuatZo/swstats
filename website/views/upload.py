@@ -417,6 +417,8 @@ class UploadViewSet(viewsets.ViewSet):
                     for monster_rune in monster_runes:
                         sum_eff += monster_rune.efficiency
                     monster['avg_eff'] = round(sum_eff / len(monster_runes), 2) if len(monster_runes) > 0 else 0.00
+                    monster['eff_hp'] = stats['hp'] * (1000 + (stats['defense'] * 3)) / 1000
+                    monster['eff_hp_def_break'] = stats['hp'] * (1000 + (stats['defense'] * 1.5)) / 1000
 
                     monster['created'] = temp_monster['create_time']
                     monster['source'] = MonsterSource.objects.get(id=temp_monster['source'])

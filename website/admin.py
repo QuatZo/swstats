@@ -35,7 +35,7 @@ class MonsterSourceAdmin(admin.ModelAdmin):
 
 class MonsterAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'user_id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'skills', 'get_runes',
+        'id', 'user_id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'eff_hp', 'eff_hp_def_break', 'skills', 'get_runes',
         'created', 'source', 'transmog', 'storage', 'locked'
     )
     

@@ -42,4 +42,12 @@
     {% with "Fastest "|add_str:fastest_amount|add_str:" monsters" as text %}
         {% include "website/monsters/monster_table.html" with monsters=fastest_monsters collapse_id="fastest_monsters" text=text collapsed="collapse" %}
     {% endwith %}
+
+    {% with "Toughest "|add_str:toughest_amount|add_str:" monsters" as text %}
+        {% include "website/monsters/monster_table.html" with monsters=toughest_monsters collapse_id="toughest_monsters" text=text collapsed="collapse" %}
+    {% endwith %}
+
+    {% with "Toughest Defense Broken "|add_str:toughest_amount|add_str:" monsters" as text %}
+        {% include "website/monsters/monster_table.html" with monsters=toughest_def_break_monsters collapse_id="toughest_def_break_monsters" text=text collapsed="collapse" %}
+    {% endwith %}
 {% endblock %}

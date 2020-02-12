@@ -223,7 +223,7 @@ class MonsterBase(models.Model):
     max_skills = ArrayField( models.IntegerField() ) # table with max skillsups ( we don't care about skills itself, it's in SWARFARM already )
     awaken = models.SmallIntegerField(choices=MONSTER_AWAKEN) # to calculate
     recommendation_text = models.CharField(max_length=512, blank=True, null=True) # best from Recommendation command, needs to delete every scam
-    recommendation_votes = models.IntegerField(blank=True, null=True) # best from Recommendation command
+    recommendation_votes = models.IntegerField(blank=True, default=0) # best from Recommendation command
     
     def __str__(self):
         return self.name
@@ -293,6 +293,8 @@ class Monster(models.Model):
     crit_rate = models.IntegerField() # critical_rate
     crit_dmg = models.IntegerField() # critical_damage
     avg_eff = models.FloatField(validators=[MinValueValidator(0.00)]) # sum(rune_eff) / len(runes)
+    eff_hp = models.IntegerField(validators=[MinValueValidator(0.00)])
+    eff_hp_def_break = models.IntegerField(validators=[MinValueValidator(0.00)])
     ############################################
 
     skills = ArrayField( models.IntegerField() ) # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already

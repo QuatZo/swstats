@@ -26,10 +26,9 @@
                 <th scope="col">Crit Rate</th>
                 <th scope="col">Crit Dmg</th>
                 <th scope="col">Avg Eff</th>
-                <th scope="col">Skill #1</th>
-                <th scope="col">Skill #2</th>
-                <th scope="col">Skill #3</th>
-                <th scope="col">Skill #4</th>
+                <th scope="col">Eff. HP</th>
+                <th scope="col">Eff. HP D-B</th>
+                <th scope="col">Skilled Up</th>
                 <th scope="col">Acquired</th>
                 <th scope="col">Transmog</th>
                 <th scope="col">Storage</th>
@@ -53,14 +52,15 @@
                     <td>{{ monster.crit_rate }}%</td>
                     <td>{{ monster.crit_dmg }}%</td>
                     <td>{{ monster.avg_eff }}%</td>
-                    {% for skill in monster|check_skillups %}
-                        <td>{% if skill == True %}
-                                <span data-feather="check" style="color: green;"></span>
-                            {% else %}
-                                {{ skill|default:'-' }}
-                            {% endif %}
-                        </td>
-                    {% endfor %}
+                    <td>{{ monster.eff_hp }}</td>
+                    <td>{{ monster.eff_hp_def_break }}</td>
+                    <td>{% if monster|check_skillups %}
+                            <span data-feather="check" style="color: green;"></span>
+                        {% else %}
+                            <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>
+
                     <td>{{ monster.created|international_date }}</td>
                     <td>{% if monster.transmog %}
                             <span data-feather="check" style="color: green;"></span>
