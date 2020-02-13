@@ -22,14 +22,6 @@
     {% block navbar %}
         <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow" id="sidebar-upper">
             <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"><span class="text">SW Statistics</span> <img src={% static 'website/images/icons/menu.svg' %} class="menu-img" id="sidebar-toggler" /></a>
-            <ul class="navbar-nav px-3">
-                <li class="nav-item">
-                    <a class="nav-link" href="https://getbootstrap.com/">Built with Bootstrap </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="http://github.com/quatzo">Created by QuatZo</a>
-                </li>
-            </ul>
         </nav>
     {% endblock %}
     <div class="container-fluid">
@@ -44,43 +36,25 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes'%}" >
+                        <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes' %}" >
                                 <img src={% static 'website/images/icons/rune.svg' %} class="menu-img" />
                             <span class="text">Runes</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "monsters" %}active{% endif %}" href="{% url 'monsters'%}" >
+                        <a class="nav-link {% if request.resolver_match.url_name == "monsters" %}active{% endif %}" href="{% url 'monsters' %}" >
                             <img src={% static 'website/images/icons/monster.svg' %} class="menu-img" />
                             <span class="text">Monsters</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <img src={% static 'website/images/icons/arena.svg' %} class="menu-img" />
-                            <span class="text">Arena</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <img src={% static 'website/images/icons/building.svg' %} class="menu-img" />
-                            <span class="text">Buildings</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <img src={% static 'website/images/icons/decks.svg' %} class="menu-img" />
-                            <span class="text">Decks</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link {% if request.resolver_match.url_name == "contribute" %}active{% endif %}" href="{% url 'contribute' %}" >
                             <img src={% static 'website/images/icons/contribute.svg' %} class="menu-img" />
                             <span class="text">Contribute</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link {% if request.resolver_match.url_name == "credits" %}active{% endif %}" href="{% url 'credits' %}" >
                             <img src={% static 'website/images/icons/credits.svg' %} class="menu-img" />
                             <span class="text">Credits</span>
                         </a>
@@ -91,6 +65,24 @@
                         <span>Future updates</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <img src={% static 'website/images/icons/arena.svg' %} class="menu-img" />
+                                <span class="text">Arena</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <img src={% static 'website/images/icons/building.svg' %} class="menu-img" />
+                                <span class="text">Buildings</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <img src={% static 'website/images/icons/decks.svg' %} class="menu-img" />
+                                <span class="text">Decks</span>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link disabled" href="#">
                                 <img src={% static 'website/images/icons/guild.svg' %} class="menu-img" />

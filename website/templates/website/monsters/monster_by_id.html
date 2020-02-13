@@ -5,50 +5,86 @@
 
 {% block content_title %}
 	{{ monster }} <br />
-	IMPORTANT: Add to ranking things like #x in Average Efficiency in category "The most efficient Attack-Type monster" or "The most efficient Natural 5 Stars monster"
 {% endblock %}
 
 {% block table %}
 	{% if monster %}
-		{% include "website/monsters/monster_table.html" with monsters=monster|to_list text="Monster's Stats" collapse_id="monster-"|add_str:monster.id collapsed="show"%}
+		{% include "website/monsters/monster_table.html" with monsters=monster|to_list text="Monster's Stats" collapse_id="monster-"|add_str:monster.id collapsed="collapse"%}
 		<div class="title-container">
 			<h2 class="title">
 				Monster's Cards
 			</h2>
-			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 
+			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-row" aria-expanded="true" aria-controls="#monster-row"> 
 				Show/Hide 
 			</button>
 		</div>
-		<div class="row show" id="substat-row">
-			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.avg_eff value=monster.avg_eff|add_str:"%" %}
-			{% include "website/monsters/monster_card.html" with header="HP" rank=ranks.hp value=monster.hp %}
-			{% include "website/monsters/monster_card.html" with header="Attack" rank=ranks.attack value=monster.attack %}
-			{% include "website/monsters/monster_card.html" with header="Defense" rank=ranks.defense value=monster.defense %}
-			{% include "website/monsters/monster_card.html" with header="Speed" rank=ranks.speed value=monster.speed %}
-			{% include "website/monsters/monster_card.html" with header="Critical Rate" rank=ranks.crit_rate value=monster.crit_rate|add_str:"%" %}
-			{% include "website/monsters/monster_card.html" with header="Critical Damage" rank=ranks.crit_dmg value=monster.crit_dmg|add_str:"%" %}
-			{% include "website/monsters/monster_card.html" with header="Resistance" rank=ranks.res value=monster.res|add_str:"%" %}
-			{% include "website/monsters/monster_card.html" with header="Accuracy" rank=ranks.acc value=monster.acc|add_str:"%" %}
+		<div class="row collapse" id="monster-row">
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.normal.avg_eff value=monster.avg_eff|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="HP" rank=ranks.normal.hp value=monster.hp %}
+			{% include "website/monsters/monster_card.html" with header="Attack" rank=ranks.normal.attack value=monster.attack %}
+			{% include "website/monsters/monster_card.html" with header="Defense" rank=ranks.normal.defense value=monster.defense %}
+			{% include "website/monsters/monster_card.html" with header="Speed" rank=ranks.normal.speed value=monster.speed %}
+			{% include "website/monsters/monster_card.html" with header="Critical Rate" rank=ranks.normal.crit_rate value=monster.crit_rate|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="Critical Damage" rank=ranks.normal.crit_dmg value=monster.crit_dmg|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="Resistance" rank=ranks.normal.res value=monster.res|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="Accuracy" rank=ranks.normal.acc value=monster.acc|add_str:"%" %}
+			{% include "website/monsters/monster_card.html" with header="Effective HP" rank=ranks.normal.eff_hp value=monster.eff_hp %}
+			{% include "website/monsters/monster_card.html" with header="Effective HP While Def Broken" rank=ranks.normal.eff_hp_def_break value=monster.eff_hp_def_break %}
 		</div>
 
-		{% include "website/runes/rune_table.html" with runes=monster.runes.all text=monster.base_monster|add_str:"'s Runes" collapse_id="monster-"|add_str:monster.id|add_str:"-runes" collapsed="show"%}
-		
-		{% if rta.build %}
+		<div class="title-container">
 			<h2 class="title">
-				Monster's RTA Cards
-				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row-rta" aria-expanded="true" aria-controls="#substat-row-rta"> 
+				Monster's Categorized Cards
+			</h2>
+			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-categorized-row" aria-expanded="true" aria-controls="#monster-categorized-row"> 
+				Show/Hide 
+			</button>
+		</div>
+		<div class="row collapse" id="monster-categorized-row">
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_base value=monster.avg_eff|add_str:"%" categorized=True category="base monster "|add_str:monster.base_monster %}
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_family value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.family_id|add_str:" family" %}
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_attribute value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.get_attribute_display|add_str:" attribute" %}
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_type value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.get_archetype_display|add_str:" type" %}
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_attr_type value=monster.avg_eff|add_str:"%" categorized=True category="attribute "|add_str:monster.base_monster.get_attribute_display|add_str:" and "|add_str:monster.base_monster.get_archetype_display|add_str:" type" %}
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_base_class value=monster.avg_eff|add_str:"%" categorized=True category="nat"|add_str:monster.base_monster.base_class|add_str:"'s" %}
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_all value=monster.avg_eff|add_str:"%" categorized=True category="nat"|add_str:monster.base_monster.base_class|add_str:"'s of "|add_str:monster.base_monster.get_attribute_display|add_str:" attribute "|add_str:" and "|add_str:monster.base_monster.get_archetype_display|add_str:" type" %}
+		</div>
+
+		{% include "website/runes/rune_table.html" with runes=monster.runes.all text=monster.base_monster|add_str:"'s Runes" collapse_id="monster-"|add_str:monster.id|add_str:"-runes" collapsed="collapse"%}
+	
+		{% if monster %}
+			<div class="title-container">
+				<h2 class="title">
+					Other Builds for {{ monster.base_monster.name }}
+				</h2>
+				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-other-row" aria-expanded="true" aria-controls="#monster-other-row"> 
 					Show/Hide 
 				</button>
-			</h2>
-			<div class="row show" id="substat-row-rta">
-				{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.rta_eff value=rta.rta_eff|add_str:"%" %}
 			</div>
-
-			{% include "website/runes/rune_table.html" with runes=rta.build text=monster.base_monster|add_str:"'s RTA Runes" collapse_id="monster-"|add_str:monster.id|add_str:"-runes-rta" collapsed="show"%}
+			<div class="row collapse" id="monster-other-row">
+				{% for similar_monster in similar %}
+					{% include "website/monsters/monster_card_compressed.html" with name=similar_monster|add_str:" (Normal Build)" monster=similar_monster %}
+				{% endfor %}
+			</div>
 		{% endif %}
-	
-		There should be some other Monster's or decks, don't know yet. Probably first part is better, with some redirect to Decks w/ specific unit (2 buttons: 1 -> base monster, 2 -> actual monster).
 
+		{% if rta_similar %}
+			<div class="title-container">
+				<h2 class="title">
+					Other RTA Builds for {{ monster.base_monster.name }}
+				</h2>
+				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-other-rta-row" aria-expanded="true" aria-controls="#monster-other-rta-row"> 
+					Show/Hide 
+				</button>
+			</div>
+			<div class="row collapse" id="monster-other-rta-row">
+				{% for rta_similar_monster, rta_similar_build in rta_similar.items %}
+					{% include "website/monsters/monster_card_compressed.html" with name=rta_similar_monster|add_str:" (RTA Build)" monster=rta_similar_monster rta_runes=rta_similar_build %}
+				{% endfor %}
+			</div>
+		{% endif %}
+
+		After doing Decks, need to add some sort of Decks here, in which this specific unit is used. May also add decks for base monster.
 	{% else %}
 		<p>There will be 404 Error or something because no monster like this.</p>
 	{% endif %}

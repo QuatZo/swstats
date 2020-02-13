@@ -427,6 +427,8 @@ def get_monster_rank_stats(monsters, monster, stat):
         'acc': monster.acc,
         'crit_rate': monster.crit_rate,
         'crit_dmg': monster.crit_dmg,
+        'eff_hp': monster.eff_hp,
+        'eff_hp_def_break': monster.eff_hp_def_break,
     }
 
     if stats[stat] is None:
@@ -724,7 +726,7 @@ def get_monsters(request):
     return render( request, 'website/monsters/monster_index.html', context)
 
 def get_monster_by_id(request, arg_id):
-    monsters = Monster.objects.all()
+    monsters = Monster.objects.all().order_by('-avg_eff')
     monster = get_object_or_404(Monster, id=arg_id)
     
     rta_monsters = RuneRTA.objects.filter(monster_id=arg_id)
@@ -738,28 +740,62 @@ def get_monster_by_id(request, arg_id):
     except ZeroDivisionError:
         rta_eff = None
 
+    monsters_category_base = monsters.filter(base_monster=monster.base_monster)
+    monsters_category_family = monsters.filter(base_monster__family_id=monster.base_monster.family_id)
+    monsters_category_attribute = monsters.filter(base_monster__attribute=monster.base_monster.attribute)
+    monsters_category_type = monsters.filter(base_monster__archetype=monster.base_monster.archetype)
+    monsters_category_attr_type = monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__archetype=monster.base_monster.archetype)
+    monsters_category_base_class = monsters.filter(base_monster__base_class=monster.base_monster.base_class)
+    monsters_category_all = monsters_category_attr_type.filter(base_monster__base_class=monster.base_monster.base_class)
+
+    rta_similar_builds = dict()
+    for rta_similar in RuneRTA.objects.filter(monster_id__base_monster__family_id=monster.base_monster.family_id, monster_id__base_monster__attribute=monster.base_monster.attribute).exclude(monster_id=monster.id):
+        if rta_similar.monster_id not in rta_similar_builds.keys():
+            rta_similar_builds[rta_similar.monster_id] = list()
+        rta_similar_builds[rta_similar.monster_id].append(rta_similar.rune_id)
+
     ranks = {
-        'avg_eff': get_monster_rank_avg_eff(monsters, monster),
-        'hp': get_monster_rank_stats(monsters, monster, 'hp'),
-        'attack': get_monster_rank_stats(monsters, monster, 'attack'),
-        'defense': get_monster_rank_stats(monsters, monster, 'defense'),
-        'speed': get_monster_rank_stats(monsters, monster, 'speed'),
-        'res': get_monster_rank_stats(monsters, monster, 'res'),
-        'acc': get_monster_rank_stats(monsters, monster, 'acc'),
-        'crit_rate': get_monster_rank_stats(monsters, monster, 'crit_rate'),
-        'crit_dmg': get_monster_rank_stats(monsters, monster, 'crit_dmg'),
+        'normal': {
+            'avg_eff': get_monster_rank_avg_eff(monsters, monster),
+            'hp': get_monster_rank_stats(monsters, monster, 'hp'),
+            'attack': get_monster_rank_stats(monsters, monster, 'attack'),
+            'defense': get_monster_rank_stats(monsters, monster, 'defense'),
+            'speed': get_monster_rank_stats(monsters, monster, 'speed'),
+            'res': get_monster_rank_stats(monsters, monster, 'res'),
+            'acc': get_monster_rank_stats(monsters, monster, 'acc'),
+            'crit_rate': get_monster_rank_stats(monsters, monster, 'crit_rate'),
+            'crit_dmg': get_monster_rank_stats(monsters, monster, 'crit_dmg'),
+            'eff_hp': get_monster_rank_stats(monsters, monster, 'eff_hp'),
+            'eff_hp_def_break': get_monster_rank_stats(monsters, monster, 'eff_hp_def_break'),
+        },
+        'categorized': {
+            'avg_eff_base': get_monster_rank_avg_eff(monsters_category_base, monster),
+            'avg_eff_family': get_monster_rank_avg_eff(monsters_category_family, monster),
+            'avg_eff_attribute': get_monster_rank_avg_eff(monsters_category_attribute, monster),
+            'avg_eff_type': get_monster_rank_avg_eff(monsters_category_type, monster),
+            'avg_eff_attr_type': get_monster_rank_avg_eff(monsters_category_attr_type, monster),
+            'avg_eff_base_class': get_monster_rank_avg_eff(monsters_category_base_class, monster),
+            'avg_eff_all': get_monster_rank_avg_eff(monsters_category_all, monster),
+        }
     }
 
     rta = {
         'build': rta_build,
-        'eff': rta_eff,
     }
 
     context = { 
         'monster': monster, 
         'ranks': ranks,
         'rta': rta,
+        'similar': monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family_id=monster.base_monster.family_id).exclude(id=monster.id),
+        'rta_similar': rta_similar_builds,
     }
 
     return render( request, 'website/monsters/monster_by_id.html', context )
 
+def get_contribute_info(request):
+    return render( request, 'website/contribute.html')
+
+
+def get_credits(request):
+    return render( request, 'website/credits.html')

@@ -44,17 +44,31 @@
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Runes</b></div>
                 <div class="col-6 col-sm-6"> 
-                    {% for rune in monster.runes.all %}
-                        <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
-                            <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }}" >
-                                <div class="{{ "rune-slot"|add_str:rune.slot }}">
-                                    <div class="rune">
-                                        <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
+                    {% if rta_runes %}
+                        {% for rune in rta_runes %}
+                            <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
+                                <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }}" >
+                                    <div class="{{ "rune-slot"|add_str:rune.slot }}">
+                                        <div class="rune">
+                                            <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </a>
-                    {% endfor %} 
+                            </a>
+                        {% endfor %} 
+                    {% else %}
+                        {% for rune in monster.runes.all %}
+                            <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
+                                <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }}" >
+                                    <div class="{{ "rune-slot"|add_str:rune.slot }}">
+                                        <div class="rune">
+                                            <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %} 
+                    {% endif %}
                 </div>
             </div>
             <div class="row">
