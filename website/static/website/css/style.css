@@ -9,6 +9,13 @@ body {
     vertical-align: text-bottom;
 }
 
+.menu-img{
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    margin: 0;
+}
+
 .navbar-brand{
     height: 50px;
 }
@@ -36,7 +43,7 @@ body {
     cursor: default;
 }
 
-.navbar a svg{
+.navbar a img{
     float: right;
     vertical-align: middle;
     width: 35px;
@@ -61,8 +68,9 @@ body {
 }
 
 .sidebar .nav-link {
-    font-weight: 500;
     color: #333;
+    padding: 0;
+    padding-top: .75em;
 }
 
 .sidebar .nav-link .feather {
@@ -77,6 +85,10 @@ body {
 .sidebar .nav-link:hover .feather,
 .sidebar .nav-link.active .feather {
     color: inherit;
+}
+
+.sidebar .nav-link.active .feather.custom{
+    stroke: #007bff;
 }
 
 .sidebar-heading {
@@ -149,7 +161,6 @@ body {
     width: 35px;
     height: 35px;
     font-size: 35px;
-    margin-right: 10px;
 }
 
 .sidebar.toggled ~ [role="main"] {
@@ -170,14 +181,22 @@ body {
     }
 }
 
-.title .btn{
+.title-container{
+    overflow: auto;
+}
+
+.title-container .title{
+    display: inline-block;
+}
+
+.title-container .btn{
     float: right;
     background-color: #343a40;
     border-color: #343a40;
     color: #ededed;
 }
 
-.title .btn:hover{
+.title-container .btn:hover{
     background-color: #007bff;
     border-color: #007bff;
 }
@@ -237,4 +256,117 @@ h1.h2
 .rank{
     min-height: 10vh;
     padding: 15px 0;
+}
+
+.rune-background{
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    border: 2px solid;
+    border-radius: 5px;
+}
+
+.rune-border-Legend{
+    border-color: rgb(255, 173, 73, .75);
+}
+.rune-border-Hero{
+    border-color: rgb(255, 0, 255, .75);
+}
+
+.rune-border-Rare{
+    border-color: rgb(0, 0, 255, .75);
+}
+
+.rune-border-Magic{
+    border-color: rgb(0, 255, 0, .75);
+}
+.rune-border-White,
+.rune-border-Unknown
+{
+    border-color: rgb(0, 0, 0, .75);
+}
+
+.rune-background.Legend{
+    background-image: url('/static/website/images/runes/bg_legend.png');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.rune-slot1{
+    background-image: url('/static/website/images/runes/rune1.png');
+    background-repeat: no-repeat;
+    background-size: auto 45px;
+    height: 45px;
+    position: relative;
+    left: 5px;
+}
+
+.rune-slot1 img{
+    position: relative;
+    width: 35px;
+    top: 10px;
+    left: 1px;
+}
+
+.rune-slot2{
+    background-image: url('/static/website/images/runes/rune2.png');
+    background-repeat: no-repeat;
+    position: relative;
+    background-size: 45px auto;
+    top: 5px;
+}
+
+.rune-slot2 img,
+.rune-slot3 img
+{
+    position: relative;
+    width: 35px;
+    left: 2px;
+}
+
+.rune-slot3{
+    background-image: url('/static/website/images/runes/rune3.png');
+    background-repeat: no-repeat;
+    position: relative;
+    background-size: 45px auto;
+    top: 5px;
+}
+
+.rune-slot4{
+    background-image: url('/static/website/images/runes/rune4.png');
+    background-repeat: no-repeat;
+    background-size: auto 45px;
+    height: 45px;
+    position: relative;
+    left: 5px;
+}
+
+.rune-slot4 img{
+    position: relative;
+    width: 35px;
+    left: 1px;
+}
+
+.rune-slot5{
+    background-image: url('/static/website/images/runes/rune5.png');
+    background-repeat: no-repeat;
+    position: relative;
+    background-size: 45px auto;
+    top: 5px;
+}
+
+.rune-slot5 img,
+.rune-slot6 img
+{
+    position: relative;
+    width: 35px;
+    left: 6px;
+}
+
+.rune-slot6{
+    background-image: url('/static/website/images/runes/rune6.png');
+    background-repeat: no-repeat;
+    position: relative;
+    background-size: 45px auto;
+    top: 5px;
 }

@@ -2,12 +2,15 @@
 {% load add_reverse_str %}
 {% load rune_grinded_val %}
 
-<h2 class="title">
-    {{ text }}
+<div class="title-container">
+    <h2 class="title">
+        {{ text }}
+        
+    </h2>
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
         Show/Hide 
     </button>
-</h2>
+</div>
 <div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
     <table class="table table-hover table-sm">
         <thead>
@@ -32,7 +35,6 @@
                 <th scope="col">CDMG</th>
                 <th scope="col">RES</th>
                 <th scope="col">ACC</th>
-                <!-- <th scope="col">Original Quality</th> because background color -->
                 <th scope="col">Eff.</th>
                 <th scope="col">Eff. Max</th>
                 <th scope="col">Equipped</th>
@@ -62,7 +64,6 @@
                     <td>{{ rune.sub_crit_dmg|rune_grinded_val }}<sup>{{ rune.sub_crit_dmg.1|default:""|add_reverse_str:"+" }}</sup></td>
                     <td>{{ rune.sub_res|rune_grinded_val }}<sup>{{ rune.sub_res.1|default:""|add_reverse_str:"+" }}</sup></td>
                     <td>{{ rune.sub_acc|rune_grinded_val }}<sup>{{ rune.sub_acc.1|default:""|add_reverse_str:"+" }}</sup></td>
-                    <!--<td>{{ rune.get_quality_original_display }}</td> because background color -->
                     <td>{{ rune.efficiency }}</td>
                     <td>{{ rune.efficiency_max }}</td>
                     <td> {% if rune.equipped %}

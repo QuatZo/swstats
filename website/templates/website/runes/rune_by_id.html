@@ -11,12 +11,14 @@
 {% block table %}
 	{% if rune %}
 		{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune (ID: "|add_str:rune.id|add_str:")" collapse_id="rune-"|add_str:rune.id collapsed="show"%}
-		<h2 class="title">
-			Rune's Cards
+		<div class="title-container">
+			<h2 class="title">
+				Rune's Cards
+			</h2>
 			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 
 				Show/Hide 
 			</button>
-		</h2>
+		</div>
 		<div class="row show" id="substat-row">
 			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.normal.efficiency value=rune.efficiency|add_str:'%' %}
 			{% include "website/runes/rune_card.html" with header='Flat HP' rank=ranks.normal.hp_flat value=rune.sub_hp_flat|rune_grinded_val:True|add_reverse_str:'+' %}
@@ -31,13 +33,15 @@
 			{% include "website/runes/rune_card.html" with header='Resistance' rank=ranks.normal.res value=rune.sub_res|rune_grinded_val:True|add_str:'%' %}
 			{% include "website/runes/rune_card.html" with header='Accuracy' rank=ranks.normal.acc value=rune.sub_acc|rune_grinded_val:True|add_str:'%' %}
 		</div>
-		
-		<h2 class="title">
-			Rune's Categorized Cards
+
+		<div class="title-container">
+			<h2 class="title">
+				Rune's Categorized Cards
+			</h2>
 			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-categorized-row" aria-expanded="true" aria-controls="#substat-categorized-row"> 
 				Show/Hide 
 			</button>
-		</h2>
+		</div>
 		<div class="row show" id="substat-categorized-row">
 			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_slot value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot %}
 			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_set value=rune.efficiency|add_str:'%' categorized=True category="set "|add_str:rune.rune_set %}
@@ -48,12 +52,14 @@
 		</div>
 
 		{% if monster or rta_monster %}
-			<h2 class="title">
-				Monsters
+			<div class="title-container">
+				<h2 class="title">
+					Monsters
+				</h2>
 				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-row" aria-expanded="true" aria-controls="#monster-row"> 
 					Show/Hide 
 				</button>
-			</h2>
+			</div>
 			<div class="row show" id="monster-row">
 				{% if monster %}
 					{% include "website/monsters/monster_card_compressed.html" with name=monster|add_str:" (Normal Build)" monster=monster %}

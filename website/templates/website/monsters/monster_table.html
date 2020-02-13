@@ -3,12 +3,15 @@
 {% load add_str %}
 {% load add_reverse_str %}
 
-<h2 class="title">
-    {{ text }}
+<div class="title-container">
+    <h2 class="title">
+        {{ text }}
+        
+    </h2>
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
         Show/Hide 
     </button>
-</h2>
+</div>
 <div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
     <table class="table table-hover table-sm">
         <thead>
@@ -28,6 +31,7 @@
                 <th scope="col">Avg Eff</th>
                 <th scope="col">Eff. HP</th>
                 <th scope="col">Eff. HP D-B</th>
+                <th scope="col">Runes</th>
                 <th scope="col">Skilled Up</th>
                 <th scope="col">Acquired</th>
                 <th scope="col">Transmog</th>
@@ -54,6 +58,7 @@
                     <td>{{ monster.avg_eff }}%</td>
                     <td>{{ monster.eff_hp }}</td>
                     <td>{{ monster.eff_hp_def_break }}</td>
+                    <td>{{ monster.runes.count }}</td>
                     <td>{% if monster|check_skillups %}
                             <span data-feather="check" style="color: green;"></span>
                         {% else %}

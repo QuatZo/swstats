@@ -4,7 +4,6 @@
   <head>
     <link rel="stylesheet" type="text/css" href="{% static 'website/css/style.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://kit.fontawesome.com/db771f92f8.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
@@ -22,7 +21,7 @@
   <body>
     {% block navbar %}
         <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow" id="sidebar-upper">
-            <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"><span class="text">SW Statistics</span> <span data-feather="menu" id="sidebar-toggler"></span></a>
+            <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"><span class="text">SW Statistics</span> <img src={% static 'website/images/icons/menu.svg' %} class="menu-img" id="sidebar-toggler" /></a>
             <ul class="navbar-nav px-3">
                 <li class="nav-item">
                     <a class="nav-link" href="https://getbootstrap.com/">Built with Bootstrap </a>
@@ -40,91 +39,88 @@
                     <ul class="nav flex-column">
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == "home" %}active{% endif %}" href="{% url 'home' %}" >
-                            <span data-feather="home"></span>
+                            <img src={% static 'website/images/icons/homepage.svg' %} class="menu-img" />
                             <span class="text">Homepage</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes'%}" >
-                            <span data-feather="hexagon"></span>
+                                <img src={% static 'website/images/icons/rune.svg' %} class="menu-img" />
                             <span class="text">Runes</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == "monsters" %}active{% endif %}" href="{% url 'monsters'%}" >
-                            <span data-feather="users"></span>
+                            <img src={% static 'website/images/icons/monster.svg' %} class="menu-img" />
                             <span class="text">Monsters</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">
-                            <span data-feather="award"></span>
+                            <img src={% static 'website/images/icons/arena.svg' %} class="menu-img" />
                             <span class="text">Arena</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">
-                            <span class="far fa-building feather"></span>
+                            <img src={% static 'website/images/icons/building.svg' %} class="menu-img" />
                             <span class="text">Buildings</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">
-                            <span data-feather="layers"></span>
+                            <img src={% static 'website/images/icons/decks.svg' %} class="menu-img" />
                             <span class="text">Decks</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">
-                            <span class="fas fa-hands-helping feather"></span>
+                            <img src={% static 'website/images/icons/contribute.svg' %} class="menu-img" />
                             <span class="text">Contribute</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">
-                            <span class="fas fa-clipboard-list feather"></span>
+                            <img src={% static 'website/images/icons/credits.svg' %} class="menu-img" />
                             <span class="text">Credits</span>
                         </a>
                     </li>
                     </ul>
 
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span class="text">Future updates</span>
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted" style="padding: 0 !important;">
+                        <span>Future updates</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
                         <li class="nav-item">
                             <a class="nav-link disabled" href="#">
-                                <span class="fas fa-medal feather"></span>
+                                <img src={% static 'website/images/icons/guild.svg' %} class="menu-img" />
                                 <span class="text">Guild</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link disabled" href="#">
-                                <span class="fas fa-medal feather"></span>
+                            <img src={% static 'website/images/icons/rta.svg' %} class="menu-img" />
                                 <span class="text">RTA</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link disabled" href="#">
-                                <span class="fas fa-skull-crossbones feather"></span>
+                            <img src={% static 'website/images/icons/worldboss.svg' %} class="menu-img" />
                                 <span class="text">World Boss</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link disabled" href="#">
-                                <span class="fas fa-dungeon feather"></span>
+                            <img src={% static 'website/images/icons/dungeons.svg' %} class="menu-img" />
                                 <span class="text">Dungeons</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link disabled" href="#">
-                                <span class="fas fa-ghost feather"></span>
+                            <img src={% static 'website/images/icons/dimhole.svg' %} class="menu-img" />
                                 <span class="text">Dimension Hole</span>
                             </a>
                         </li>
-                        <script>
-                            feather.replace()
-                        </script>
                     </ul>
                 </div>
             </nav>

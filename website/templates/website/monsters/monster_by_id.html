@@ -11,12 +11,14 @@
 {% block table %}
 	{% if monster %}
 		{% include "website/monsters/monster_table.html" with monsters=monster|to_list text="Monster's Stats" collapse_id="monster-"|add_str:monster.id collapsed="show"%}
-		<h2 class="title">
-			Monster's Cards
+		<div class="title-container">
+			<h2 class="title">
+				Monster's Cards
+			</h2>
 			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 
 				Show/Hide 
 			</button>
-		</h2>
+		</div>
 		<div class="row show" id="substat-row">
 			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.avg_eff value=monster.avg_eff|add_str:"%" %}
 			{% include "website/monsters/monster_card.html" with header="HP" rank=ranks.hp value=monster.hp %}
