@@ -389,7 +389,6 @@ class WizardBuilding(models.Model):
     class Meta:
         ordering = ['wizard_id', '-level', 'building_id']
 
-
 class Arena(models.Model):
     ARENA_RANKS = (
         (901, 'Beginner'),
@@ -482,7 +481,6 @@ class Item(models.Model):
     class Meta:
         ordering = ['item_type', 'item_id']
 
-
 class WizardItem(models.Model):
     wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE)
     master_item_id = models.ForeignKey(Item, on_delete=models.CASCADE)
@@ -493,3 +491,35 @@ class WizardItem(models.Model):
 
     class Meta:
         ordering = ['wizard_id', 'master_item_id', '-quantity']
+
+class DungeonRun(models.Model):
+    """Uses 'BattleDungeonResult' command"""
+    DUNGEON_TYPES = (
+        (1001, 'Hall of Dark'),
+        (2001, 'Hall of Fire'),
+        (3001, 'Hall of Water'),
+        (4001, 'Hall of Wind'),
+        (5001, 'Hall of Magic'),
+        (6001, 'Necropolis'),
+        (7001, 'Hall of Light'),
+        (8001, 'Giant\'s Keep'),
+        (9001, 'Dragon\'s Lair'),
+    )
+
+    id = models.BigAutoField(primary_key=True, unique=True)
+    wizard_id = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL) # wizard_id, response; if not exists then wizard_info in request
+    dungeon = models.IntegerField(choices=DUNGEON_TYPES) # dungeon_id, request
+    stage = models.IntegerField() # stage_id, request
+    win = models.BooleanField() # win_lose, request & response
+    clear_time = models.TimeField() # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
+    monsters = models.ManyToManyField(Monster) # unit_list, response
+    date = models.DateTimeField() # tvalue
+
+    def __str__(self):
+        return self.get_dungeon_display() + ' B' + str(self.stage) + ' (' + str(self.clear_time) + ')'
+    
+    class Meta:
+        ordering = ['dungeon', '-stage', '-clear_time', '-win']
+
+
+     

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem
+from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun
 
 
 class GuildAdmin(admin.ModelAdmin):
@@ -86,6 +86,13 @@ class ItemAdmin(admin.ModelAdmin):
 class WizardItemAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'wizard_id', 'master_item_id', 'quantity' )
 
+# live
+class DungeonRunAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'wizard_id', 'dungeon', 'stage', 'clear_time', 'get_monsters', 'win', 'date' )
+
+    def get_monsters(self, obj):
+        return "\n".join([str(monster) for monster in obj.monsters.all()])
+
 
 # Register your models here.
 admin.site.register(Guild, GuildAdmin)
@@ -108,3 +115,6 @@ admin.site.register(WizardHomunculus, WizardHomunculusAdmin)
 admin.site.register(RuneRTA, RuneRTAAdmin)
 admin.site.register(Item, ItemAdmin)
 admin.site.register(WizardItem, WizardItemAdmin)
+
+# live
+admin.site.register(DungeonRun, DungeonRunAdmin)

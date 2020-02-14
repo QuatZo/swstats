@@ -2,11 +2,11 @@ from django.http import HttpResponse
 
 from rest_framework import viewsets, permissions, status
 
-from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem
+from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun
 
 import copy
 import math
-from datetime import datetime
+import datetime
 
 def calc_efficiency(rune):
     primary = rune['pri_eff']
@@ -84,7 +84,6 @@ def add_stat(stats, base_stats, stat, substat = False):
     elif stat_effect == 4: stats['attack'] += stat_value * base_stats['attack'] / 100
     elif stat_effect == 6: stats['defense'] += stat_value * base_stats['defense'] / 100
 
-
 def calc_stats(monster, runes):
     base_stats = {
         'hp': monster['con'] * 15,
@@ -139,6 +138,111 @@ def calc_stats(monster, runes):
 
     return stats
 
+def parse_wizard(temp_wizard, tvalue):
+    wizard = dict()
+    wizard['id'] = temp_wizard['wizard_id']
+    wizard['mana'] = temp_wizard['wizard_mana']
+    wizard['crystals'] = temp_wizard['wizard_crystal']
+    wizard['crystals_paid'] = temp_wizard['wizard_crystal_paid']
+    wizard['last_login'] = temp_wizard['wizard_last_login']
+    wizard['country'] = temp_wizard['wizard_last_country']
+    wizard['lang'] = temp_wizard['wizard_last_lang']
+    wizard['level'] = temp_wizard['wizard_level']
+    wizard['energy'] = temp_wizard['wizard_energy']
+    wizard['energy_max'] = temp_wizard['energy_max']
+    wizard['arena_wing'] = temp_wizard['arena_energy']
+    wizard['glory_point'] = temp_wizard['honor_point']
+    wizard['guild_point'] = temp_wizard['guild_point']
+    wizard['rta_point'] = temp_wizard['honor_medal']
+    wizard['rta_mark'] = temp_wizard['honor_mark']
+    wizard['event_coin'] = temp_wizard['event_coin']
+    wizard['last_update'] = datetime.datetime.utcfromtimestamp(tvalue)
+    
+    return wizard
+
+def parse_rune(temp_rune, rune_lock=None):
+    rune = dict()
+    rune['id'] = temp_rune['rune_id']
+    rune['user_id'] = Wizard.objects.get(id=temp_rune['wizard_id'])
+    rune['slot'] = temp_rune['slot_no']
+    rune['quality'] = temp_rune['rank']
+    rune['stars'] = temp_rune['class']
+    rune['rune_set'] = RuneSet.objects.get(id=temp_rune['set_id'])
+    rune['upgrade_curr'] = temp_rune['upgrade_curr']
+    rune['base_value'] = temp_rune['base_value']
+    rune['sell_value'] = temp_rune['sell_value']
+    rune['primary'] = temp_rune['pri_eff'][0]
+    rune['primary_value'] = temp_rune['pri_eff'][1]
+    rune['innate'] = temp_rune['prefix_eff'][0]
+    rune['innate_value'] = temp_rune['prefix_eff'][1]
+
+    for sub in temp_rune['sec_eff']:
+        if sub[0] == 1: rune['sub_hp_flat'] = [sub[1], sub[3]]
+        elif sub[0] == 2: rune['sub_hp'] = [sub[1], sub[3]]
+        elif sub[0] == 3: rune['sub_atk_flat'] = [sub[1], sub[3]]
+        elif sub[0] == 4: rune['sub_atk'] = [sub[1], sub[3]]
+        elif sub[0] == 5: rune['sub_def_flat'] = [sub[1], sub[3]]
+        elif sub[0] == 6: rune['sub_def'] = [sub[1], sub[3]]
+        elif sub[0] == 8: rune['sub_speed'] = [sub[1], sub[3]]
+        elif sub[0] == 9: rune['sub_crit_rate'] = [sub[1], sub[3]]
+        elif sub[0] == 10: rune['sub_crit_dmg'] = [sub[1], sub[3]]
+        elif sub[0] == 11: rune['sub_res'] = [sub[1], sub[3]]
+        elif sub[0] == 12: rune['sub_acc'] = [sub[1], sub[3]]
+
+    rune['quality_original'] = temp_rune['extra']
+    eff_curr, eff_max = calc_efficiency(temp_rune)
+    rune['efficiency'] = eff_curr
+    rune['efficiency_max'] = eff_max
+    rune['equipped'] = True if temp_rune['occupied_type'] == 1 else False
+    rune['locked'] = True if rune_lock is not None and temp_rune['rune_id'] in rune_lock else False
+
+    return rune
+
+def parse_monster(temp_monster, buildings = list(), units_locked = list() ):
+    monster = dict()
+    monster['id'] = temp_monster['unit_id']
+    monster['user_id'] = Wizard.objects.get(id=temp_monster['wizard_id'])
+    monster['base_monster'] = MonsterBase.objects.get(id=temp_monster['unit_master_id'])
+    monster['level'] = temp_monster['unit_level']
+    monster['stars'] = temp_monster['class']
+
+    ####################
+    # Stats calc
+    stats = calc_stats(temp_monster, temp_monster['runes'])
+    monster['hp'] = stats['hp']
+    monster['attack'] = stats['attack']
+    monster['defense'] = stats['defense']
+    monster['speed'] = stats['speed']
+    monster['res'] = stats['res']
+    monster['acc'] = stats['acc']
+    monster['crit_rate'] = stats['crit_rate']
+    monster['crit_dmg'] = stats['crit_dmg']
+    ####################
+    monster['skills'] = [skill[1] for skill in temp_monster['skills']]
+    
+    monster_runes = [Rune.objects.get(id=rune['rune_id']) for rune in temp_monster['runes']]
+    sum_eff = 0
+    for monster_rune in monster_runes:
+        sum_eff += monster_rune.efficiency
+    monster['avg_eff'] = round(sum_eff / len(monster_runes), 2) if len(monster_runes) > 0 else 0.00
+    monster['eff_hp'] = stats['hp'] * (1000 + (stats['defense'] * 3)) / 1000
+    monster['eff_hp_def_break'] = stats['hp'] * (1000 + (stats['defense'] * 1.5)) / 1000
+
+    monster['created'] = temp_monster['create_time']
+    monster['source'] = MonsterSource.objects.get(id=temp_monster['source'])
+    monster['transmog'] = True if temp_monster['costume_master_id'] else False
+    monster['storage'] = False
+    for building in buildings:
+        if building['building_id'] == temp_monster['building_id'] and building['building_master_id'] == 25:
+            monster['storage'] = True
+            break
+    monster['locked'] = True if temp_monster['unit_id'] in units_locked else False
+
+    obj, created = Monster.objects.update_or_create( id=monster['id'], defaults=monster, )
+    obj.runes.set(monster_runes)
+    obj.save()
+
+    return monster
 
 # Create your views here.
 class MonsterFamilyUploadViewSet(viewsets.ViewSet):
@@ -258,15 +362,14 @@ class UploadViewSet(viewsets.ViewSet):
         monster = dict()
 
         if request.data:
-            if request.data["command"] == "HubUserLogin":
-                data = request.data
-
+            data = request.data
+            if data["command"] == "HubUserLogin":
                 print("Checking if guild", data['guild']['guild_info']['guild_id'], "exists...")
                 guild = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])
                 guild_uptodate = False
                 if guild.exists():
                     print("Guild profile exists... Checking if it's up-to-date...")
-                    guild = guild.filter(last_update__gte=datetime.utcfromtimestamp(data['tvalue']))
+                    guild = guild.filter(last_update__gte=datetime.datetime.utcfromtimestamp(data['tvalue']))
                     if guild.exists():
                         print("Guild profile is up-to-date.")
                         guild_uptodate = True
@@ -288,7 +391,7 @@ class UploadViewSet(viewsets.ViewSet):
                     guild['members_amount'] = temp_guild['member_now']
                     guild['gw_best_place'] = temp_gw_best['rank']
                     guild['gw_best_ranking'] = temp_gw_best['rating_id']
-                    guild['last_update'] = datetime.utcfromtimestamp(data['tvalue'])
+                    guild['last_update'] = datetime.datetime.utcfromtimestamp(data['tvalue'])
                     obj, created = Guild.objects.update_or_create( id=guild['id'], defaults=guild, )
                     print("Guild done")
                     ########################################
@@ -298,7 +401,7 @@ class UploadViewSet(viewsets.ViewSet):
                 wizard_uptodate = False
                 if wiz.exists():
                     print("Profile exists... Checking if it's up-to-date...")
-                    wizard = wiz.filter(last_update__gte=datetime.utcfromtimestamp(data['tvalue']))
+                    wizard = wiz.filter(last_update__gte=datetime.datetime.utcfromtimestamp(data['tvalue']))
                     if wizard.exists():
                         print("Wizard profile is up-to-date.")
                         wizard_uptodate = True
@@ -319,27 +422,10 @@ class UploadViewSet(viewsets.ViewSet):
                 ########################################
                 # Wizard Model
                 print("Wizard")
-                wizard = dict()
-                wizard['id'] = temp_wizard['wizard_id']
-                wizard['mana'] = temp_wizard['wizard_mana']
-                wizard['crystals'] = temp_wizard['wizard_crystal']
-                wizard['crystals_paid'] = temp_wizard['wizard_crystal_paid']
-                wizard['last_login'] = temp_wizard['wizard_last_login']
-                wizard['country'] = temp_wizard['wizard_last_country']
-                wizard['lang'] = temp_wizard['wizard_last_lang']
-                wizard['level'] = temp_wizard['wizard_level']
-                wizard['energy'] = temp_wizard['wizard_energy']
-                wizard['energy_max'] = temp_wizard['energy_max']
-                wizard['arena_wing'] = temp_wizard['arena_energy']
-                wizard['glory_point'] = temp_wizard['honor_point']
-                wizard['guild_point'] = temp_wizard['guild_point']
-                wizard['rta_point'] = temp_wizard['honor_medal']
-                wizard['rta_mark'] = temp_wizard['honor_mark']
-                wizard['event_coin'] = temp_wizard['event_coin']
+                wizard = parse_wizard(temp_wizard, data['tvalue'])
                 wizard['antibot_count'] = data['quiz_reward_info']['reward_count']
                 wizard['raid_level'] = data['raid_info_list'][0]['available_stage_id']
                 wizard['storage_capacity'] = data['unit_depository_slots']['number']
-                wizard['last_update'] = datetime.utcfromtimestamp(data['tvalue'])
                 wizard['guild'] = Guild.objects.get(id=data['guild']['guild_info']['guild_id'])
                 obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
                 print("Wizard done")
@@ -347,92 +433,18 @@ class UploadViewSet(viewsets.ViewSet):
 
                 print("Runes")
                 for temp_rune in temp_runes:
-                    rune = dict()
                     ########################################
                     # Rune Model
-                    rune['id'] = temp_rune['rune_id']
-                    rune['user_id'] = Wizard.objects.get(id=temp_rune['wizard_id'])
-                    rune['slot'] = temp_rune['slot_no']
-                    rune['quality'] = temp_rune['rank']
-                    rune['stars'] = temp_rune['class']
-                    rune['rune_set'] = RuneSet.objects.get(id=temp_rune['set_id'])
-                    rune['upgrade_curr'] = temp_rune['upgrade_curr']
-                    rune['base_value'] = temp_rune['base_value']
-                    rune['sell_value'] = temp_rune['sell_value']
-                    rune['primary'] = temp_rune['pri_eff'][0]
-                    rune['primary_value'] = temp_rune['pri_eff'][1]
-                    rune['innate'] = temp_rune['prefix_eff'][0]
-                    rune['innate_value'] = temp_rune['prefix_eff'][1]
-
-                    for sub in temp_rune['sec_eff']:
-                        if sub[0] == 1: rune['sub_hp_flat'] = [sub[1], sub[3]]
-                        elif sub[0] == 2: rune['sub_hp'] = [sub[1], sub[3]]
-                        elif sub[0] == 3: rune['sub_atk_flat'] = [sub[1], sub[3]]
-                        elif sub[0] == 4: rune['sub_atk'] = [sub[1], sub[3]]
-                        elif sub[0] == 5: rune['sub_def_flat'] = [sub[1], sub[3]]
-                        elif sub[0] == 6: rune['sub_def'] = [sub[1], sub[3]]
-                        elif sub[0] == 8: rune['sub_speed'] = [sub[1], sub[3]]
-                        elif sub[0] == 9: rune['sub_crit_rate'] = [sub[1], sub[3]]
-                        elif sub[0] == 10: rune['sub_crit_dmg'] = [sub[1], sub[3]]
-                        elif sub[0] == 11: rune['sub_res'] = [sub[1], sub[3]]
-                        elif sub[0] == 12: rune['sub_acc'] = [sub[1], sub[3]]
-
-                    rune['quality_original'] = temp_rune['extra']
-                    eff_curr, eff_max = calc_efficiency(temp_rune)
-                    rune['efficiency'] = eff_curr
-                    rune['efficiency_max'] = eff_max
-                    rune['equipped'] = True if temp_rune['occupied_type'] == 1 else False
-                    rune['locked'] = True if temp_rune['rune_id'] in data['rune_lock_list'] else False
+                    rune = parse_rune(temp_rune, data['rune_lock_list'])
                     ########################################
                     obj, created = Rune.objects.update_or_create( id=rune['id'], defaults=rune, )
                 print("Runes done")
 
                 print("Monsters")
                 for temp_monster in data['unit_list']:
-                    monster = dict()
                     ########################################
                     # Monster Model
-                    monster['id'] = temp_monster['unit_id']
-                    monster['user_id'] = Wizard.objects.get(id=temp_monster['wizard_id'])
-                    monster['base_monster'] = MonsterBase.objects.get(id=temp_monster['unit_master_id'])
-                    monster['level'] = temp_monster['unit_level']
-                    monster['stars'] = temp_monster['class']
-
-                    ####################
-                    # Stats calc
-                    stats = calc_stats(temp_monster, temp_monster['runes'])
-                    monster['hp'] = stats['hp']
-                    monster['attack'] = stats['attack']
-                    monster['defense'] = stats['defense']
-                    monster['speed'] = stats['speed']
-                    monster['res'] = stats['res']
-                    monster['acc'] = stats['acc']
-                    monster['crit_rate'] = stats['crit_rate']
-                    monster['crit_dmg'] = stats['crit_dmg']
-                    ####################
-                    monster['skills'] = [skill[1] for skill in temp_monster['skills']]
-                   
-                    monster_runes = [Rune.objects.get(id=rune['rune_id']) for rune in temp_monster['runes']]
-                    sum_eff = 0
-                    for monster_rune in monster_runes:
-                        sum_eff += monster_rune.efficiency
-                    monster['avg_eff'] = round(sum_eff / len(monster_runes), 2) if len(monster_runes) > 0 else 0.00
-                    monster['eff_hp'] = stats['hp'] * (1000 + (stats['defense'] * 3)) / 1000
-                    monster['eff_hp_def_break'] = stats['hp'] * (1000 + (stats['defense'] * 1.5)) / 1000
-
-                    monster['created'] = temp_monster['create_time']
-                    monster['source'] = MonsterSource.objects.get(id=temp_monster['source'])
-                    monster['transmog'] = True if temp_monster['costume_master_id'] else False
-                    monster['storage'] = False
-                    for building in data['building_list']:
-                        if building['building_id'] == temp_monster['building_id'] and building['building_master_id'] == 25:
-                            monster['storage'] = True
-                            break
-                    monster['locked'] = True if temp_monster['unit_id'] in data['unit_lock_list'] else False
-                    ########################################
-                    obj, created = Monster.objects.update_or_create( id=monster['id'], defaults=monster, )
-                    obj.runes.set(monster_runes)
-                    obj.save()
+                    monster = parse_monster(temp_monster, data['building_list'], data['unit_lock_list'])
                 print("Monsters done")
 
                 ########################################
@@ -555,6 +567,35 @@ class UploadViewSet(viewsets.ViewSet):
                 print("Inventory done")
                 ########################################
 
+            elif data['command'] == 'BattleDungeonResult':
+                print(f"Starting Battle Dungeon Result upload for {data['wizard_info']['wizard_name']}")
+                dungeon = dict()
+                wizard, created = Wizard.objects.update_or_create(id=data['wizard_info']['wizard_id'], defaults=parse_wizard(data['wizard_info'], data['tvalue']))
+                dungeon['wizard_id'] = Wizard.objects.get(id=data['wizard_info']['wizard_id'])
+                dungeon['dungeon'] = data['dungeon_id']
+                dungeon['stage'] = data['stage_id']
+                dungeon['win'] = data['win_lose']
+                dungeon['date'] = datetime.datetime.utcfromtimestamp(data['tvalue'])
+                time_str = str(data['clear_time']['current_time'])
+                _time = {
+                    'hour': 0 if int(time_str[:-3]) < 3600 else round(int(time_str[:-3]) / 3600),
+                    'minute': 0 if int(time_str[:-3]) < 60 else round(int(time_str[:-3]) / 60),
+                    'second': int(time_str[:-3]) if int(time_str[:-3]) < 60 else int(time_str[:-3]) % 60,
+                    'microsecond': int(time_str[-3:]) * 1000,
+                }
+                dungeon['clear_time'] = datetime.time(_time['hour'], _time['minute'], _time['second'], _time['microsecond'])
+
+                for temp_monster in data['unit_list']:
+                    for temp_rune in temp_monster['runes']:
+                        rune, created = Rune.objects.update_or_create(id=temp_rune['rune_id'], defaults=parse_rune(temp_rune))
+                    monster, created = Monster.objects.update_or_create(id=temp_monster['unit_id'], defaults=parse_monster(temp_monster))
+                
+                monsters = [Monster.objects.get(id=temp_monster['unit_id']) for temp_monster in data['unit_list']]
+
+                obj, created = DungeonRun.objects.get_or_create(wizard_id=dungeon['wizard_id'], date=dungeon['date'], defaults=dungeon)
+                obj.monsters.set(monsters)
+                obj.save()
+                print(f"Successfuly created Battle Dungeon Result for {data['wizard_info']['wizard_name']}")
             return HttpResponse(status=status.HTTP_201_CREATED)
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
