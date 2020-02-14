@@ -348,9 +348,19 @@ class Deck(models.Model):
     number = models.SmallIntegerField() # deck_list.deck_seq
     monsters = models.ManyToManyField(Monster, related_name='monsters_in_deck', related_query_name='monsters_in_deck') # deck_list.unit_id_list
     leader = models.ForeignKey(Monster, on_delete=models.CASCADE) # deck_list.leader_unit_id
+    team_runes_eff = models.FloatField(validators=[MinValueValidator(0.00)]) # to calculate, by using monster's avg_eff
+
+    def __str__(self):
+        return "Deck for " +  dict(self.DECK_TYPES)[self.place]
 
     class Meta:
-        ordering = ['wizard_id', 'place', 'number']
+        ordering = ['-team_runes_eff', 'place', 'number']
+
+    @classmethod
+    def get_place_id(cls, name):
+        for key, place in dict(cls.DECK_TYPES).items():
+            if place == name:
+                return key
 
 class Building(models.Model):
     AREA_TYPE = (

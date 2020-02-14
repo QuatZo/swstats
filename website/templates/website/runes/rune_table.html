@@ -1,6 +1,9 @@
+{% load static %}
 {% load add_str %}
 {% load add_reverse_str %}
 {% load rune_grinded_val %}
+{% load get_monster %}
+{% load get_monster_avatar %}
 
 <div class="title-container">
     <h2 class="title">
@@ -64,12 +67,16 @@
                     <td>{{ rune.sub_crit_dmg|rune_grinded_val }}<sup>{{ rune.sub_crit_dmg.1|default:""|add_reverse_str:"+" }}</sup></td>
                     <td>{{ rune.sub_res|rune_grinded_val }}<sup>{{ rune.sub_res.1|default:""|add_reverse_str:"+" }}</sup></td>
                     <td>{{ rune.sub_acc|rune_grinded_val }}<sup>{{ rune.sub_acc.1|default:""|add_reverse_str:"+" }}</sup></td>
-                    <td>{{ rune.efficiency }}</td>
-                    <td>{{ rune.efficiency_max }}</td>
+                    <td>{{ rune.efficiency|add_str:"%" }}</td>
+                    <td>{{ rune.efficiency_max|add_str:"%" }}</td>
                     <td> {% if rune.equipped %}
-                        <span data-feather="check" style="color: green;"></span>
+                            {% with rune|get_monster as mon %}
+                                <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min"/>
+                                </a>
+                            {% endwith %}
                         {% else %}
-                        <span data-feather="slash" style="color: red;"></span>
+                            <span data-feather="slash" style="color: red;"></span>
                         {% endif %}
                     </td>
                     <td> {% if rune.locked %}

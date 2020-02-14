@@ -48,6 +48,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "decks" %}active{% endif %}" href="{% url 'decks' %}" >
+                                <img src={% static 'website/images/icons/decks.svg' %} class="menu-img" />
+                                <span class="text">Decks</span>
+                            </a>
+                        </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == "contribute" %}active{% endif %}" href="{% url 'contribute' %}" >
                             <img src={% static 'website/images/icons/contribute.svg' %} class="menu-img" />
                             <span class="text">Contribute</span>
@@ -75,12 +81,6 @@
                             <a class="nav-link disabled" href="#">
                                 <img src={% static 'website/images/icons/building.svg' %} class="menu-img" />
                                 <span class="text">Buildings</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" href="#">
-                                <img src={% static 'website/images/icons/decks.svg' %} class="menu-img" />
-                                <span class="text">Decks</span>
                             </a>
                         </li>
                         <li class="nav-item">

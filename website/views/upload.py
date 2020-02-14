@@ -468,7 +468,9 @@ class UploadViewSet(viewsets.ViewSet):
                     deck['place'] = temp_deck['deck_type']
                     deck['number'] = temp_deck['deck_seq']
                     deck['leader'] = Monster.objects.get(id=temp_deck['leader_unit_id'])
-                    deck_monsters = monster_runes = [Monster.objects.get(id=monster_id) for monster_id in temp_deck['unit_id_list'] if monster_id]
+                    deck_monsters = [Monster.objects.get(id=monster_id) for monster_id in temp_deck['unit_id_list'] if monster_id]
+                    temp_team_eff = [Monster.objects.get(id=monster_id).avg_eff for monster_id in temp_deck['unit_id_list'] if monster_id]
+                    deck['team_runes_eff'] = round(sum(temp_team_eff) / len(temp_team_eff), 2)
                     obj, created = Deck.objects.update_or_create( wizard_id=wizard['id'], place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
                     obj.monsters.set(deck_monsters)
                     obj.save()

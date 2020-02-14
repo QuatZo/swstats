@@ -1,0 +1,45 @@
+{% load static %}
+{% load add_str %}
+{% load get_monster_avatar %}
+
+<div class="col-12 col-sm-6 rank">
+    <div class="card">
+        <div class="card-header" onClick="goToDeck('{% url "deck_by_id" arg_id=deck.id %}')" style="cursor: pointer;">
+            {{ name }}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Place</b></div>
+                <div class="col-6 col-sm-6"> {{ deck.get_place_display }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Leader</b></div>
+                <div class="col-6 col-sm-6"> 
+                    <a href="{% url 'monster_by_id' arg_id=deck.leader.id %}" style="text-decoration: none;">
+                        <img src="{% static 'website/images/monsters/'|get_monster_avatar:deck.leader %}" class="table-monster-avatar" />
+                    </a> 
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Team Average Rune Efficiency</b></div>
+                <div class="col-6 col-sm-6"> {{ deck.team_runes_eff|add_str:"%" }} </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Monsters</b></div>
+                <div class="col-6 col-sm-6"> 
+                    {% for monster in deck.monsters.all %}
+                        <a href="{% url 'monster_by_id' arg_id=monster.id %}" style="text-decoration: none;">
+                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" />
+                        </a>
+                    {% endfor %} 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function goToDeck(href){
+        document.location.href = document.location.origin + href;
+    }
+</script>

@@ -2,6 +2,7 @@
 {% load add_str %}
 {% load check_text %}
 {% load ancient_to_normal %}
+{% load get_monster_avatar %}
 
 <div class="col-12 col-sm-6 rank">
     <div class="card">
@@ -70,10 +71,6 @@
                         {% endfor %} 
                     {% endif %}
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Decks</b></div>
-                <div class="col-6 col-sm-6"> There will be link to the monster's decks or even records. The best would be to include images, more info by occupying less place </div>
             </div>
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Recommendation text ({{ monster.base_monster.recommendation_votes }} votes)</b></div>

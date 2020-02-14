@@ -43,6 +43,9 @@ urlpatterns = [
     path('monsters/', views.get_monsters, name='monsters'),
     path('monsters/id/<int:arg_id>/', views.get_monster_by_id, name='monster_by_id'),
 
+    path('decks/', views.get_decks, name='decks'),
+    path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
+
     path('contribute/', views.get_contribute_info, name='contribute'),
     path('credits/', views.get_credits, name='credits'),
 

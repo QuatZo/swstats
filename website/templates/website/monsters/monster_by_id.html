@@ -52,7 +52,23 @@
 
 		{% include "website/runes/rune_table.html" with runes=monster.runes.all text=monster.base_monster|add_str:"'s Runes" collapse_id="monster-"|add_str:monster.id|add_str:"-runes" collapsed="collapse"%}
 	
-		{% if monster %}
+		{% if decks %}
+			<div class="title-container">
+				<h2 class="title">
+					Monster's Decks
+				</h2>
+				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-decks-row" aria-expanded="true" aria-controls="#monster-decks-row"> 
+					Show/Hide 
+				</button>
+			</div>
+			<div class="row collapse" id="monster-decks-row">
+				{% for deck in decks %}
+					{% include "website/decks/deck_card_compressed.html" with name=deck deck=deck %}
+				{% endfor %}
+			</div>
+		{% endif %}
+
+		{% if similar %}
 			<div class="title-container">
 				<h2 class="title">
 					Other Builds for {{ monster.base_monster.name }}
@@ -63,7 +79,9 @@
 			</div>
 			<div class="row collapse" id="monster-other-row">
 				{% for similar_monster in similar %}
-					{% include "website/monsters/monster_card_compressed.html" with name=similar_monster|add_str:" (Normal Build)" monster=similar_monster %}
+					{% if similar_monster.runes.count %}
+						{% include "website/monsters/monster_card_compressed.html" with name=similar_monster|add_str:" (Normal Build)" monster=similar_monster %}
+					{% endif %}
 				{% endfor %}
 			</div>
 		{% endif %}
@@ -83,8 +101,6 @@
 				{% endfor %}
 			</div>
 		{% endif %}
-
-		After doing Decks, need to add some sort of Decks here, in which this specific unit is used. May also add decks for base monster.
 	{% else %}
 		<p>There will be 404 Error or something because no monster like this.</p>
 	{% endif %}

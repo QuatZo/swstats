@@ -54,7 +54,7 @@ class MonsterFusionAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'monster_id', 'cost' )
 
 class DeckAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard_id', 'place', 'number', 'get_monsters', 'leader' )
+    list_display = ( 'id', 'wizard_id', 'place', 'number', 'get_monsters', 'leader', 'team_runes_eff' )
 
     def get_monsters(self, obj):
         return "\n".join([str(monster) for monster in obj.monsters.all()])

@@ -4,8 +4,8 @@ body {
 }
 
 .feather {
-    width: 16px;
-    height: 16px;
+    width: 25px;
+    height: 25px;
     vertical-align: text-bottom;
 }
 
@@ -258,6 +258,10 @@ h1.h2
     padding: 15px 0;
 }
 
+.rank .card{
+    height: 100%;
+}
+
 .rune-background{
     width: 50px;
     height: 50px;
@@ -286,10 +290,28 @@ h1.h2
     border-color: rgb(0, 0, 0, .75);
 }
 
-.rune-background.Legend{
-    background-image: url('/static/website/images/runes/bg_legend.png');
+.rune-background{
     background-repeat: no-repeat;
     background-position: center;
+}
+.rune-background.Legend{
+    background-image: url('/static/website/images/runes/bg_legend.png');
+}
+
+.rune-background.Hero{
+    background-image: url('/static/website/images/runes/bg_hero.png');
+}
+
+.rune-background.Rare{
+    background-image: url('/static/website/images/runes/bg_rare.png');
+}
+
+.rune-background.Magic{
+    background-image: url('/static/website/images/runes/bg_magic.png');
+}
+
+.rune-background.Magic{
+    background-image: url('/static/website/images/runes/bg_normal.png');
 }
 
 .rune-slot1{
@@ -369,4 +391,18 @@ h1.h2
     position: relative;
     background-size: 45px auto;
     top: 5px;
+}
+
+.table-monster-href:hover{
+    text-decoration: none;
+}
+
+.table-monster-avatar{
+    width: 50px;
+    border-radius: 10px;
+}
+
+.table-monster-avatar-min{
+    width: 25px;
+    border-radius: 10px;
 }
