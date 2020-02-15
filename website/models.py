@@ -511,7 +511,7 @@ class DungeonRun(models.Model):
     dungeon = models.IntegerField(choices=DUNGEON_TYPES) # dungeon_id, request
     stage = models.IntegerField() # stage_id, request
     win = models.BooleanField() # win_lose, request & response
-    clear_time = models.TimeField() # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
+    clear_time = models.TimeField(null=True, blank=True) # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
     monsters = models.ManyToManyField(Monster) # unit_list, response
     date = models.DateTimeField() # tvalue
 

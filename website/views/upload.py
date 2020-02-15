@@ -64,7 +64,6 @@ def calc_efficiency(rune):
 
     return round(eff_curr, 2), round(eff_max, 2)
 
-
 def add_stat(stats, base_stats, stat, substat = False):
     stat_effect = stat[0]
     stat_value = stat[1] + stat[3] if substat else stat[1] # grinds for substats
@@ -196,7 +195,7 @@ def parse_rune(temp_rune, rune_lock=None):
     rune['equipped'] = True if temp_rune['occupied_type'] == 1 else False
     rune['locked'] = True if rune_lock is not None and temp_rune['rune_id'] in rune_lock else False
 
-    return rune
+    obj, created = Rune.objects.update_or_create( id=rune['id'], defaults=rune, )
 
 def parse_monster(temp_monster, buildings = list(), units_locked = list() ):
     monster = dict()
@@ -241,8 +240,6 @@ def parse_monster(temp_monster, buildings = list(), units_locked = list() ):
     obj, created = Monster.objects.update_or_create( id=monster['id'], defaults=monster, )
     obj.runes.set(monster_runes)
     obj.save()
-
-    return monster
 
 # Create your views here.
 class MonsterFamilyUploadViewSet(viewsets.ViewSet):
@@ -362,8 +359,8 @@ class UploadViewSet(viewsets.ViewSet):
         monster = dict()
 
         if request.data:
-            data = request.data
-            if data["command"] == "HubUserLogin":
+            if request.data["command"] == "HubUserLogin":
+                data = request.data
                 print("Checking if guild", data['guild']['guild_info']['guild_id'], "exists...")
                 guild = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])
                 guild_uptodate = False
@@ -435,16 +432,15 @@ class UploadViewSet(viewsets.ViewSet):
                 for temp_rune in temp_runes:
                     ########################################
                     # Rune Model
-                    rune = parse_rune(temp_rune, data['rune_lock_list'])
+                    parse_rune(temp_rune, data['rune_lock_list'])
                     ########################################
-                    obj, created = Rune.objects.update_or_create( id=rune['id'], defaults=rune, )
                 print("Runes done")
 
                 print("Monsters")
                 for temp_monster in data['unit_list']:
                     ########################################
                     # Monster Model
-                    monster = parse_monster(temp_monster, data['building_list'], data['unit_lock_list'])
+                    parse_monster(temp_monster, data['building_list'], data['unit_lock_list'])
                 print("Monsters done")
 
                 ########################################
@@ -567,35 +563,45 @@ class UploadViewSet(viewsets.ViewSet):
                 print("Inventory done")
                 ########################################
 
-            elif data['command'] == 'BattleDungeonResult':
+            elif request.data['command'] == 'BattleDungeonResult':
+                data = request.data['response']
+                data_req = request.data['request']
                 print(f"Starting Battle Dungeon Result upload for {data['wizard_info']['wizard_name']}")
                 dungeon = dict()
                 wizard, created = Wizard.objects.update_or_create(id=data['wizard_info']['wizard_id'], defaults=parse_wizard(data['wizard_info'], data['tvalue']))
                 dungeon['wizard_id'] = Wizard.objects.get(id=data['wizard_info']['wizard_id'])
-                dungeon['dungeon'] = data['dungeon_id']
-                dungeon['stage'] = data['stage_id']
-                dungeon['win'] = data['win_lose']
+                dungeon['dungeon'] = data_req['dungeon_id']
+                dungeon['stage'] = data_req['stage_id']
                 dungeon['date'] = datetime.datetime.utcfromtimestamp(data['tvalue'])
-                time_str = str(data['clear_time']['current_time'])
-                _time = {
-                    'hour': 0 if int(time_str[:-3]) < 3600 else round(int(time_str[:-3]) / 3600),
-                    'minute': 0 if int(time_str[:-3]) < 60 else round(int(time_str[:-3]) / 60),
-                    'second': int(time_str[:-3]) if int(time_str[:-3]) < 60 else int(time_str[:-3]) % 60,
-                    'microsecond': int(time_str[-3:]) * 1000,
-                }
-                dungeon['clear_time'] = datetime.time(_time['hour'], _time['minute'], _time['second'], _time['microsecond'])
-
-                for temp_monster in data['unit_list']:
-                    for temp_rune in temp_monster['runes']:
-                        rune, created = Rune.objects.update_or_create(id=temp_rune['rune_id'], defaults=parse_rune(temp_rune))
-                    monster, created = Monster.objects.update_or_create(id=temp_monster['unit_id'], defaults=parse_monster(temp_monster))
                 
-                monsters = [Monster.objects.get(id=temp_monster['unit_id']) for temp_monster in data['unit_list']]
+                if data['win_lose'] == 1:
+                    dungeon['win'] = True
+                    time_str = str(data['clear_time']['current_time'])
+                    _time = {
+                        'hour': 0 if int(time_str[:-3]) < 3600 else round(int(time_str[:-3]) / 3600),
+                        'minute': 0 if int(time_str[:-3]) < 60 else round(int(time_str[:-3]) / 60),
+                        'second': int(time_str[:-3]) if int(time_str[:-3]) < 60 else int(time_str[:-3]) % 60,
+                        'microsecond': int(time_str[-3:]) * 1000,
+                    }
+                    dungeon['clear_time'] = datetime.time(_time['hour'], _time['minute'], _time['second'], _time['microsecond'])
+                else:
+                    dungeon['win'] = False
+                    
+                monsters = list()
+                # whole info (with runes) is in response data, but by unknown reason sometimes it's a good JSON, sometimes bad
+                # good  ->  [Rune, Rune, Rune]
+                # bad   ->  instead of list of Rune objects, it has number objects { "5": Rune , "6": Rune, "7": Rune}
+                # so, using monster_id from request data, if exists in database
+                for temp_monster in data_req['unit_id_list']:
+                    mon = Monster.objects.filter(id=temp_monster['unit_id'])
+                    if mon.count() > 0:
+                        monsters.append(mon.first())
 
                 obj, created = DungeonRun.objects.get_or_create(wizard_id=dungeon['wizard_id'], date=dungeon['date'], defaults=dungeon)
                 obj.monsters.set(monsters)
                 obj.save()
                 print(f"Successfuly created Battle Dungeon Result for {data['wizard_info']['wizard_name']}")
+            
             return HttpResponse(status=status.HTTP_201_CREATED)
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
