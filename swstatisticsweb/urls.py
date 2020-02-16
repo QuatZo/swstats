@@ -45,6 +45,8 @@ urlpatterns = [
 
     path('decks/', views.get_decks, name='decks'),
     path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
+    
+    path('dungeons/', views.get_dungeons, name='dungeons'),
 
     path('contribute/', views.get_contribute_info, name='contribute'),
     path('credits/', views.get_credits, name='credits'),

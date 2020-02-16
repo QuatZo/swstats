@@ -511,7 +511,7 @@ class DungeonRun(models.Model):
     dungeon = models.IntegerField(choices=DUNGEON_TYPES) # dungeon_id, request
     stage = models.IntegerField() # stage_id, request
     win = models.BooleanField() # win_lose, request & response
-    clear_time = models.TimeField(null=True, blank=True) # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
+    clear_time = models.DurationField(null=True, blank=True) # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
     monsters = models.ManyToManyField(Monster) # unit_list, response
     date = models.DateTimeField() # tvalue
 
@@ -521,5 +521,11 @@ class DungeonRun(models.Model):
     class Meta:
         ordering = ['dungeon', '-stage', '-clear_time', '-win']
 
+    @classmethod
+    def get_dungeon_name(cls, id):
+        return dict(cls.DUNGEON_TYPES)[id]
 
+    @classmethod
+    def get_all_dungeons(cls):
+        return dict(cls.DUNGEON_TYPES).values()
      

@@ -406,3 +406,19 @@ h1.h2
     width: 25px;
     border-radius: 10px;
 }
+
+.card-body.inner{
+    padding: 0;
+}
+
+.card-body.inner div{
+    margin: 0;
+}
+
+.dungeon-header{
+    padding: 0 !important;
+}
+
+.dungeon-header-img{
+    border-top-left-radius: inherit;
+}

@@ -48,11 +48,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == "decks" %}active{% endif %}" href="{% url 'decks' %}" >
-                                <img src={% static 'website/images/icons/decks.svg' %} class="menu-img" />
-                                <span class="text">Decks</span>
-                            </a>
-                        </li>
+                        <a class="nav-link {% if request.resolver_match.url_name == "decks" %}active{% endif %}" href="{% url 'decks' %}" >
+                            <img src={% static 'website/images/icons/decks.svg' %} class="menu-img" />
+                            <span class="text">Decks</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == "dungeons" %}active{% endif %}" href="{% url 'dungeons' %}" >
+                            <img src={% static 'website/images/icons/dungeons.svg' %} class="menu-img" />
+                            <span class="text">Dungeons</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == "contribute" %}active{% endif %}" href="{% url 'contribute' %}" >
                             <img src={% static 'website/images/icons/contribute.svg' %} class="menu-img" />
@@ -99,12 +105,6 @@
                             <a class="nav-link disabled" href="#">
                             <img src={% static 'website/images/icons/worldboss.svg' %} class="menu-img" />
                                 <span class="text">World Boss</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" href="#">
-                            <img src={% static 'website/images/icons/dungeons.svg' %} class="menu-img" />
-                                <span class="text">Dungeons</span>
                             </a>
                         </li>
                         <li class="nav-item">

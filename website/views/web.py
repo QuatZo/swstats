@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from django.db import connection
 
-from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck
+from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck, DungeonRun
 
 from datetime import timedelta
 import matplotlib.cm as cm
@@ -249,7 +249,7 @@ def get_rune_rank_substat(runes, rune, substat, filters=None):
 
 def get_rune_similar(runes, rune):
     """Return runes similar to the given one."""
-    return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary).exclude(id=rune.id).order_by('-efficiency')
+    return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary, efficiency__range=[rune.efficiency - 15, rune.efficiency + 15]).exclude(id=rune.id).order_by('-efficiency')
 
 # monster list w/ filters
 def get_monster_list_over_time(monsters):
@@ -840,7 +840,7 @@ def get_monster_by_id(request, arg_id):
         'monster': monster, 
         'ranks': ranks,
         'rta': rta,
-        'similar': monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family_id=monster.base_monster.family_id).exclude(id=monster.id),
+        'similar': monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family_id=monster.base_monster.family_id, avg_eff__range=[monster.avg_eff - 20, monster.avg_eff + 20]).exclude(id=monster.id),
         'rta_similar': rta_similar_builds,
         'decks': Deck.objects.all().filter(monsters__id=monster.id),
     }
@@ -912,10 +912,50 @@ def get_deck_by_id(request, arg_id):
 
     return render( request, 'website/decks/deck_by_id.html', context)
 
+def get_dungeons(request):
+    dungeons = DungeonRun.objects.values('dungeon', 'stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('id')).order_by('dungeon', '-stage', '-win')
+
+    dungeons_base = DungeonRun().get_all_dungeons()
+
+    records = dict()
+    for dungeon_base in dungeons_base:
+        stages = dict()
+        for i in range(10, 0, -1):
+            stages["B" + str(i)] = {
+                'avg_time': None,
+                'quantity': None,
+                'wins': None,
+                'loses': None,
+            }
+        records[dungeon_base] = stages
+
+    for dungeon in dungeons:
+        dungeon_name = DungeonRun().get_dungeon_name(dungeon['dungeon'])
+        dungeon_stage = "B" + str(dungeon['stage'])
+        dungeon_quantity = dungeon['quantity']
+
+
+        records[dungeon_name][dungeon_stage] = {
+            'avg_time': str(dungeon['avg_time']) if dungeon['avg_time'] else records[dungeon_name][dungeon_stage]['avg_time'],
+            'quantity': dungeon_quantity if not records[dungeon_name][dungeon_stage]['quantity'] else records[dungeon_name][dungeon_stage]['quantity'] + dungeon_quantity,
+            'wins': dungeon_quantity if dungeon['win'] else records[dungeon_name][dungeon_stage]['wins'],
+            'loses': dungeon_quantity if not dungeon['win'] else records[dungeon_name][dungeon_stage]['loses'],
+        }
+
+    context = {
+        'dungeons': records
+    }
+    
+    return render( request, 'website/dungeons/dungeon_index.html', context)
+
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')
 
 def get_credits(request):
     return render( request, 'website/credits.html')
+
+
+
+
 
 
