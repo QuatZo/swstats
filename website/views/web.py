@@ -497,6 +497,37 @@ def get_deck_list_avg_eff(decks):
 def get_deck_similar(deck):
     return Deck.objects.filter(place=deck.place, team_runes_eff__range=[deck.team_runes_eff - 10, deck.team_runes_eff + 10]).exclude(id=deck.id)
 
+# dungeons
+def get_dungeon_runs_distribution(runs, parts):
+    """Return sets of clear times in specific number of parts, to make Distribution chart."""
+    if not runs.count():
+        return { 'distribution': [], 'scope': [], 'interval': parts }
+
+    fastest = runs.aggregate(Min('clear_time'))['clear_time__min'].total_seconds()
+    slowest = runs.aggregate(Max('clear_time'))['clear_time__max'].total_seconds()
+
+    delta = (slowest - fastest) / parts
+
+    points = [(fastest + (delta / 2) + i * delta) for i in range(parts)]
+    distribution = [0 for _ in range(parts)]
+
+    for run in runs:
+        for i in range(parts):
+            left = points[i] - delta / 2
+            right = points[i] + delta / 2
+            if i == parts - 1:
+                if run.clear_time.total_seconds() >= left and run.clear_time.total_seconds() <= right:
+                    distribution[i] += 1
+                    break
+            elif run.clear_time.total_seconds() >= left and run.clear_time.total_seconds() < right:
+                    distribution[i] += 1
+                    break
+
+    points = [str(timedelta(seconds=round(point))) for point in points]
+
+    return { 'distribution': distribution, 'scope': points, 'interval': parts }
+
+
 # Create your views here.
 def get_runes(request):
     runes = Rune.objects.all().order_by('-efficiency')   
@@ -934,7 +965,6 @@ def get_dungeons(request):
         dungeon_stage = "B" + str(dungeon['stage'])
         dungeon_quantity = dungeon['quantity']
 
-
         records[dungeon_name][dungeon_stage] = {
             'avg_time': str(dungeon['avg_time']) if dungeon['avg_time'] else records[dungeon_name][dungeon_stage]['avg_time'],
             'quantity': dungeon_quantity if not records[dungeon_name][dungeon_stage]['quantity'] else records[dungeon_name][dungeon_stage]['quantity'] + dungeon_quantity,
@@ -947,6 +977,35 @@ def get_dungeons(request):
     }
     
     return render( request, 'website/dungeons/dungeon_index.html', context)
+
+def get_dungeon_by_stage(request, name, stage):
+    names = name.split('-')
+    for i in range(len(names)):
+        if names[i] != "of":
+            names[i] = names[i].capitalize()
+    name = ' '.join(names)
+
+    dungeon_runs = DungeonRun.objects.filter(dungeon=DungeonRun().get_dungeon_id(name), stage=stage)
+    runs_distribution = get_dungeon_runs_distribution(dungeon_runs.exclude(clear_time__isnull=True), 20)
+
+    # avg_time = dungeon_runs.exclude(clear_time__isnull=True).values('dungeon', 'stage').annotate(avg_time=Avg('clear_time'))
+    avg_time = "00:00:30,123456" # temporarily
+
+    # sort by this value (Z -> A): math.exp(clear_time.total_seconds()) * win_rate
+
+    context = {
+        'name': name,
+        'dungeon': dungeon_runs, # all runs for given dungeon
+        'stage': stage,
+        'avg_time': avg_time,
+        
+        # chart distribution
+        'runs_distribution': runs_distribution['distribution'],
+        'runs_means': runs_distribution['scope'],
+        'runs_colors': create_rgb_colors(runs_distribution['interval']),
+    }
+    
+    return render( request, 'website/dungeons/dungeon_by_stage.html', context)
 
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')

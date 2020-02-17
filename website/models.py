@@ -502,8 +502,8 @@ class DungeonRun(models.Model):
         (5001, 'Hall of Magic'),
         (6001, 'Necropolis'),
         (7001, 'Hall of Light'),
-        (8001, 'Giant\'s Keep'),
-        (9001, 'Dragon\'s Lair'),
+        (8001, 'Giants Keep'),
+        (9001, 'Dragons Lair'),
     )
 
     id = models.BigAutoField(primary_key=True, unique=True)
@@ -524,6 +524,12 @@ class DungeonRun(models.Model):
     @classmethod
     def get_dungeon_name(cls, id):
         return dict(cls.DUNGEON_TYPES)[id]
+
+    @classmethod
+    def get_dungeon_id(cls, name):
+        for key, dungeon in dict(cls.DUNGEON_TYPES).items():
+            if dungeon == name:
+                return key
 
     @classmethod
     def get_all_dungeons(cls):

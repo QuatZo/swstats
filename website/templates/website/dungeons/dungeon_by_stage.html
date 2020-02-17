@@ -1,0 +1,17 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+{% load add_reverse_str %}
+{% load to_list %}
+{% load get_runes %}
+
+{% block content_title %}
+	{{ name }} B{{ stage }} (Average Time: {{ avg_time }})<br />
+{% endblock %}
+
+{% block table %}
+	{% if dungeon %}
+		{% include "website/dungeons/charts/dungeon_chart_distribution.html" with means=runs_means distribution=runs_distribution color=runs_colors %}
+	{% else %}
+		<p>There will be 404 Error or something because no records for dungeon like this.</p>
+	{% endif %}
+{% endblock %}

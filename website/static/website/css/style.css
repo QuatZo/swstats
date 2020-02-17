@@ -409,6 +409,7 @@ h1.h2
 
 .card-body.inner{
     padding: 0;
+    flex: none;
 }
 
 .card-body.inner div{

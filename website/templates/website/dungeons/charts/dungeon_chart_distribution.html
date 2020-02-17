@@ -1,0 +1,46 @@
+{{ color|json_script:'color'}}
+{{ means|json_script:'mean'}}
+{{ distribution|json_script:'distribution'}}
+
+<div class='{{ class|default:'chart' }}'>
+    <canvas id="dungeon-chart-distribution" />
+</div>
+<script>
+    var ctx = document.getElementById('dungeon-chart-distribution').getContext('2d');
+    var colorsDungeonDistribution = JSON.parse(document.getElementById('color').textContent);
+    var meansDungeonDistribution = JSON.parse(document.getElementById('mean').textContent);
+    var dungeonDistribution = JSON.parse(document.getElementById('distribution').textContent);
+
+    var chartDungeonDistribution = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: meansDungeonDistribution,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: colorsDungeonDistribution,
+                data: dungeonDistribution,
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Rune Efficiency Distribution'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false }
+        }
+    });
+</script>

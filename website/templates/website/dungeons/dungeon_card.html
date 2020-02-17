@@ -1,31 +1,31 @@
 {% load static %}
 {% load get_dungeon_avatar %}
+{% load dungeon_to_div_id %}
 
-<div class="col-4 col-sm-3 rank">
+<div class="col-12 col-sm-3 rank">
     <div class="card">
         <div class="card-header dungeon-header">
             <img class="dungeon-header-img" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
             {{ dungeon }} 
         </div>
         {% for stage, stage_info in info.items %}
-            <div class="card-header" type="button" data-toggle="collapse" data-target="#dungeon-{{ stage }}" aria-expanded="true" aria-controls="#dungeon-{{ stage }}">
-                {{ stage }} <a href="{% url 'dungeons' %}" style="position: relative; float:  right;">More Info</a>
-                <!-- temporarily dungeons as a url, there will be specific dungeon floor -->
+            <div class="card-header" type="button" data-toggle="collapse" data-target="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" aria-expanded="true" aria-controls="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}">
+                {{ stage }} <a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=stage|slice:"1:" %}" style="position: relative; float: right;">More</a>
             </div>
-            <div class="card-body inner">
-                <div class="row collapse" id="dungeon-{{ stage }}" >
+            <div class="card-body inner {% if stage == "B10" %}show{% else %}collapse{% endif %}" id="dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" >
+                <div class="row">
                     <div class="col-6 col-sm-6"><b>Quantity</b></div>
                     <div class="col-6 col-sm-6"> {{ stage_info.quantity|default:"0" }} </div>
                 </div>
-                <div class="row collapse" id="dungeon-{{ stage }}" >
+                <div class="row">
                     <div class="col-6 col-sm-6"><b>Avg. Time</b></div>
                     <div class="col-6 col-sm-6"> {{ stage_info.avg_time|default:"-" }} </div>
                 </div>
-                <div class="row collapse" id="dungeon-{{ stage }}" >
+                <div class="row">
                     <div class="col-6 col-sm-6"><b>Wins</b></div>
                     <div class="col-6 col-sm-6"> {{ stage_info.wins|default:"0" }} </div>
                 </div>
-                <div class="row collapse" id="dungeon-{{ stage }}" >
+                <div class="row">
                     <div class="col-6 col-sm-6"><b>Loses</b></div>
                     <div class="col-6 col-sm-6"> {{ stage_info.loses|default:"0" }} </div>
                 </div>
