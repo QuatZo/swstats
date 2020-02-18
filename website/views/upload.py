@@ -372,7 +372,6 @@ class UploadViewSet(viewsets.ViewSet):
                         guild_uptodate = True
                     else:
                         print("Updating guild profile", data['guild']['guild_info']['guild_id'])
-                        guild.delete()
                 else:
                     print("Guild profile does NOT exists. Starting first-time guild profile upload for", data['guild']['guild_info']['guild_id'])
 
@@ -404,7 +403,6 @@ class UploadViewSet(viewsets.ViewSet):
                         wizard_uptodate = True
                     else:
                         print("Updating profile", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ")")
-                        wiz.delete()
                 else:
                     print("Profile does NOT exists. Starting first-time profile upload for", data['wizard_info']['wizard_name'], "( ID:", data['wizard_info']['wizard_id'], ")")
 
@@ -493,7 +491,7 @@ class UploadViewSet(viewsets.ViewSet):
                     building['wizard_id'] = Wizard.objects.get(id=wizard['id'])
                     building['building_id'] = temp_building
                     building['level'] = 0
-                    obj, created = WizardBuilding.objects.get_or_create( wizard_id=building['wizard_id'], building_id=building['building_id'], defaults=building, )
+                    obj, created = WizardBuilding.objects.update_or_create( wizard_id=building['wizard_id'], building_id=building['building_id'], defaults=building, )
 
                 for deco in data['deco_list']:
                     building = dict()
@@ -597,7 +595,7 @@ class UploadViewSet(viewsets.ViewSet):
                     if mon.count() > 0:
                         monsters.append(mon.first())
 
-                obj, created = DungeonRun.objects.get_or_create(wizard_id=dungeon['wizard_id'], date=dungeon['date'], defaults=dungeon)
+                obj, created = DungeonRun.objects.update_or_create(wizard_id=dungeon['wizard_id'], date=dungeon['date'], defaults=dungeon)
                 obj.monsters.set(monsters)
                 obj.save()
                 print(f"Successfuly created Battle Dungeon Result for {data['wizard_info']['wizard_name']}")

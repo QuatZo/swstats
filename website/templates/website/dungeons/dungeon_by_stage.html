@@ -5,13 +5,18 @@
 {% load get_runes %}
 
 {% block content_title %}
-	{{ name }} B{{ stage }} (Average Time: {{ avg_time }})<br />
+	{{ name }} B{{ stage }} (Average Time: {{ avg_time }}) {% if is_filter %}{{ filters }}{% endif %}<br />
+{% endblock %}
+
+{% block content %}
+	{% include "website/dungeons/charts/dungeon_chart_distribution.html" with means=runs_means distribution=runs_distribution color=runs_colors %}
+
+	{% include "website/dungeons/charts/dungeon_chart_group_by_base.html" with name=base_names color=base_colors count=base_quantity %}
 {% endblock %}
 
 {% block table %}
-	{% if dungeon %}
-		{% include "website/dungeons/charts/dungeon_chart_distribution.html" with means=runs_means distribution=runs_distribution color=runs_colors %}
-	{% else %}
-		<p>There will be 404 Error or something because no records for dungeon like this.</p>
-	{% endif %}
+	{% include "website/dungeons/dungeon_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" base=False %}
+	
+	{% include "website/dungeons/dungeon_records_table.html" with records=records_base collapse_id="records_base" text="Comps per Base Monster" collapsed="collapse" base=True %}
 {% endblock %}
+

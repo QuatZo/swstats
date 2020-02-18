@@ -7,6 +7,8 @@ from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, Monster
 from datetime import timedelta
 import matplotlib.cm as cm
 import numpy as np
+from operator import itemgetter
+import math
 
 # homepage
 def get_homepage(request):
@@ -527,6 +529,60 @@ def get_dungeon_runs_distribution(runs, parts):
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
+def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
+    records = list()
+    for comp in comps:
+        runs = dungeon_runs
+        for monster_comp in comp:
+            if not base:
+                runs = runs.filter(monsters=monster_comp)
+            else:
+                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+        
+        runs_comp = runs.count()
+        wins_comp = runs.filter(win=True).count()
+
+        if not base:
+            monsters_in_comp = comp
+        else:
+            monsters_in_comp = [mon.base_monster for mon in comp]
+
+        record = {
+            'comp': monsters_in_comp,
+            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
+            'wins': wins_comp,
+            'loses': runs_comp - wins_comp,
+            'success_rate': round(wins_comp * 100 / runs_comp, 2),
+        }
+
+        # sort descending by 'ranking' formula: win_rate / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # 60 - seconds in one minute;
+        # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        if record['average_time'] is not None:
+            record['sorting_val'] = (record['success_rate'] / 100 / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )))
+            if not base:
+                records.append(record)
+            else:
+                exists = False
+                for temp_record_base in records:
+                    if record['comp'] == temp_record_base['comp']:
+                        exists = True
+                        break
+                if not exists:
+                    records.append(record)
+
+    return records
+
+def get_dungeon_runs_by_base_class(dungeon_runs):
+    base_monsters = dict()
+    for record in dungeon_runs.exclude(monsters__isnull=True):
+        for monster in record.monsters.all():
+            if monster.base_monster.name not in base_monsters.keys():
+                base_monsters[monster.base_monster.name] = 0
+            base_monsters[monster.base_monster.name] += 1
+
+    base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
+    return (list(base_monsters.keys()), list(base_monsters.values()))
 
 # Create your views here.
 def get_runes(request):
@@ -979,6 +1035,8 @@ def get_dungeons(request):
     return render( request, 'website/dungeons/dungeon_index.html', context)
 
 def get_dungeon_by_stage(request, name, stage):
+    is_filter = False
+    filters = list()
     names = name.split('-')
     for i in range(len(names)):
         if names[i] != "of":
@@ -986,14 +1044,40 @@ def get_dungeon_by_stage(request, name, stage):
     name = ' '.join(names)
 
     dungeon_runs = DungeonRun.objects.filter(dungeon=DungeonRun().get_dungeon_id(name), stage=stage)
+
+    if request.GET:
+        is_filter = True
+
+    if request.GET.get('base'):
+        base = request.GET.get('base').replace('_', ' ')
+        filters.append('Base Monster: ' + base)
+        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
+
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs.exclude(clear_time__isnull=True), 20)
+    avg_time = dungeon_runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time']
 
-    # avg_time = dungeon_runs.exclude(clear_time__isnull=True).values('dungeon', 'stage').annotate(avg_time=Avg('clear_time'))
-    avg_time = "00:00:30,123456" # temporarily
+    comps = list()
+    for run in dungeon_runs:
+        monsters = list()
+        for monster in run.monsters.all():
+            monsters.append(monster)
+        if monsters not in comps and monsters:
+            comps.append(monsters)
 
-    # sort by this value (Z -> A): math.exp(clear_time.total_seconds()) * win_rate
+    fastest_run = dungeon_runs.exclude(clear_time__isnull=True).order_by('clear_time').first().clear_time.total_seconds()
+
+    records_personal = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
+    records_base = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
+
+    
+    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
 
     context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # all
         'name': name,
         'dungeon': dungeon_runs, # all runs for given dungeon
         'stage': stage,
@@ -1003,6 +1087,15 @@ def get_dungeon_by_stage(request, name, stage):
         'runs_distribution': runs_distribution['distribution'],
         'runs_means': runs_distribution['scope'],
         'runs_colors': create_rgb_colors(runs_distribution['interval']),
+
+        # chart base
+        'base_names': base_names,
+        'base_quantity': base_quantities,
+        'base_colors': create_rgb_colors(len(base_names)),
+
+        # personal table
+        'records_personal': records_personal,
+        'records_base': records_base,
     }
     
     return render( request, 'website/dungeons/dungeon_by_stage.html', context)

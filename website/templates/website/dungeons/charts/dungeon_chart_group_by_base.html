@@ -1,0 +1,67 @@
+{{ name|json_script:'run-monster-base-names'}}
+{{ color|json_script:'run-monster-base-colors'}}
+{{ count|json_script:'run-monster-base-count'}}
+
+<div class='{{ class|default:'chart' }}' style="height: 35vh;">
+    <canvas id="chart-dungeon-run-monster-base" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-dungeon-run-monster-base').getContext('2d');
+    var monsterBase = JSON.parse(document.getElementById('run-monster-base-names').textContent);
+    var baseColors = JSON.parse(document.getElementById('run-monster-base-colors').textContent);
+    var baseCounts = JSON.parse(document.getElementById('run-monster-base-count').textContent);
+
+    var chartMonsterBase = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: monsterBase,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: baseColors,
+                data: baseCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickMonstersBase,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Dungeon Runs Quantity Per Base Monster'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0,
+                    ticks: {
+                        maxRotation: 90,
+                        minRotation: 90,
+                        autoSkip:false
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false },
+            hover: {
+                onHover: function(e) {
+                    var point = this.getElementAtEvent(e);
+                    if (point.length) e.target.style.cursor = 'pointer';
+                    else e.target.style.cursor = 'default';
+                }
+            }
+        }
+    }
+);
+function handleClickMonstersBase(evt) {   
+    var activeElement = chartMonsterBase.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'base', monsterBase[index].toString().replace(" ", "_"))
+    }
+};
+</script>

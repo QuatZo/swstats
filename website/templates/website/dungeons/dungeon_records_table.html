@@ -1,0 +1,52 @@
+{% load static %}
+{% load add_str %}
+{% load add_reverse_str %}
+{% load get_monster_avatar %}
+
+<div class="title-container">
+    <h2 class="title">
+        {{ text }}
+    </h2>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
+        Show/Hide 
+    </button>
+</div>
+<div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Monsters</th>
+                <th scope="col">Average Time</th>
+                <th scope="col">Wins</th>
+                <th scope="col">Loses</th>
+                <th scope="col">Success Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+                <tr>
+                    <td>
+                        {% for monster in record.comp %}
+                            {% if base %} 
+                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" onclick="filterMonster('{{ monster.name }}')" style="cursor: pointer;" />
+                            {% else %}    
+                                <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href"> 
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar"/>
+                                </a> 
+                            {% endif %}
+                        {% endfor %}                    
+                    </td>
+                    <td>{{ record.average_time }}</td>    
+                    <td>{{ record.wins }}</td>    
+                    <td>{{ record.loses }}</td>    
+                    <td>{{ record.success_rate }}%</td>                  
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        function filterMonster(href){
+            addParam(document.location.href, 'base', href.toString().replace(" ", "_"))
+        }
+    </script>
+</div>
