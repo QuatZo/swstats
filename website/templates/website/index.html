@@ -40,12 +40,53 @@
     </div>
     </div>
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Introduction</h1>
+        <h1 class="h2">Summoners War Statistics - Introduction</h1>
     </div>
     <p>
-        There will be some introduction. Like, welcome to SW Statistics, nice that you are here. Maybe you remember Windows app - same name, same developer, but different content.<br />
-        In Windows App you had stuff about your account, you needed to provide JSON. Here you can check whatever you want. You just need an internet connection. Nice, right?  <br />
-        I's an awesome project. Yeah... I wish someone would say that.
+        On this website you can check things like <b>fastest dungeon comp</b>, <b>toughest monster</b>, <b>the most efficient rune</b> or even <b>different builds for certain units</b>. 
+        Data is stored anonymously and everyone can contribute. There is no hard-coded data (like builds for monster on wikia), everything is from people who decided to contribute.
+        If you want to be part of this project, check <a href="{% url 'contribute' %}">Contribute</a> page (heart icon on the menu).
     </p>
-    
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Plots</h1>
+    </div>
+    <p>
+        Almost every plot is clickable, which means that it will redirect you to different page (i.e. when you click on monster it can redirect you to its page) or filter existing records.
+        In addition, if you hover on specific point/bar, it will display more information about specific record.
+    </p>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Tables</h1>
+    </div>
+    <p>
+        Every table is (on default) collapsed to minimize the amount of information website throws to you when you enter specific Page.<br />
+        Every row is clickable, which means that it will redirect you to corresponding Page, i.e. for Monsters if you click on row in table, it will redirect you to specific Monster Build.<br />
+        If row is not clickable, then there should be some icons or images, which are clickable. Check them!
+    </p>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">More...</h1>
+    </div>
+    <p>
+        I'm pretty bad at describing functionality, so all I can do in this situation is invite you to give it a try. Have fun!
+    </p>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">I don't want my data to be there</h1>
+    </div>
+    <p>
+        I can assure you that no user will be able to tell if specific monster/rune/dungeon run is yours or not. However, if you want your data to be deleted, 
+        please contact me through <a href="https://reddit.com/u/quatzo">Reddit</a> (as for now the only form of contact) and we will see what can be done.
+    </p>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Wait, I know Windows App called Summoners War Statistics</h1>
+    </div>
+    <p>
+        The mentioned app has been made by me. It has been deprecated some time ago for few reasons, but - for me - the most important was that Windows App is... only for Windows users. 
+        Since first release, I've got a lot of messages that people can't use it becuase they aren't using Windows. I wanted everyone to be able to use this, so I decided to make an 
+        online version. If you were using previously mentioned app, you will notice that it is quite different than Windows App. Some features have been moved to online version, some developed, 
+        but few have been deleted. The biggest difference is, that it's Big Data instead of Per Person.
+    </p>
 {% endblock %}

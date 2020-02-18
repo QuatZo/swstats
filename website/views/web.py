@@ -1064,7 +1064,10 @@ def get_dungeon_by_stage(request, name, stage):
         if monsters not in comps and monsters:
             comps.append(monsters)
 
-    fastest_run = dungeon_runs.exclude(clear_time__isnull=True).order_by('clear_time').first().clear_time.total_seconds()
+    try:
+        fastest_run = dungeon_runs.exclude(clear_time__isnull=True).order_by('clear_time').first().clear_time.total_seconds()
+    except AttributeError:
+        fastest_run = None
 
     records_personal = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     records_base = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
