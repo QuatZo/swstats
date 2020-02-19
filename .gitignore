@@ -137,3 +137,6 @@ Pipfile.lock
 
 # Migrations
 migrations/
+
+# logs
+logs/

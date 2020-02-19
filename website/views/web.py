@@ -1109,8 +1109,3 @@ def get_contribute_info(request):
 def get_credits(request):
     return render( request, 'website/credits.html')
 
-
-
-
-
-
