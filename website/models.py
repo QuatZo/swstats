@@ -504,6 +504,7 @@ class DungeonRun(models.Model):
         (7001, 'Hall of Light'),
         (8001, 'Giants Keep'),
         (9001, 'Dragons Lair'),
+        (999999999, 'Rift of Worlds') # couldn't find Dungeon ID for this, since it's not exactly a dungeon
     )
 
     id = models.BigAutoField(primary_key=True, unique=True)
@@ -535,3 +536,6 @@ class DungeonRun(models.Model):
     def get_all_dungeons(cls):
         return dict(cls.DUNGEON_TYPES).values()
      
+class RaidBattleKey(models.Model):
+    battle_key = models.BigIntegerField(primary_key=True, unique=True) # battle_info.battle_key
+    stage = models.IntegerField() # battle_info.room_info.stage_id

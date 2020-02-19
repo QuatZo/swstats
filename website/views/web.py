@@ -1007,7 +1007,8 @@ def get_dungeons(request):
     records = dict()
     for dungeon_base in dungeons_base:
         stages = dict()
-        for i in range(10, 0, -1):
+        max_stage = 10 if dungeon_base != 'Rift of Worlds' else 5
+        for i in range(max_stage, 0, -1):
             stages["B" + str(i)] = {
                 'avg_time': None,
                 'quantity': None,

@@ -12,7 +12,7 @@
             <div class="card-header" type="button" data-toggle="collapse" data-target="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" aria-expanded="true" aria-controls="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}">
                 {{ stage }} <a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=stage|slice:"1:" %}" style="position: relative; float: right;">More</a>
             </div>
-            <div class="card-body inner {% if stage == "B10" %}show{% else %}collapse{% endif %}" id="dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" >
+            <div class="card-body inner {% if stage == "B10" or stage == "B5" and dungeon|dungeon_to_div_id == "rift-of-worlds" %}show{% else %}collapse{% endif %}" id="dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" >
                 <div class="row">
                     <div class="col-6 col-sm-6"><b>Quantity</b></div>
                     <div class="col-6 col-sm-6"> {{ stage_info.quantity|default:"0" }} </div>
