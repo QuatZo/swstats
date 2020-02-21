@@ -104,7 +104,7 @@ class Rune(models.Model):
     )
 
     id = models.BigIntegerField(primary_key=True, unique=True) # rune_id
-    user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
     slot = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # slot_no
     quality = models.SmallIntegerField(choices=RUNE_QUALITIES) # rank
     stars = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # class
@@ -215,7 +215,7 @@ class MonsterBase(models.Model):
     ]
 
     id = models.IntegerField(primary_key=True, unique=True) # unit_master_id
-    family_id = models.ForeignKey(MonsterFamily, on_delete=models.PROTECT)
+    family = models.ForeignKey(MonsterFamily, on_delete=models.PROTECT)
     base_class = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)]) # mapping
     name = models.CharField(max_length=50) # mapping
     attribute = models.SmallIntegerField(choices=MONSTER_ATTRIBUTES) # attribute
@@ -244,25 +244,25 @@ class MonsterBase(models.Model):
                 return key
 
 class MonsterHoh(models.Model):
-    monster_id = models.ForeignKey(MonsterBase, on_delete=models.PROTECT)
+    monster = models.ForeignKey(MonsterBase, on_delete=models.PROTECT)
     date_open = models.DateField()
     date_close = models.DateField()
 
     def __str__(self):
-        return str(self.monster_id) + ' (' + self.date_open.strftime('%Y-%m-%d') + ' to ' + self.date_close.strftime('%Y-%m-%d') + ')'
+        return str(self.monster) + ' (' + self.date_open.strftime('%Y-%m-%d') + ' to ' + self.date_close.strftime('%Y-%m-%d') + ')'
 
     class Meta:
-        ordering = ['date_open', 'monster_id']
+        ordering = ['date_open', 'monster']
 
 class MonsterFusion(models.Model):
-    monster_id = models.ForeignKey(MonsterBase, on_delete=models.PROTECT)
+    monster = models.ForeignKey(MonsterBase, on_delete=models.PROTECT)
     cost = models.IntegerField()
 
     def __str__(self):
-        return str(self.monster_id)
+        return str(self.monster)
 
     class Meta:
-        ordering = ['monster_id']
+        ordering = ['monster']
 
 class MonsterSource(models.Model):
     id = models.IntegerField(primary_key=True, unique=True)
@@ -277,7 +277,7 @@ class MonsterSource(models.Model):
 
 class Monster(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True) # unit_id
-    user_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
     base_monster = models.ForeignKey(MonsterBase, on_delete=models.PROTECT) # unit_master_id
     level = models.SmallIntegerField() # unit_level
     stars = models.SmallIntegerField() # class
@@ -312,20 +312,20 @@ class Monster(models.Model):
         ordering = ['-stars', '-level', 'base_monster']
 
 class MonsterRep(models.Model):
-    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_info
-    monster_id = models.ForeignKey(Monster, on_delete=models.CASCADE) # rep_unit_id in profile JSON - wizard_info part
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_info
+    monster = models.ForeignKey(Monster, on_delete=models.CASCADE) # rep_unit_id in profile JSON - wizard_info part
 
 class RuneRTA(models.Model):
-    monster_id = models.ForeignKey(Monster, on_delete=models.CASCADE)
-    rune_id = models.ForeignKey(Rune, on_delete=models.CASCADE)
+    monster = models.ForeignKey(Monster, on_delete=models.CASCADE)
+    rune = models.ForeignKey(Rune, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.rune_id) + " on " + str(self.monster_id)
+        return str(self.rune) + " on " + str(self.monster)
 
     class Meta:
         verbose_name = 'Rune RTA'
         verbose_name_plural = 'Runes RTA'
-        ordering = ['monster_id', 'rune_id']
+        ordering = ['monster', 'rune']
 
 class Deck(models.Model):
     DECK_TYPES = [
@@ -343,7 +343,7 @@ class Deck(models.Model):
     ]
 
     id = models.BigAutoField(primary_key=True, unique=True)
-    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE)
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE)
     place = models.IntegerField(choices=DECK_TYPES) # deck_list.deck_type
     number = models.SmallIntegerField() # deck_list.deck_seq
     monsters = models.ManyToManyField(Monster, related_name='monsters_in_deck', related_query_name='monsters_in_deck') # deck_list.unit_id_list
@@ -379,15 +379,15 @@ class Building(models.Model):
         ordering = ['area', 'name']
 
 class WizardBuilding(models.Model):
-    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE)
-    building_id = models.ForeignKey(Building, on_delete=models.CASCADE)
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE)
+    building = models.ForeignKey(Building, on_delete=models.CASCADE)
     level = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)], default=0)
 
     def __str__(self):
-        return str(self.wizard_id) + ' ' + str(self.building_id) + ' (level ' + str(self.level) + ')'
+        return str(self.wizard) + ' ' + str(self.building) + ' (level ' + str(self.level) + ')'
 
     class Meta:
-        ordering = ['wizard_id', '-level', 'building_id']
+        ordering = ['wizard', '-level', 'building']
 
 class Arena(models.Model):
     ARENA_RANKS = (
@@ -412,7 +412,7 @@ class Arena(models.Model):
         (5001, 'Legend'),
     )
 
-    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE) # wizard_id
     wins = models.IntegerField() # arena_win
     loses = models.IntegerField() # arena_lose
     rank = models.IntegerField(choices=ARENA_RANKS) # rating_id
@@ -422,7 +422,7 @@ class Arena(models.Model):
     def_4 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="fourth_def_monster", null=True, default=None)
 
     def __str__(self):
-        return str(self.wizard_id) + ': ' + str(self.get_rank_display()) + ' (W' + str(self.wins) + '/' + str(self.loses) + 'L)'
+        return str(self.wizard) + ': ' + str(self.get_rank_display()) + ' (W' + str(self.wins) + '/' + str(self.loses) + 'L)'
 
     class Meta:
         ordering = ['-rank', '-wins', 'loses']
@@ -440,8 +440,8 @@ class HomunculusSkill(models.Model):
         ordering = ['depth', 'id']
 
 class WizardHomunculus(models.Model):
-    homunculus_id = models.ForeignKey(Monster, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
-    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
+    homunculus = models.ForeignKey(Monster, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
     skill_1 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_1", null=True, default=None) # homunculus_skill_list[el].skill_id
     skill_1_plus = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_1_upgrade", null=True, default=None)
     skill_2 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_2", null=True, default=None)
@@ -449,10 +449,10 @@ class WizardHomunculus(models.Model):
     skill_3 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_3", null=True, default=None)
 
     def __str__(self):
-        return str(self.homunculus_id) + '(' + ', '.join([str(self.skill_1), str(self.skill_1_plus), str(self.skill_2), str(self.skill_2_plus), str(self.skill_3)]) + ')'
+        return str(self.homunculus) + '(' + ', '.join([str(self.skill_1), str(self.skill_1_plus), str(self.skill_2), str(self.skill_2_plus), str(self.skill_3)]) + ')'
 
     class Meta:
-        ordering = ['wizard_id', 'homunculus_id']
+        ordering = ['wizard', 'homunculus']
 
 class Item(models.Model):
     ITEM_TYPES = (
@@ -482,15 +482,15 @@ class Item(models.Model):
         ordering = ['item_type', 'item_id']
 
 class WizardItem(models.Model):
-    wizard_id = models.ForeignKey(Wizard, on_delete=models.CASCADE)
-    master_item_id = models.ForeignKey(Item, on_delete=models.CASCADE)
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE)
+    master_item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.IntegerField()
 
     def __str__(self):
-        return 'x' + str(self.quantity) + ' ' + str(self.master_item_id)
+        return 'x' + str(self.quantity) + ' ' + str(self.master_item)
 
     class Meta:
-        ordering = ['wizard_id', 'master_item_id', '-quantity']
+        ordering = ['wizard', 'master_item', '-quantity']
 
 class DungeonRun(models.Model):
     """Uses 'BattleDungeonResult' command"""
@@ -508,7 +508,7 @@ class DungeonRun(models.Model):
     )
 
     id = models.BigAutoField(primary_key=True, unique=True)
-    wizard_id = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL) # wizard_id, response; if not exists then wizard_info in request
+    wizard = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL) # wizard_id, response; if not exists then wizard_info in request
     dungeon = models.IntegerField(choices=DUNGEON_TYPES) # dungeon_id, request
     stage = models.IntegerField() # stage_id, request
     win = models.BooleanField() # win_lose, request & response
@@ -539,3 +539,6 @@ class DungeonRun(models.Model):
 class RaidBattleKey(models.Model):
     battle_key = models.BigIntegerField(primary_key=True, unique=True) # battle_info.battle_key
     stage = models.IntegerField() # battle_info.room_info.stage_id
+
+# class RiftWorldsRun(models.Model):
+#     wizard_id 

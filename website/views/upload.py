@@ -42,7 +42,7 @@ class MonsterBaseUploadViewSet(viewsets.ViewSet):
                 # Monster Base Model
                 monster_base['id'] = base['id']
                 base['id'] = str(base['id'])
-                monster_base['family_id'] = MonsterFamily.objects.get(id=int(base['id'][:-2]))
+                monster_base['family'] = MonsterFamily.objects.get(id=int(base['id'][:-2]))
                 monster_base['base_class'] = base['base_class']
                 monster_base['name'] = base['name']
                 monster_base['attribute'] = int(base['id'][-1])
@@ -63,12 +63,12 @@ class MonsterHohUploadViewSet(viewsets.ViewSet):
                 monster_hoh = dict()
                 ########################################
                 # Monster HoH Model
-                monster_hoh['monster_id'] = MonsterBase.objects.get(id=int(hoh['id']))
+                monster_hoh['monster'] = MonsterBase.objects.get(id=int(hoh['id']))
                 monster_hoh['date_open'] = hoh['date_open']
                 monster_hoh['date_close'] = hoh['date_close']
                 ########################################
 
-                obj, created = MonsterHoh.objects.update_or_create( monster_id=hoh['id'], defaults=monster_hoh, )
+                obj, created = MonsterHoh.objects.update_or_create( monster=hoh['id'], defaults=monster_hoh, )
             return HttpResponse(status=status.HTTP_201_CREATED)
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
@@ -80,11 +80,11 @@ class MonsterFusionUploadViewSet(viewsets.ViewSet):
                 monster_fusion = dict()
                 ########################################
                 # Monster Fusion Model
-                monster_fusion['monster_id'] = MonsterBase.objects.get(id=int(fusion['id']))
+                monster_fusion['monster'] = MonsterBase.objects.get(id=int(fusion['id']))
                 monster_fusion['cost'] = fusion['cost']
                 ########################################
 
-                obj, created = MonsterFusion.objects.update_or_create( monster_id=fusion['id'], defaults=monster_fusion, )
+                obj, created = MonsterFusion.objects.update_or_create( monster=fusion['id'], defaults=monster_fusion, )
             return HttpResponse(status=status.HTTP_201_CREATED)
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
@@ -302,7 +302,7 @@ class UploadViewSet(viewsets.ViewSet):
                 rune[db] = temp_rune[c2u]
 
         if 'wizard_id' in temp_rune_keys:
-            rune['user_id'] = Wizard.objects.get(id=temp_rune['wizard_id'])
+            rune['wizard'] = Wizard.objects.get(id=temp_rune['wizard_id'])
         if 'set_id' in temp_rune_keys:
             rune['rune_set'] = RuneSet.objects.get(id=temp_rune['set_id'])
 
@@ -346,7 +346,7 @@ class UploadViewSet(viewsets.ViewSet):
             if c2u in temp_monster_keys:
                 monster[db] = temp_monster[c2u]
 
-        monster['user_id'] = Wizard.objects.get(id=temp_monster['wizard_id'])
+        monster['wizard'] = Wizard.objects.get(id=temp_monster['wizard_id'])
         monster['base_monster'] = MonsterBase.objects.get(id=temp_monster['unit_master_id'])
 
         ####################
@@ -391,49 +391,49 @@ class UploadViewSet(viewsets.ViewSet):
     def parse_runes_rta(self, rta_runes):
         for rta_rune in rta_runes:
             if all(key in rta_rune.keys() for key_req in ['rune_id', 'occupied_id']):
-                obj, created = RuneRTA.objects.update_or_create(rune_id=rta_rune['rune_id'], defaults={
-                    'monster_id': Monster.objects.get(id=rta_rune['occupied_id']),
-                    'rune_id': Rune.objects.get(id=rta_rune['rune_id']),
+                obj, created = RuneRTA.objects.update_or_create(rune=rta_rune['rune_id'], defaults={
+                    'monster': Monster.objects.get(id=rta_rune['occupied_id']),
+                    'rune': Rune.objects.get(id=rta_rune['rune_id']),
                 })
 
     def parse_decks(self, decks, wizard_id):
         for temp_deck in decks:
             deck = dict()
-            deck['wizard_id'] = Wizard.objects.get(id=wizard_id)
+            deck['wizard'] = Wizard.objects.get(id=wizard_id)
             deck['place'] = temp_deck['deck_type']
             deck['number'] = temp_deck['deck_seq']
             deck['leader'] = Monster.objects.get(id=temp_deck['leader_unit_id'])
             deck_monsters = [Monster.objects.get(id=monster_id) for monster_id in temp_deck['unit_id_list'] if monster_id]
             temp_team_eff = [mon.avg_eff for mon in deck_monsters]
             deck['team_runes_eff'] = round(sum(temp_team_eff) / len(temp_team_eff), 2)
-            obj, created = Deck.objects.update_or_create( wizard_id=wizard_id, place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
+            obj, created = Deck.objects.update_or_create( wizard=wizard_id, place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
             obj.monsters.set(deck_monsters)
             obj.save()
 
     def parse_wizard_buildings(self, decos, wizard_id):
         for temp_building in Building.objects.all():
             building = dict()
-            building['wizard_id'] = Wizard.objects.get(id=wizard_id)
-            building['building_id'] = temp_building
+            building['wizard'] = Wizard.objects.get(id=wizard_id)
+            building['building'] = temp_building
             building['level'] = 0
-            obj, created = WizardBuilding.objects.update_or_create( wizard_id=building['wizard_id'], building_id=building['building_id'], defaults=building, )
+            obj, created = WizardBuilding.objects.update_or_create( wizard=building['wizard'], building=building['building'], defaults=building, )
 
         for deco in decos:
             building = dict()
-            building['wizard_id'] = Wizard.objects.get(id=deco['wizard_id'])
-            building['building_id'] = Building.objects.get(id=deco['master_id'])
+            building['wizard'] = Wizard.objects.get(id=deco['wizard_id'])
+            building['building'] = Building.objects.get(id=deco['master_id'])
             building['level'] = deco['level']
-            obj, created = WizardBuilding.objects.update_or_create( wizard_id=building['wizard_id'], building_id=building['building_id'], defaults=building, )
+            obj, created = WizardBuilding.objects.update_or_create( wizard=building['wizard'], building=building['building'], defaults=building, )
 
     def parse_arena_records(self, pvp_info, defense_units, wizard_id):
         arena = dict()
-        arena['wizard_id'] = Wizard.objects.get(id=wizard_id)
+        arena['wizard'] = Wizard.objects.get(id=wizard_id)
         arena['wins'] = pvp_info['arena_win']
         arena['loses'] = pvp_info['arena_lose']
         arena['rank'] = pvp_info['rating_id']
         for def_unit in defense_units:
             arena['def_' + str(def_unit['pos_id'])] = Monster.objects.get(id=def_unit['unit_id'])
-        obj, created = Arena.objects.update_or_create( wizard_id=wizard_id, defaults=arena, )
+        obj, created = Arena.objects.update_or_create( wizard=wizard_id, defaults=arena, )
 
     def parse_wizard_homunculus(self, homunculus):
         homies = dict()

@@ -270,13 +270,13 @@ def get_monster_list_over_time(monsters):
 
 def get_monster_list_group_by_family(monsters):
     """Return name, amount of families and quantity of monsters for every family in given monsters list."""
-    group_by_family = monsters.values('base_monster__family_id__name').annotate(total=Count('base_monster__family_id__name')).order_by('-total')
+    group_by_family = monsters.values('base_monster__family__name').annotate(total=Count('base_monster__family__name')).order_by('-total')
 
     family_name = list()
     family_count = list()
 
     for group in group_by_family:
-        family_name.append(group['base_monster__family_id__name'])
+        family_name.append(group['base_monster__family__name'])
         family_count.append(group['total'])
 
     return { 'name': family_name, 'quantity': family_count, 'length': len(family_name) }
@@ -360,17 +360,17 @@ def get_monster_list_group_by_storage(monsters):
 
 def get_monsters_hoh():
     base_monsters_hoh = list()
-    for monster in MonsterHoh.objects.all().only('monster_id'):
-        base_monsters_hoh.append(monster.monster_id.id)
-        base_monsters_hoh.append(monster.monster_id.id + 10) # awakened also
+    for monster_hoh in MonsterHoh.objects.all().only('monster'):
+        base_monsters_hoh.append(monster_hoh.monster.id)
+        base_monsters_hoh.append(monster_hoh.monster.id + 10) # awakened also
 
     return base_monsters_hoh
 
 def get_monsters_fusion():
     base_monsters_fusion = list()
-    for monster in MonsterFusion.objects.all().only('monster_id'):
-        base_monsters_fusion.append(monster.monster_id.id)
-        base_monsters_fusion.append(monster.monster_id.id + 10) # awakened also
+    for monster_fusion in MonsterFusion.objects.all().only('monster'):
+        base_monsters_fusion.append(monster_fusion.monster.id)
+        base_monsters_fusion.append(monster_fusion.monster.id + 10) # awakened also
 
     return base_monsters_fusion
 
@@ -449,13 +449,13 @@ def get_monster_rank_stats(monsters, monster, stat):
 # deck list w/ filters
 def get_deck_list_group_by_family(decks):
     """Return name, amount of families and quantity of monsters for every family in given decks list."""
-    group_by_family = decks.values('monsters__base_monster__family_id__name').annotate(total=Count('monsters__base_monster__family_id__name')).order_by('-total')
+    group_by_family = decks.values('monsters__base_monster__family__name').annotate(total=Count('monsters__base_monster__family__name')).order_by('-total')
 
     family_name = list()
     family_count = list()
 
     for group in group_by_family:
-        family_name.append(group['monsters__base_monster__family_id__name'])
+        family_name.append(group['monsters__base_monster__family__name'])
         family_count.append(group['total'])
 
     return { 'name': family_name, 'quantity': family_count, 'length': len(family_name) }
@@ -703,7 +703,7 @@ def get_rune_by_id(request, arg_id):
     runes = Rune.objects.all()
     monster = Monster.objects.filter(runes__id=rune.id).first()
     try:
-        rta_monster = RuneRTA.objects.filter(rune_id=rune.id).first().monster_id
+        rta_monster = RuneRTA.objects.filter(rune=rune.id).first().monster
     except AttributeError:
         rta_monster = None
 
@@ -757,7 +757,7 @@ def get_monsters(request):
     if request.GET.get('family'):
         family = request.GET.get('family').replace('_', ' ')
         filters.append('Family: ' + family)
-        monsters = monsters.filter(base_monster__family_id__name=family)
+        monsters = monsters.filter(base_monster__family__name=family)
 
     if request.GET.get('attribute'):
         filters.append('Attribute: ' + request.GET.get('attribute'))
@@ -869,11 +869,11 @@ def get_monster_by_id(request, arg_id):
     monsters = Monster.objects.all().order_by('-avg_eff')
     monster = get_object_or_404(Monster, id=arg_id)
     
-    rta_monsters = RuneRTA.objects.filter(monster_id=arg_id)
+    rta_monsters = RuneRTA.objects.filter(monster=arg_id)
     rta_build = list()
 
     for rta_monster in rta_monsters:
-        rta_build.append(rta_monster.rune_id)
+        rta_build.append(rta_monster.rune)
     
     try:
         rta_eff = sum([ rune.efficiency for rune in rta_build ]) / len(rta_build)
@@ -881,7 +881,7 @@ def get_monster_by_id(request, arg_id):
         rta_eff = None
 
     monsters_category_base = monsters.filter(base_monster=monster.base_monster)
-    monsters_category_family = monsters.filter(base_monster__family_id=monster.base_monster.family_id)
+    monsters_category_family = monsters.filter(base_monster__family=monster.base_monster.family)
     monsters_category_attribute = monsters.filter(base_monster__attribute=monster.base_monster.attribute)
     monsters_category_type = monsters.filter(base_monster__archetype=monster.base_monster.archetype)
     monsters_category_attr_type = monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__archetype=monster.base_monster.archetype)
@@ -889,10 +889,10 @@ def get_monster_by_id(request, arg_id):
     monsters_category_all = monsters_category_attr_type.filter(base_monster__base_class=monster.base_monster.base_class)
 
     rta_similar_builds = dict()
-    for rta_similar in RuneRTA.objects.filter(monster_id__base_monster__family_id=monster.base_monster.family_id, monster_id__base_monster__attribute=monster.base_monster.attribute).exclude(monster_id=monster.id):
-        if rta_similar.monster_id not in rta_similar_builds.keys():
-            rta_similar_builds[rta_similar.monster_id] = list()
-        rta_similar_builds[rta_similar.monster_id].append(rta_similar.rune_id)
+    for rta_similar in RuneRTA.objects.filter(monster__base_monster__family=monster.base_monster.family, monster__base_monster__attribute=monster.base_monster.attribute).exclude(monster=monster.id):
+        if rta_similar.monster not in rta_similar_builds.keys():
+            rta_similar_builds[rta_similar.monster] = list()
+        rta_similar_builds[rta_similar.monster].append(rta_similar.rune)
 
     ranks = {
         'normal': {
@@ -927,7 +927,7 @@ def get_monster_by_id(request, arg_id):
         'monster': monster, 
         'ranks': ranks,
         'rta': rta,
-        'similar': monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family_id=monster.base_monster.family_id, avg_eff__range=[monster.avg_eff - 20, monster.avg_eff + 20]).exclude(id=monster.id),
+        'similar': monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family, avg_eff__range=[monster.avg_eff - 20, monster.avg_eff + 20]).exclude(id=monster.id),
         'rta_similar': rta_similar_builds,
         'decks': Deck.objects.all().filter(monsters__id=monster.id),
     }
@@ -945,7 +945,7 @@ def get_decks(request):
     if request.GET.get('family'):
         family = request.GET.get('family').replace('_', ' ')
         filters.append('Family: ' + family)
-        decks = decks.filter(monsters__base_monster__family_id__name=family)
+        decks = decks.filter(monsters__base_monster__family__name=family)
 
     if request.GET.get('place'):
         place = request.GET.get('place').replace('_', ' ')

@@ -15,7 +15,7 @@ class RuneSetAdmin(admin.ModelAdmin):
 
 class RuneAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'user_id', 'slot', 'quality', 'stars', 'rune_set', 'upgrade_limit', 'upgrade_curr', 'base_value', 'sell_value', 'primary', 'primary_value', 
+        'id', 'wizard', 'slot', 'quality', 'stars', 'rune_set', 'upgrade_limit', 'upgrade_curr', 'base_value', 'sell_value', 'primary', 'primary_value', 
         'innate', 'innate_value', 'sub_hp_flat', 'sub_hp', 'sub_atk_flat', 'sub_atk', 'sub_def_flat', 'sub_def', 'sub_speed', 'sub_crit_rate', 'sub_crit_dmg', 
         'sub_res', 'sub_acc', 'quality_original', 'efficiency', 'efficiency_max', 'equipped', 'locked'
     )
@@ -34,8 +34,8 @@ class MonsterSourceAdmin(admin.ModelAdmin):
 
 class MonsterAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'user_id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'eff_hp', 'eff_hp_def_break', 'skills', 'get_runes',
-        'created', 'source', 'transmog', 'storage', 'locked'
+        'id', 'wizard', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'eff_hp', 'eff_hp_def_break', 
+        'skills', 'get_runes', 'created', 'source', 'transmog', 'storage', 'locked'
     )
     
     filter_horizontal=('runes', )
@@ -44,16 +44,16 @@ class MonsterAdmin(admin.ModelAdmin):
         return "\n".join([str(rune) for rune in obj.runes.all()])
 
 class MonsterRepAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard_id', 'monster_id' )
+    list_display = ( 'id', 'wizard', 'monster' )
 
 class MonsterHohAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'monster_id', 'date_open', 'date_close' )
+    list_display = ( 'id', 'monster', 'date_open', 'date_close' )
 
 class MonsterFusionAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'monster_id', 'cost' )
+    list_display = ( 'id', 'monster', 'cost' )
 
 class DeckAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard_id', 'place', 'number', 'get_monsters', 'leader', 'team_runes_eff' )
+    list_display = ( 'id', 'wizard', 'place', 'number', 'get_monsters', 'leader', 'team_runes_eff' )
 
     def get_monsters(self, obj):
         return "\n".join([str(monster) for monster in obj.monsters.all()])
@@ -62,10 +62,10 @@ class BuildingAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'area', 'name' )
 
 class WizardBuildingAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard_id', 'building_id', 'level' )
+    list_display = ( 'id', 'wizard', 'building', 'level' )
 
 class ArenaAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard_id', 'wins', 'loses', 'ratio', 'rank', 'def_1', 'def_2', 'def_3', 'def_4')
+    list_display = ( 'id', 'wizard', 'wins', 'loses', 'ratio', 'rank', 'def_1', 'def_2', 'def_3', 'def_4')
 
     def ratio(self, obj):
         return round(obj.wins / obj.loses, 2) if obj.loses > 0 else 0
@@ -74,20 +74,20 @@ class HomunculusSkillAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'name', 'description', 'depth' )
     
 class WizardHomunculusAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard_id', 'homunculus_id', 'skill_1', 'skill_1_plus', 'skill_2', 'skill_2_plus', 'skill_3' )
+    list_display = ( 'id', 'wizard', 'homunculus', 'skill_1', 'skill_1_plus', 'skill_2', 'skill_2_plus', 'skill_3' )
 
 class RuneRTAAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'monster_id', 'rune_id' )
+    list_display = ( 'id', 'monster', 'rune' )
 
 class ItemAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'item_id', 'item_type', 'name')
 
 class WizardItemAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard_id', 'master_item_id', 'quantity' )
+    list_display = ( 'id', 'wizard', 'master_item', 'quantity' )
 
 # live
 class DungeonRunAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard_id', 'dungeon', 'stage', 'clear_time', 'get_monsters', 'win', 'date' )
+    list_display = ( 'id', 'wizard', 'dungeon', 'stage', 'clear_time', 'get_monsters', 'win', 'date' )
 
     def get_monsters(self, obj):
         return "\n".join([str(monster) for monster in obj.monsters.all()])
