@@ -1,0 +1,46 @@
+{{ color|json_script:'color'}}
+{{ means|json_script:'mean'}}
+{{ distribution|json_script:'distribution'}}
+
+<div class='{{ class|default:'chart' }}'>
+    <canvas id="rift-dungeon-chart-distribution" />
+</div>
+<script>
+    var ctx = document.getElementById('rift-dungeon-chart-distribution').getContext('2d');
+    var colorsRiftDungeonDistribution = JSON.parse(document.getElementById('color').textContent);
+    var meansRiftDungeonDistribution = JSON.parse(document.getElementById('mean').textContent);
+    var dungeonRiftDistribution = JSON.parse(document.getElementById('distribution').textContent);
+
+    var chartRiftDungeonDistribution = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: meansRiftDungeonDistribution,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: colorsRiftDungeonDistribution,
+                data: dungeonRiftDistribution,
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Dungeon Damage Distribution'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false }
+        }
+    });
+</script>

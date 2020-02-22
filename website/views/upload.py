@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
 import logging
 
-from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey
+from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey, RiftDungeonRun
 
 import copy
 import math
@@ -564,7 +564,7 @@ class UploadViewSet(viewsets.ViewSet):
         logger.debug(f"Starting Battle Dungeon Result upload for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
         dungeon = dict()
         wizard, created = Wizard.objects.update_or_create(id=data_resp['wizard_info']['wizard_id'], defaults=self.parse_wizard(data_resp['wizard_info'], data_resp['tvalue']))
-        dungeon['wizard_id'] = Wizard.objects.get(id=data_resp['wizard_info']['wizard_id'])
+        dungeon['wizard'] = Wizard.objects.get(id=data_resp['wizard_info']['wizard_id'])
         if command == 'BattleRiftOfWorldsRaidResult':
             dungeon['dungeon'] = 999999999
             rift_battles = RaidBattleKey.objects.filter(battle_key=data_req['battle_key'])
@@ -608,10 +608,58 @@ class UploadViewSet(viewsets.ViewSet):
             if mon.count() > 0:
                 monsters.append(mon.first())
 
-        obj, created = DungeonRun.objects.update_or_create(wizard_id=dungeon['wizard_id'], date=dungeon['date'], defaults=dungeon)
+        obj, created = DungeonRun.objects.update_or_create(wizard=dungeon['wizard'], date=dungeon['date'], defaults=dungeon)
         obj.monsters.set(monsters)
         obj.save()
         logger.debug(f"Successfuly created Battle Dungeon Result for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+        return True
+
+    def handle_rift_dungeon_start_upload(self, data_resp, data_req):
+        dungeon = dict()
+
+        dungeon['battle_key'] = data_resp['battle_key']
+        dungeon['dungeon'] = data_req['dungeon_id']
+        dungeon['date'] = datetime.datetime.utcfromtimestamp(data_resp['tvalue'])
+        wizard, created = Wizard.objects.update_or_create(id=data_resp['wizard_info']['wizard_id'], defaults=self.parse_wizard(data_resp['wizard_info'], data_resp['tvalue']))
+        dungeon['wizard'] = Wizard.objects.get(id=data_resp['wizard_info']['wizard_id'])
+
+        monsters = list()
+        for temp_monster in data_req['unit_id_list']:
+            mon = Monster.objects.filter(id=temp_monster['unit_id'])
+            if mon.count() > 0:
+                monsters.append(mon.first())
+
+        obj, created = RiftDungeonRun.objects.update_or_create(battle_key=dungeon['battle_key'], defaults=dungeon)
+        obj.monsters.set(monsters)
+        obj.save()
+        logger.debug(f"Successfuly created Rift Dungeon Start for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+
+    def handle_rift_dungeon_run_upload(self, data_resp, data_req):
+        dungeon = dict()
+        if data_req['battle_result'] == 1:
+            dungeon['win'] = True
+            time_str = str(data_req['clear_time'])
+            _time = {
+                'hour': 0 if int(time_str[:-3]) < 3600 else round(int(time_str[:-3]) / 3600),
+                'minute': 0 if int(time_str[:-3]) < 60 else round(int(time_str[:-3]) / 60),
+                'second': int(time_str[:-3]) if int(time_str[:-3]) < 60 else int(time_str[:-3]) % 60,
+                'microsecond': int(time_str[-3:]) * 1000,
+            }
+            dungeon['clear_time'] = datetime.time(_time['hour'], _time['minute'], _time['second'], _time['microsecond'])
+        else:
+            dungeon['win'] = False
+        dungeon['clear_rating'] = data_resp['rift_dungeon_box_id']
+        
+        # need to check if always table like this
+        dmg_records = data_req['round_list']
+        dungeon['dmg_phase_1'] = dmg_records[0][1]
+        if len(dmg_records) > 1:
+            dungeon['dmg_phase_glory'] = dmg_records[1][1]
+        if len(dmg_records) > 2:
+            dungeon['dmg_phase_2'] = dmg_records[2][1]
+
+        obj, created = RiftDungeonRun.objects.update_or_create(battle_key=data_req['battle_key'], defaults=dungeon)
+        logger.debug(f"Successfuly created Rift Dungeon Result (ID: {data_req['battle_key']})")
         return True
 
     def create(self, request):
@@ -623,12 +671,20 @@ class UploadViewSet(viewsets.ViewSet):
         if request.data:
             if request.data['command'] == 'HubUserLogin':
                 self.handle_profile_upload(request.data)
+            
             elif request.data['command'] == 'BattleRiftOfWorldsRaidStart':
                 self.handle_raid_start_upload(request.data)
             elif request.data['command'] == 'BattleDungeonResult' or request.data['command'] == 'BattleRiftOfWorldsRaidResult':
                 if not self.handle_dungeon_run_upload(request.data['response'], request.data['request']):
                     return HttpResponse(f"Unknown stage for Rift Raid Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
+            
+            elif request.data['command'] == 'BattleRiftDungeonStart':
+                self.handle_rift_dungeon_start_upload(request.data['response'], request.data['request'])
+            elif request.data['command'] == 'BattleRiftDungeonResult':
+                if not self.handle_rift_dungeon_run_upload(request.data['response'], request.data['request']):
+                    return HttpResponse(f"Unknown stage for Rift Dungeon Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
+                
             return HttpResponse(status=status.HTTP_201_CREATED)
         
-        logger.error("Given request was invalid")
-        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+        logger.error("Given request is invalid")
+        return HttpResponse(f"Given request is invalid", status=status.HTTP_400_BAD_REQUEST)

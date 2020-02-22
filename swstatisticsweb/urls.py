@@ -48,6 +48,7 @@ urlpatterns = [
     
     path('dungeons/', views.get_dungeons, name='dungeons'),
     path('dungeons/<str:name>/<str:stage>/', views.get_dungeon_by_stage, name='dungeon_by_stage'),
+    path('dungeons/<str:name>/', views.get_rift_dungeon_by_stage, name='rift_dungeon_by_stage'),
 
     path('contribute/', views.get_contribute_info, name='contribute'),
     path('credits/', views.get_credits, name='credits'),

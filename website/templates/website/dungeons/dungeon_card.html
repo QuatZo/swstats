@@ -1,6 +1,7 @@
 {% load static %}
 {% load get_dungeon_avatar %}
 {% load dungeon_to_div_id %}
+{% load is_rift_beast %}
 
 <div class="col-12 col-sm-3 rank">
     <div class="card">
@@ -10,9 +11,13 @@
         </div>
         {% for stage, stage_info in info.items %}
             <div class="card-header" type="button" data-toggle="collapse" data-target="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" aria-expanded="true" aria-controls="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}">
-                {{ stage }} <a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=stage|slice:"1:" %}" style="position: relative; float: right;">More</a>
+                {% if dungeon|is_rift_beast %}
+                    {{ stage }} <a href="{% url 'rift_dungeon_by_stage' name=dungeon|dungeon_to_div_id %}" style="position: relative; float: right;">More</a>
+                {% else %}
+                    {{ stage }} <a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=stage|slice:"1:" %}" style="position: relative; float: right;">More</a>
+                {% endif %}
             </div>
-            <div class="card-body inner {% if stage == "B10" or stage == "B5" and dungeon|dungeon_to_div_id == "rift-of-worlds" %}show{% else %}collapse{% endif %}" id="dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" >
+            <div class="card-body inner {% if stage == "B10" or stage == "B5" and dungeon|dungeon_to_div_id == "rift-of-worlds" or dungeon|is_rift_beast %}show{% else %}collapse{% endif %}" id="dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" >
                 <div class="row">
                     <div class="col-6 col-sm-6"><b>Quantity</b></div>
                     <div class="col-6 col-sm-6"> {{ stage_info.quantity|default:"0" }} </div>

@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from django.db import connection
 
-from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck, DungeonRun
+from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck, DungeonRun, RiftDungeonRun
 
 from datetime import timedelta
 import matplotlib.cm as cm
@@ -584,6 +584,86 @@ def get_dungeon_runs_by_base_class(dungeon_runs):
     base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
     return (list(base_monsters.keys()), list(base_monsters.values()))
 
+# rift dungeons
+def get_rift_dungeon_damage_distribution(runs, parts):
+    """Return sets of damages in specific number of parts, to make Distribution chart."""
+    if not runs.count():
+        return { 'distribution': [], 'scope': [], 'interval': parts }
+
+    lowest = runs.aggregate(Min('dmg_total'))['dmg_total__min']
+    highest = runs.aggregate(Max('dmg_total'))['dmg_total__max']
+
+    delta = (highest - lowest) / parts
+
+    points = [(lowest + (delta / 2) + i * delta) for i in range(parts)]
+    distribution = [0 for _ in range(parts)]
+
+    for run in runs:
+        for i in range(parts):
+            left = points[i] - delta / 2
+            right = points[i] + delta / 2
+            if i == parts - 1:
+                if run.dmg_total >= left and run.dmg_total <= right:
+                    distribution[i] += 1
+                    break
+            elif run.dmg_total >= left and run.dmg_total < right:
+                    distribution[i] += 1
+                    break
+
+    points = [str(round(point)) for point in points]
+
+    return { 'distribution': distribution, 'scope': points, 'interval': parts }
+
+def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=False):
+    records = list()
+    for comp in comps:
+        runs = dungeon_runs
+        for monster_comp in comp:
+            if not base:
+                runs = runs.filter(monsters=monster_comp)
+            else:
+                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+        
+        runs_comp = runs.count()
+        wins_comp = runs.filter(win=True).count()
+
+        if not base:
+            monsters_in_comp = comp
+        else:
+            monsters_in_comp = [mon.base_monster for mon in comp]
+
+        most_freq_rating = runs.values('win', 'clear_rating').annotate(rank=Count('clear_rating')).order_by('-win').first()['clear_rating']
+
+        record = {
+            'comp': monsters_in_comp,
+            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
+            'most_freq_rating': RiftDungeonRun().get_rating_name(most_freq_rating),
+            'wins': wins_comp,
+            'loses': runs_comp - wins_comp,
+            'success_rate': round(wins_comp * 100 / runs_comp, 2),
+            'dmg_best': round(runs.aggregate(max_dmg=Max('dmg_total'))['max_dmg']),
+            'dmg_avg': round(runs.aggregate(avg_dmg=Avg('dmg_total'))['avg_dmg']),
+        }
+
+        # sort descending by 'ranking' formula: win_rate / math.exp((dmg_avg * rating) / -(highest_damage * SSS) )
+        # rating - most frequest rating; SSS - 12
+        # visualization for highest_damage = 6000000: https://www.wolframalpha.com/input/?i=y%2Fexp%28%28x%29%2F-%286000000%29%29+for+x%3D1..6000000%2C+y%3D0..1
+        if record['average_time'] is not None:
+            record['sorting_val'] = ((record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) )))
+            if not base:
+                records.append(record)
+            else:
+                exists = False
+                for temp_record_base in records:
+                    if record['comp'] == temp_record_base['comp']:
+                        exists = True
+                        break
+                if not exists:
+                    records.append(record)
+
+    return records
+
+
 # Create your views here.
 def get_runes(request):
     runes = Rune.objects.all().order_by('-efficiency')   
@@ -1001,13 +1081,15 @@ def get_deck_by_id(request, arg_id):
 
 def get_dungeons(request):
     dungeons = DungeonRun.objects.values('dungeon', 'stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('id')).order_by('dungeon', '-stage', '-win')
-
+    rift_dungeons = RiftDungeonRun.objects.values('dungeon', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('dungeon')).order_by('dungeon', '-win')
     dungeons_base = DungeonRun().get_all_dungeons()
+    rift_dungeons_base = RiftDungeonRun.get_all_dungeons()
 
     records = dict()
     for dungeon_base in dungeons_base:
         stages = dict()
-        max_stage = 10 if dungeon_base != 'Rift of Worlds' else 5
+        max_stage = 10
+        if dungeon_base == 'Rift of Worlds': max_stage = 5
         for i in range(max_stage, 0, -1):
             stages["B" + str(i)] = {
                 'avg_time': None,
@@ -1016,6 +1098,16 @@ def get_dungeons(request):
                 'loses': None,
             }
         records[dungeon_base] = stages
+
+    for rift_dungeon_base in rift_dungeons_base:
+        stages = dict()
+        stages["B1"] = {
+            'avg_time': None,
+            'quantity': None,
+            'wins': None,
+            'loses': None,
+        }
+        records[rift_dungeon_base] = stages
 
     for dungeon in dungeons:
         dungeon_name = DungeonRun().get_dungeon_name(dungeon['dungeon'])
@@ -1029,6 +1121,18 @@ def get_dungeons(request):
             'loses': dungeon_quantity if not dungeon['win'] else records[dungeon_name][dungeon_stage]['loses'],
         }
 
+    for rift_dungeon in rift_dungeons:
+        dungeon_name = RiftDungeonRun().get_dungeon_name(rift_dungeon['dungeon'])
+        dungeon_stage = "B1"
+        dungeon_quantity = rift_dungeon['quantity']
+
+        records[dungeon_name][dungeon_stage] = {
+            'avg_time': str(rift_dungeon['avg_time']) if rift_dungeon['avg_time'] else records[dungeon_name][dungeon_stage]['avg_time'],
+            'quantity': dungeon_quantity if not records[dungeon_name][dungeon_stage]['quantity'] else records[dungeon_name][dungeon_stage]['quantity'] + dungeon_quantity,
+            'wins': dungeon_quantity if rift_dungeon['win'] else records[dungeon_name][dungeon_stage]['wins'],
+            'loses': dungeon_quantity if not rift_dungeon['win'] else records[dungeon_name][dungeon_stage]['loses'],
+        }
+
     context = {
         'dungeons': records
     }
@@ -1039,6 +1143,7 @@ def get_dungeon_by_stage(request, name, stage):
     is_filter = False
     filters = list()
     names = name.split('-')
+
     for i in range(len(names)):
         if names[i] != "of":
             names[i] = names[i].capitalize()
@@ -1103,6 +1208,75 @@ def get_dungeon_by_stage(request, name, stage):
     }
     
     return render( request, 'website/dungeons/dungeon_by_stage.html', context)
+
+def get_rift_dungeon_by_stage(request, name):
+    is_filter = False
+    filters = list()
+    names = name.split('-')
+
+    for i in range(len(names)):
+        if names[i] != "of":
+            names[i] = names[i].capitalize()
+    name = ' '.join(names)
+
+    dungeon_runs = RiftDungeonRun.objects.filter(dungeon=RiftDungeonRun().get_dungeon_id(name))
+    if request.GET:
+        is_filter = True
+
+    if request.GET.get('base'):
+        base = request.GET.get('base').replace('_', ' ')
+        filters.append('Base Monster: ' + base)
+        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
+
+    damage_distribution = get_rift_dungeon_damage_distribution(dungeon_runs, 20)
+    avg_time = dungeon_runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time']
+
+    comps = list()
+    for run in dungeon_runs:
+        monsters = list()
+        for monster in run.monsters.all():
+            monsters.append(monster)
+        if monsters not in comps and monsters:
+            comps.append(monsters)
+
+    try:
+        highest_damage = dungeon_runs.order_by('-dmg_total').first().dmg_total
+    except AttributeError:
+        highest_damage = None
+
+    records_personal = sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
+    records_base = sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, True), key=itemgetter('sorting_val'), reverse = True)
+
+    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+    
+        # all
+        'name': name,
+        'dungeon': dungeon_runs, # all runs for given dungeon
+        'stage': 1,
+        'avg_time': avg_time,
+        
+        # chart distribution
+        'damage_distribution': damage_distribution['distribution'],
+        'damage_means': damage_distribution['scope'],
+        'damage_colors': create_rgb_colors(damage_distribution['interval']),
+    
+        # chart base
+        'base_names': base_names,
+        'base_quantity': base_quantities,
+        'base_colors': create_rgb_colors(len(base_names)),
+    
+        # personal table
+        'records_personal': records_personal,
+        'records_base': records_base,
+    }
+    
+    return render( request, 'website/dungeons/rift_dungeon_by_stage.html', context)
+
 
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')

@@ -540,5 +540,69 @@ class RaidBattleKey(models.Model):
     battle_key = models.BigIntegerField(primary_key=True, unique=True) # battle_info.battle_key
     stage = models.IntegerField() # battle_info.room_info.stage_id
 
-# class RiftWorldsRun(models.Model):
-#     wizard_id 
+class RiftDungeonRun(models.Model):
+    """Uses 'BattleRiftDungeonResult' and 'BattleRiftDungeonStart' command"""
+    DUNGEON_TYPES = (
+        (1001, 'Ice Beast'),
+        (2001, 'Fire Beast'),
+        (3001, 'Wind Beast'),
+        (4001, 'Light Beast'),
+        (5001, 'Dark Beast'),
+    )
+    CLEAR_RATINGS = (
+        (1, 'F'),
+        (2, 'D'),
+        (3, 'C'),
+        (4, 'B-'),
+        (5, 'B'),
+        (6, 'B+'),
+        (7, 'A-'),
+        (8, 'A'),
+        (9, 'A+'),
+        (10, 'S'),
+        (11, 'SS'),
+        (12, 'SSS'),
+    )
+
+    battle_key = models.BigIntegerField(primary_key=True, unique=True) # BattleRiftDungeonStart, response, battle_key
+    wizard = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL) # BattleRiftDungeonStart response, wizard_info, wizard_id; if not exists then wizard_info in request
+    dungeon = models.IntegerField(choices=DUNGEON_TYPES) # BattleRiftDungeonStart,  request, dungeon_id
+    win = models.BooleanField(null=True, blank=True) # BattleRiftDungeonResult, request, battle_result (1 - win, 2 - lost)
+    clear_time = models.DurationField(null=True, blank=True) # BattleRiftDungeonResult, request, clear_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
+    clear_rating = models.IntegerField(choices=CLEAR_RATINGS, null=True, blank=True) # BattleRiftDungeonResult, response, rift_dungeon_box_id (or by calculating damage)
+    dmg_phase_1 = models.IntegerField(default=0) # BattleRiftDungeonResult, request, round_list[0][1]
+    dmg_phase_glory = models.IntegerField(default=0) # BattleRiftDungeonResult, request, round_list[1][1]
+    dmg_phase_2 = models.IntegerField(default=0) # BattleRiftDungeonResult, request, round_list[2][1]
+    dmg_total =  models.IntegerField() # overrided save function
+    monsters = models.ManyToManyField(Monster) # BattleRiftDungeonStart, request, unit_id_list
+    date = models.DateTimeField(null=True, blank=True) # BattleRiftDungeonStart, response, tvalue
+
+    # override save function, to calculate total dmg automatically
+    def save(self, *args, **kwargs):
+        self.dmg_total = self.dmg_phase_1 + self.dmg_phase_glory + self.dmg_phase_2
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+            return self.get_dungeon_display() + ' B1 (' + str(self.clear_time) + ')'
+
+
+    class Meta:
+        ordering = ['dungeon', '-clear_rating', '-dmg_total']
+
+    @classmethod
+    def get_dungeon_name(cls, id):
+        return dict(cls.DUNGEON_TYPES)[id]
+
+    @classmethod
+    def get_dungeon_id(cls, name):
+        for key, dungeon in dict(cls.DUNGEON_TYPES).items():
+            if dungeon == name:
+                return key
+
+    @classmethod
+    def get_all_dungeons(cls):
+        return dict(cls.DUNGEON_TYPES).values()
+
+    @classmethod
+    def get_rating_name(cls, id):
+        return dict(cls.CLEAR_RATINGS)[id]

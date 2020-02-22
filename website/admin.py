@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey
+from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey, RiftDungeonRun
 
 class GuildAdmin(admin.ModelAdmin):
     list_display = ('id', 'level', 'members_max', 'members_amount', 'gw_best_place', 'gw_best_ranking', 'last_update')
@@ -95,6 +95,12 @@ class DungeonRunAdmin(admin.ModelAdmin):
 class RaidBattleKeyAdmin(admin.ModelAdmin):
     list_display = ( 'battle_key', 'stage' )
 
+class RiftDungeonRunAdmin(admin.ModelAdmin):
+    list_display = ( 'battle_key', 'wizard', 'dungeon', 'win', 'clear_time', 'clear_rating', 'get_monsters', 'dmg_phase_1', 'dmg_phase_glory', 'dmg_phase_2', 'dmg_total', 'date')
+
+    def get_monsters(self, obj):
+        return "\n".join([str(monster) for monster in obj.monsters.all()])
+
 
 # Register your models here.
 admin.site.register(Guild, GuildAdmin)
@@ -121,3 +127,4 @@ admin.site.register(WizardItem, WizardItemAdmin)
 # live
 admin.site.register(DungeonRun, DungeonRunAdmin)
 admin.site.register(RaidBattleKey, RaidBattleKeyAdmin)
+admin.site.register(RiftDungeonRun, RiftDungeonRunAdmin)
