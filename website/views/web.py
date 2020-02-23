@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from django.db import connection
 
-from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck, DungeonRun, RiftDungeonRun
+from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck, DungeonRun, RiftDungeonRun, HomunculusSkill, WizardHomunculus
 
 from datetime import timedelta
 import matplotlib.cm as cm
@@ -1277,6 +1277,34 @@ def get_rift_dungeon_by_stage(request, name):
     
     return render( request, 'website/dungeons/rift_dungeon_by_stage.html', context)
 
+def get_homunculus(request):
+    homunculuses_base = MonsterBase.objects.filter(name__contains='Homunculus', awaken=True)
+    homunculuses = WizardHomunculus.objects.all()
+
+    cards = list()
+    for homunculus_base in homunculuses_base:
+        builds = homunculuses.filter(homunculus__base_monster=homunculus_base).values('build').annotate(Count('id')).order_by()
+        cards.append({
+            'base_monster': homunculus_base,
+            'quantity': homunculuses.filter(homunculus__base_monster=homunculus_base).aggregate(quantity=Count('homunculus__base_monster'))['quantity'],
+            'builds': builds,
+            'builds_quantity': len(builds),
+        })
+
+    context = {
+        'cards': cards,
+
+    }
+
+    return render( request, 'website/homunculus/homunculus_index.html', context)
+
+def get_homunculus_base(request, base):
+    homunculus_base = MonsterBase.objects.filter(id=base).first()
+    context = {
+        'base': homunculus_base
+    }
+
+    return render( request, 'website/homunculus/homunculus_base.html', context)
 
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')

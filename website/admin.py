@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey, RiftDungeonRun
+from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey, RiftDungeonRun, HomunculusBuild
 
 class GuildAdmin(admin.ModelAdmin):
     list_display = ('id', 'level', 'members_max', 'members_amount', 'gw_best_place', 'gw_best_ranking', 'last_update')
@@ -22,7 +22,6 @@ class RuneAdmin(admin.ModelAdmin):
 
 class MonsterFamilyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
-
 
 class MonsterBaseAdmin(admin.ModelAdmin):
     list_display = (
@@ -71,10 +70,14 @@ class ArenaAdmin(admin.ModelAdmin):
         return round(obj.wins / obj.loses, 2) if obj.loses > 0 else 0
 
 class HomunculusSkillAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'name', 'description', 'depth' )
+    list_display = ( 'id', 'name', 'description', 'depth', 'letter')
     
+class HomunculusBuildAdmin(admin.ModelAdmin):
+    list_display = ('id', 'depth_1', 'depth_2', 'depth_3', 'depth_4', 'depth_5' )
+
+
 class WizardHomunculusAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard', 'homunculus', 'skill_1', 'skill_1_plus', 'skill_2', 'skill_2_plus', 'skill_3' )
+    list_display = ( 'id', 'wizard', 'homunculus', 'build' )
 
 class RuneRTAAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'monster', 'rune' )
@@ -119,6 +122,7 @@ admin.site.register(Building, BuildingAdmin)
 admin.site.register(WizardBuilding, WizardBuildingAdmin)
 admin.site.register(Arena, ArenaAdmin)
 admin.site.register(HomunculusSkill, HomunculusSkillAdmin)
+admin.site.register(HomunculusBuild, HomunculusBuildAdmin)
 admin.site.register(WizardHomunculus, WizardHomunculusAdmin)
 admin.site.register(RuneRTA, RuneRTAAdmin)
 admin.site.register(Item, ItemAdmin)

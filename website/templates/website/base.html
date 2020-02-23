@@ -60,6 +60,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == "homunculus" %}active{% endif %}" href="{% url 'homunculus' %}" >
+                            <img src={% static 'website/images/icons/homunculus.svg' %} class="menu-img" />
+                            <span class="text">Homunculus</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == "contribute" %}active{% endif %}" href="{% url 'contribute' %}" >
                             <img src={% static 'website/images/icons/contribute.svg' %} class="menu-img" />
                             <span class="text">Contribute</span>
@@ -79,32 +85,14 @@
                     <ul class="nav flex-column mb-2">
                         <li class="nav-item">
                             <a class="nav-link disabled" href="#">
-                                <img src={% static 'website/images/icons/arena.svg' %} class="menu-img" />
-                                <span class="text">Arena</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" href="#">
-                                <img src={% static 'website/images/icons/building.svg' %} class="menu-img" />
-                                <span class="text">Buildings</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" href="#">
                                 <img src={% static 'website/images/icons/guild.svg' %} class="menu-img" />
-                                <span class="text">Guild</span>
+                                <span class="text">Siege</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link disabled" href="#">
                             <img src={% static 'website/images/icons/rta.svg' %} class="menu-img" />
                                 <span class="text">RTA</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" href="#">
-                            <img src={% static 'website/images/icons/worldboss.svg' %} class="menu-img" />
-                                <span class="text">World Boss</span>
                             </a>
                         </li>
                         <li class="nav-item">

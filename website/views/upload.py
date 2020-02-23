@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
 import logging
 
-from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey, RiftDungeonRun
+from website.models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, Building, WizardBuilding, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey, RiftDungeonRun, HomunculusBuild
 
 import copy
 import math
@@ -99,10 +99,22 @@ class BuildingUploadViewSet(viewsets.ViewSet):
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
 class HomunculusUploadViewSet(viewsets.ViewSet):
-     def create(self, request):
+    def create(self, request):
         if request.data:
             for homie in request.data:
                 obj, created = HomunculusSkill.objects.update_or_create( id=homie['id'], defaults=homie, )
+            return HttpResponse(status=status.HTTP_201_CREATED)
+        
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+class HomunculusBuildUploadViewSet(viewsets.ViewSet):
+    def create(self, request):
+        if request.data:
+            for build in request.data:
+                data = dict()
+                for key, val in build.items():
+                    data[key] = HomunculusSkill.objects.get(id=val)
+                obj, created = HomunculusBuild.objects.update_or_create(depth_1=data['depth_1'], depth_2=data['depth_2'], depth_3=data['depth_3'], depth_4=data['depth_4'], depth_5=data['depth_5'], defaults=data, )
             return HttpResponse(status=status.HTTP_201_CREATED)
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
@@ -442,24 +454,16 @@ class UploadViewSet(viewsets.ViewSet):
                 homies[el['unit_id']] = dict()
                 homies[el['unit_id']]['wizard_id'] = Wizard.objects.get(id=el['wizard_id'])
                 homies[el['unit_id']]['homunculus_id'] = Monster.objects.get(id=el['unit_id'])
-                homies[el['unit_id']]['skill_1'] = None
-                homies[el['unit_id']]['skill_1_plus'] =  None
-                homies[el['unit_id']]['skill_2'] = None
-                homies[el['unit_id']]['skill_2_plus'] = None
-                homies[el['unit_id']]['skill_3'] = None
+                homies[el['unit_id']]['depth_1'] = None
+                homies[el['unit_id']]['depth_2'] =  None
+                homies[el['unit_id']]['depth_3'] = None
+                homies[el['unit_id']]['depth_4'] = None
+                homies[el['unit_id']]['depth_5'] = None
 
-            if el['skill_depth'] == 1:
-                homies[el['unit_id']]['skill_1'] = HomunculusSkill.objects.get(id=el['skill_id'])
-            elif el['skill_depth'] == 2:
-                homies[el['unit_id']]['skill_1_plus'] = HomunculusSkill.objects.get(id=el['skill_id'])
-            elif el['skill_depth'] == 3:
-                homies[el['unit_id']]['skill_2'] = HomunculusSkill.objects.get(id=el['skill_id'])
-            elif el['skill_depth'] == 4:
-                homies[el['unit_id']]['skill_2_plus'] = HomunculusSkill.objects.get(id=el['skill_id'])
-            elif el['skill_depth'] == 5:
-                homies[el['unit_id']]['skill_3'] = HomunculusSkill.objects.get(id=el['skill_id'])
+            homies[el['unit_id']]['depth_' + str(el['skill_depth'])] = el['skill_id']
 
         for homie in homies.values():
+            homie['build'] = HomunculusBuild.objects.get( depth_1=homie['depth_1'], depth_2=homie['depth_2'], depth_3=homie['depth_3'], depth_4=homie['depth_4'], depth_5=homie['depth_5'] )
             obj, created = WizardHomunculus.objects.update_or_create( wizard_id=homie['wizard_id'], homunculus_id=homie['homunculus_id'], defaults=homie, )
 
     def parse_wizard_inventory(self, inventory):

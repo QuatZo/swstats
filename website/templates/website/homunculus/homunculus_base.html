@@ -1,0 +1,18 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    {{ base.name|default:"Unknown" }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        {% for build in builds %}
+            {% include "website/homunculus/homunculus_build_card.html" with build=build %}
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block table %}
+    <!-- {% include "website/runes/rune_table.html" with runes=best_runes collapse_id="top_runes" text="Placeholder Text" collapsed="collapse" %} -->
+{% endblock %}

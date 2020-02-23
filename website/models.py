@@ -432,24 +432,34 @@ class HomunculusSkill(models.Model):
     name = models.CharField(max_length=50)  # name
     description = models.CharField(max_length=512) # description
     depth = models.SmallIntegerField() # depth
+    letter = models.CharField(max_length=1, null=True) # letter
 
     def __str__(self):
-        return self.name + ' [ Depth: ' + str(self.depth) + ' ]'
+        return self.name + ' [Path: ' + self.letter + ']'  + ' [Depth: ' + str(self.depth) + ']'
 
     class Meta:
         ordering = ['depth', 'id']
 
+class HomunculusBuild(models.Model):
+    depth_1 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="depth_1", null=True, default=None)
+    depth_2 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="depth_2", null=True, default=None)
+    depth_3 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="depth_3", null=True, default=None)
+    depth_4 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="depth_4", null=True, default=None)
+    depth_5 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="depth_5", null=True, default=None)
+
+    def __str__(self):
+        return '-'.join([ self.depth_1.letter, self.depth_2.letter, self.depth_3.letter, self.depth_4.letter, self.depth_5.letter ])
+
+    class Meta:
+        ordering = [ 'id' ]
+
 class WizardHomunculus(models.Model):
     homunculus = models.ForeignKey(Monster, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
-    skill_1 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_1", null=True, default=None) # homunculus_skill_list[el].skill_id
-    skill_1_plus = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_1_upgrade", null=True, default=None)
-    skill_2 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_2", null=True, default=None)
-    skill_2_plus = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_2_upgrade", null=True, default=None)
-    skill_3 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="skill_3", null=True, default=None)
+    build = models.ForeignKey(HomunculusBuild, on_delete=models.CASCADE, null=True) 
 
     def __str__(self):
-        return str(self.homunculus) + '(' + ', '.join([str(self.skill_1), str(self.skill_1_plus), str(self.skill_2), str(self.skill_2_plus), str(self.skill_3)]) + ')'
+        return str(self.homunculus) + '(' + str(self.build) + ')'
 
     class Meta:
         ordering = ['wizard', 'homunculus']

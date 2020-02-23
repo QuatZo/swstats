@@ -14,9 +14,9 @@
 {% endblock %}
 
 {% block content %}
-	<p>
-		The position of comp on the list is calculated by using the following formula, where \(0 < win\_rate < 1\), \(clear\_time [s] \), \(fastest\_run [s]\)
-		$$points = {win\_rate \over exp({clear\_time \over fastest\_run})}$$
+	<p>win_rate / math.exp((dmg_avg * rating) / -(highest_damage * SSS) )
+		The position of comp on the list is calculated by using the following formula, where \(0 < win\_rate < 1\), \(12 = SSS\)
+		$$points = {win\_rate \over exp({dmg\_avg * rating \over -({highest\_damage * 12})})}$$
 	</p>
 	{% include "website/dungeons/charts/rift_dungeon_chart_distribution.html" with means=damage_means distribution=damage_distribution color=damage_colors %}
 

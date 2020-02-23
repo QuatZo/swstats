@@ -31,6 +31,7 @@ if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabl
     router.register(r'monsterfusionupload', views.MonsterFusionUploadViewSet, 'monsterfusionupload')
     router.register(r'buildingupload', views.BuildingUploadViewSet, 'buildingupload')
     router.register(r'homunculusupload', views.HomunculusUploadViewSet, 'homunculusupload')
+    router.register(r'homunculusbuildupload', views.HomunculusBuildUploadViewSet, 'homunculusbuildupload')
     router.register(r'itemupload', views.ItemUploadViewSet, 'itemupload')
 
 urlpatterns = [
@@ -49,6 +50,9 @@ urlpatterns = [
     path('dungeons/', views.get_dungeons, name='dungeons'),
     path('dungeons/<str:name>/<str:stage>/', views.get_dungeon_by_stage, name='dungeon_by_stage'),
     path('dungeons/<str:name>/', views.get_rift_dungeon_by_stage, name='rift_dungeon_by_stage'),
+
+    path('homunculus/', views.get_homunculus, name='homunculus'),
+    path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
 
     path('contribute/', views.get_contribute_info, name='contribute'),
     path('credits/', views.get_credits, name='credits'),
