@@ -441,6 +441,7 @@ class HomunculusSkill(models.Model):
         ordering = ['depth', 'id']
 
 class HomunculusBuild(models.Model):
+    homunculus = models.ForeignKey(MonsterBase, on_delete=models.CASCADE)
     depth_1 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="depth_1", null=True, default=None)
     depth_2 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="depth_2", null=True, default=None)
     depth_3 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE, related_name="depth_3", null=True, default=None)
@@ -450,6 +451,9 @@ class HomunculusBuild(models.Model):
     def __str__(self):
         return '-'.join([ self.depth_1.letter, self.depth_2.letter, self.depth_3.letter, self.depth_4.letter, self.depth_5.letter ])
 
+    def get_build_str(self):
+        return __str__(self)
+    
     class Meta:
         ordering = [ 'id' ]
 
@@ -457,6 +461,10 @@ class WizardHomunculus(models.Model):
     homunculus = models.ForeignKey(Monster, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE) # homunculus_skill_list[el].unit_id
     build = models.ForeignKey(HomunculusBuild, on_delete=models.CASCADE, null=True) 
+
+    @classmethod
+    def get_build_display(cls, id):
+        return str(HomunculusBuild.objects.get(id=id))
 
     def __str__(self):
         return str(self.homunculus) + '(' + str(self.build) + ')'

@@ -113,6 +113,9 @@ class HomunculusBuildUploadViewSet(viewsets.ViewSet):
             for build in request.data:
                 data = dict()
                 for key, val in build.items():
+                    if key == "homunculus_id":
+                        data[key] = MonsterBase.objects.get(id=val)
+                        continue
                     data[key] = HomunculusSkill.objects.get(id=val)
                 obj, created = HomunculusBuild.objects.update_or_create(depth_1=data['depth_1'], depth_2=data['depth_2'], depth_3=data['depth_3'], depth_4=data['depth_4'], depth_5=data['depth_5'], defaults=data, )
             return HttpResponse(status=status.HTTP_201_CREATED)

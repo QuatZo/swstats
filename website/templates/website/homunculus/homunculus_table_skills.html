@@ -1,0 +1,43 @@
+{% load static %}
+{% load add_str %}
+{% load get_monster_avatar %}
+{% load check_skillups %}
+
+<div class="title-container">
+    <h2 class="title">
+        {{ text }}
+    </h2>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
+        Show/Hide 
+    </button>
+</div>
+<div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Depth</th>
+                <th scope="col">Letter</th>
+                <th scope="col">Name</th>
+                <th scope="col">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+                <tr>
+                    <td>{{ record.id }}</td>
+                    <td>{{ record.depth }}</td>
+                    <td>{{ record.letter }}</td>
+                    <td>{{ record.name }}</td>
+                    <td>{{ record.description }}</td>
+                </tr>
+            {% endfor %}
+            <script>
+                feather.replace()
+                function goToMonster(href){
+                    document.location.href = document.location.origin + href;
+                }
+            </script>
+        </tbody>
+    </table>
+</div>

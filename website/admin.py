@@ -73,7 +73,7 @@ class HomunculusSkillAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'name', 'description', 'depth', 'letter')
     
 class HomunculusBuildAdmin(admin.ModelAdmin):
-    list_display = ('id', 'depth_1', 'depth_2', 'depth_3', 'depth_4', 'depth_5' )
+    list_display = ('id', 'homunculus', 'depth_1', 'depth_2', 'depth_3', 'depth_4', 'depth_5' )
 
 
 class WizardHomunculusAdmin(admin.ModelAdmin):

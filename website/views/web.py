@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from django.db import connection
 
-from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck, DungeonRun, RiftDungeonRun, HomunculusSkill, WizardHomunculus
+from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck, DungeonRun, RiftDungeonRun, HomunculusSkill, WizardHomunculus, HomunculusBuild
 
 from datetime import timedelta
 import matplotlib.cm as cm
@@ -663,6 +663,43 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=Fals
 
     return records
 
+# homunculus
+def get_homunculus_builds(homies):
+    """Return names, amount of builds and quantity of homunculuses using specific build."""
+    group_by_build = homies.values('build').annotate(total=Count('build')).order_by('build')
+
+    build_name = list()
+    build_identifier = list()
+    build_count = list()
+
+    for group in group_by_build:
+        build_name.append(WizardHomunculus.get_build_display(group['build']))
+        build_identifier.append(group['build'])
+        build_count.append(group['total'])
+
+    return { 'name': build_name, 'quantity': build_count, 'length': len(build_name), 'identifier': build_identifier }
+
+def get_homunculus_skill_description(base_homie_id, build_id=None):
+    """Return skills & theirs description for specific homie."""
+    if build_id is not None:
+        builds = HomunculusBuild.objects.filter(homunculus__id=base_homie_id, id=build_id)
+    else:
+        builds = HomunculusBuild.objects.filter(homunculus__id=base_homie_id)
+    unique_skills = list()
+
+    for build in builds:
+        if build.depth_1 not in unique_skills:
+            unique_skills.append(build.depth_1)
+        if build.depth_2 not in unique_skills:
+            unique_skills.append(build.depth_2)
+        if build.depth_3 not in unique_skills:
+            unique_skills.append(build.depth_3)
+        if build.depth_4 not in unique_skills:
+            unique_skills.append(build.depth_4)
+        if build.depth_5 not in unique_skills:
+            unique_skills.append(build.depth_5)
+    return unique_skills
+
 
 # Create your views here.
 def get_runes(request):
@@ -1299,9 +1336,34 @@ def get_homunculus(request):
     return render( request, 'website/homunculus/homunculus_index.html', context)
 
 def get_homunculus_base(request, base):
+    is_filter = False
+    filters = list()
     homunculus_base = MonsterBase.objects.filter(id=base).first()
+    homunculuses = WizardHomunculus.objects.filter(homunculus__base_monster__id=base).order_by('-homunculus__base_monster__avg_eff')
+    
+    if request.GET:
+        is_filter = True
+
+    if request.GET.get('build'):
+        homunculuses = homunculuses.filter(build=request.GET.get('build'))
+        homunculus_skills = get_homunculus_skill_description(base, request.GET.get('build'))
+    else:
+        homunculus_skills = get_homunculus_skill_description(base)
+
+    homunculus_chart_builds = get_homunculus_builds(homunculuses)
+
     context = {
-        'base': homunculus_base
+        'base': homunculus_base,
+        'records': homunculuses,
+
+        # chart builds
+        'builds_name': homunculus_chart_builds['name'],
+        'builds_quantity': homunculus_chart_builds['quantity'],
+        'builds_color': create_rgb_colors(homunculus_chart_builds['length']),
+        'builds_identifier': homunculus_chart_builds['identifier'],
+
+        # table skills
+        'skills': homunculus_skills,
     }
 
     return render( request, 'website/homunculus/homunculus_base.html', context)
