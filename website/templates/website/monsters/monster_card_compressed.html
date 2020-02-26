@@ -1,6 +1,5 @@
 {% load static %}
 {% load add_str %}
-{% load check_text %}
 {% load ancient_to_normal %}
 {% load get_monster_avatar %}
 
@@ -74,7 +73,7 @@
             </div>
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Recommendation text ({{ monster.base_monster.recommendation_votes }} votes)</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.base_monster.recommendation_text|check_text }} </div>
+                <div class="col-6 col-sm-6"> {{ monster.base_monster.recommendation_text }} </div>
             </div>
         </div>
     </div>

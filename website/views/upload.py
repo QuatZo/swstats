@@ -669,6 +669,27 @@ class UploadViewSet(viewsets.ViewSet):
         logger.debug(f"Successfuly created Rift Dungeon Result (ID: {data_req['battle_key']})")
         return True
 
+    def has_banned_words(self, text):
+        banned_words = [ 'like', 'crystal', 'button' ]
+
+        if any(banned_word in text.lower() for banned_word in banned_words):
+            return True
+        
+        return False
+
+    def handle_monster_recommendation_upload(self, data_resp, data_req):
+        monsters = MonsterBase.objects.filter(id=data_req['unit_master_id'])
+        if monsters.count():
+            votes = monsters.first().recommendation_votes
+
+            monster = dict()
+            for monster_rec in data_resp['comments']['top']:
+                if not self.has_banned_words(monster_rec['comment']) and votes < monster_rec['recommend_count']:
+                    monster['recommendation_text'] = monster_rec['comment']
+                    monster['recommendation_votes'] = monster_rec['recommend_count']
+                    obj, created = MonsterBase.objects.update_or_create(id=data_req['unit_master_id'], defaults=monster)
+
+
     def create(self, request):
         # prepare dictionaries for every command
         wizard = dict()
@@ -679,6 +700,9 @@ class UploadViewSet(viewsets.ViewSet):
             if request.data['command'] == 'HubUserLogin':
                 self.handle_profile_upload(request.data)
             
+            elif request.data['command'] == 'GetUnitRecommendPage_V2':
+                self.handle_monster_recommendation_upload(request.data['response'], request.data['request'])
+
             elif request.data['command'] == 'BattleRiftOfWorldsRaidStart':
                 self.handle_raid_start_upload(request.data)
             elif request.data['command'] == 'BattleDungeonResult' or request.data['command'] == 'BattleRiftOfWorldsRaidResult':
