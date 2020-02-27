@@ -1,0 +1,51 @@
+{% load static %}
+{% load add_str %}
+{% load get_monster_avatar %}
+
+<div class="title-container">
+    <h2 class="title">
+        {{ text }}
+    </h2>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
+        Show/Hide 
+    </button>
+</div>
+<div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Monsters</th>
+                <th scope="col">Leader</th>
+                <th scope="col">Wins</th>
+                <th scope="col">Loses</th>
+                <th scope="col">Win Rate</th>
+                <th scope="col">Rank</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+                <tr>
+                    <td>
+                        {% for monster in record.monsters.all %}
+                            <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
+                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" />
+                            </a>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <a href="{% url 'monster_by_id' arg_id=record.leader.id %}">
+                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:record.leader %}" class="table-monster-avatar" />
+                        </a>
+                    </td>
+                    <td>{{ record.win }}</td>
+                    <td>{{ record.lose }}</td>
+                    <td>{{ record.ratio|add_str:"%" }}</td>
+                    <td>{{ record.wizard.guild.get_siege_ranking_display|default:"No information given" }}</td>
+                </tr>
+            {% endfor %}
+            <script>
+                feather.replace()
+            </script>
+        </tbody>
+    </table>
+</div>

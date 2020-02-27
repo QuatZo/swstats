@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from django.db import connection
 
-from website.models import RuneSet, Rune, Monster, RuneRTA, MonsterBase, MonsterHoh, MonsterFamily, MonsterFusion, Deck, DungeonRun, RiftDungeonRun, HomunculusSkill, WizardHomunculus, HomunculusBuild
+from website.models import *
 
 from datetime import timedelta
 import matplotlib.cm as cm
@@ -270,7 +270,8 @@ def get_monster_list_over_time(monsters):
 
 def get_monster_list_group_by_family(monsters):
     """Return name, amount of families and quantity of monsters for every family in given monsters list."""
-    group_by_family = monsters.values('base_monster__family__name').annotate(total=Count('base_monster__family__name')).order_by('-total')
+    to_exclude = [ 142, 143, 182, 151 ] # Angelmon, Rainbowmon, King Angelmon, Devilmon
+    group_by_family = monsters.exclude(base_monster__family__in=to_exclude).values('base_monster__family__name').annotate(total=Count('base_monster__family__name')).order_by('-total')
 
     family_name = list()
     family_count = list()
@@ -700,6 +701,34 @@ def get_homunculus_skill_description(base_homie_id, build_id=None):
             unique_skills.append(build.depth_5)
     return unique_skills
 
+# siege
+def get_siege_records_group_by_family(records):
+    """Return name, amount of families and quantity of monsters for every family in given siege records."""
+    group_by_family = records.values('monsters__base_monster__family__name').annotate(total=Count('monsters__base_monster__family__name')).order_by('-total')
+
+    family_name = list()
+    family_count = list()
+
+    for group in group_by_family:
+        family_name.append(group['monsters__base_monster__family__name'])
+        family_count.append(group['total'])
+
+    return { 'name': family_name, 'quantity': family_count, 'length': len(family_name) }
+
+def get_siege_records_group_by_ranking(records):
+    """Return ranking, amount of records and quantity of records for every ranking in given siege records."""
+    group_by_rank = records.values('wizard__guild__siege_ranking').annotate(total=Count('wizard__guild__siege_ranking')).order_by('-total')
+
+    ranking_id = list()
+    ranking_name = list()
+    ranking_count = list()
+
+    for group in group_by_rank:
+        ranking_id.append(group['wizard__guild__siege_ranking'])
+        ranking_name.append(Guild().get_siege_ranking_name(group['wizard__guild__siege_ranking']))
+        ranking_count.append(group['total'])
+
+    return { 'ids': ranking_id, 'name': ranking_name, 'quantity': ranking_count, 'length': len(ranking_id) }
 
 # Create your views here.
 def get_runes(request):
@@ -1367,6 +1396,48 @@ def get_homunculus_base(request, base):
     }
 
     return render( request, 'website/homunculus/homunculus_base.html', context)
+
+def get_siege_records(request):
+    is_filter = False
+    filters = list()
+    records = SiegeRecord.objects.all()
+
+    if request.GET:
+        is_filter = True
+    
+    if request.GET.get('family'):
+        family = request.GET.get('family').replace('_', ' ')
+        filters.append('Family: ' + family)
+        records = records.filter(monsters__base_monster__family__name=family)
+
+    if request.GET.get('ranking'):
+        filters.append('Ranking: ' + request.GET.get('ranking'))
+        records = records.filter(wizard__guild__siege_ranking=request.GET.get('ranking'))
+
+    records_by_family = get_siege_records_group_by_family(records)
+    records_by_ranking = get_siege_records_group_by_ranking(records)
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        'best_records': records.order_by('-win')[:min(100, records.count())],
+        'best_amount' : min(100, records.count()),
+
+        # chart by monsters family
+        'family_name': records_by_family['name'],
+        'family_count': records_by_family['quantity'],
+        'family_color': create_rgb_colors(records_by_family['length']),
+
+        # chart by ranking
+        'ranking_id': records_by_ranking['ids'],
+        'ranking_name': records_by_ranking['name'],
+        'ranking_count': records_by_ranking['quantity'],
+        'ranking_color': create_rgb_colors(records_by_ranking['length']),
+    }
+
+    return render( request, 'website/siege/siege_index.html', context)
 
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')

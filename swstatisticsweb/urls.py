@@ -54,6 +54,8 @@ urlpatterns = [
     path('homunculus/', views.get_homunculus, name='homunculus'),
     path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
 
+    path('siege/', views.get_siege_records, name='siege'),
+
     path('contribute/', views.get_contribute_info, name='contribute'),
     path('credits/', views.get_credits, name='credits'),
 

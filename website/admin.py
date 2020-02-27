@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import Wizard, RuneSet, Rune, MonsterFamily, MonsterBase, MonsterSource, Monster, MonsterRep, MonsterHoh, MonsterFusion, Deck, WizardBuilding, Building, Arena, HomunculusSkill, WizardHomunculus, Guild, RuneRTA, Item, WizardItem, DungeonRun, RaidBattleKey, RiftDungeonRun, HomunculusBuild
+from .models import *
 
 class GuildAdmin(admin.ModelAdmin):
-    list_display = ('id', 'level', 'members_max', 'members_amount', 'gw_best_place', 'gw_best_ranking', 'last_update')
+    list_display = ('id', 'level', 'members_max', 'members_amount', 'gw_best_place', 'gw_best_ranking', 'siege_ranking', 'last_update' )
 
 class WizardAdmin(admin.ModelAdmin):
     list_display = (
@@ -25,7 +25,7 @@ class MonsterFamilyAdmin(admin.ModelAdmin):
 
 class MonsterBaseAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'family_id', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken', 'recommendation_text', 'recommendation_votes'
+        'id', 'family', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken', 'recommendation_text', 'recommendation_votes'
     )
 
 class MonsterSourceAdmin(admin.ModelAdmin):
@@ -104,6 +104,11 @@ class RiftDungeonRunAdmin(admin.ModelAdmin):
     def get_monsters(self, obj):
         return "\n".join([str(monster) for monster in obj.monsters.all()])
 
+class SiegeRecordAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'wizard', 'get_monsters', 'leader', 'win', 'lose', 'ratio', 'last_update' )
+
+    def get_monsters(self, obj):
+        return "\n".join([str(monster) for monster in obj.monsters.all()])
 
 # Register your models here.
 admin.site.register(Guild, GuildAdmin)
@@ -132,3 +137,4 @@ admin.site.register(WizardItem, WizardItemAdmin)
 admin.site.register(DungeonRun, DungeonRunAdmin)
 admin.site.register(RaidBattleKey, RaidBattleKeyAdmin)
 admin.site.register(RiftDungeonRun, RiftDungeonRunAdmin)
+admin.site.register(SiegeRecord, SiegeRecordAdmin)

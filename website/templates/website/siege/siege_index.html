@@ -1,0 +1,17 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    Siege Defenses {% if is_filter %} {{ filters }} {% endif %} 
+{% endblock %}
+
+{% block content %} 
+    {% include "website/siege/charts/siege_chart_group_by_family.html" with name=family_name count=family_count color=family_color %}
+    {% include "website/siege/charts/siege_chart_group_by_ranking.html" with ids=ranking_id name=ranking_name count=ranking_count color=ranking_color %}
+{% endblock %}
+
+{% block table %}
+    {% with "Top "|add_str:best_amount|add_str:" Siege Defenses" as text%}
+        {% include "website/siege/siege_table.html" with records=best_records collapse_id="top_records" text=text collapsed="collapse" %}
+    {% endwith %}
+{% endblock %}

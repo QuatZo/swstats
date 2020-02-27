@@ -20,6 +20,24 @@ class Guild(models.Model):
         (4012, 'Guardian II'),
         (4013, 'Guardian III'),
 
+        (5011, 'Legend'),
+    )
+
+    SIEGE_RANKS = (
+        (1001, 'Challenger'),
+
+        (2001, 'Fighter I'),
+        (2002, 'Fighter II'),
+        (2003, 'Fighter III'),
+
+        (3001, 'Conqueror I'),
+        (3002, 'Conqueror II'),
+        (3003, 'Conqueror III'),
+
+        (4001, 'Guardian I'),
+        (4002, 'Guardian II'),
+        (4003, 'Guardian III'),
+
         (5001, 'Legend'),
     )
 
@@ -29,6 +47,7 @@ class Guild(models.Model):
     members_amount = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(members_max)]) # guild.guild_info.member_now
     gw_best_place = models.IntegerField() # guildwar_ranking_stat.best.rank
     gw_best_ranking = models.IntegerField(choices=GUILD_RANKS) # guildwar_ranking_stat.best.rating_id
+    siege_ranking = models.IntegerField(choices=SIEGE_RANKS, null=True, blank=True)
     last_update = models.DateTimeField()
 
     def __str__(self):
@@ -36,6 +55,10 @@ class Guild(models.Model):
 
     class Meta:
         ordering = ['-gw_best_place', '-gw_best_ranking', '-level', '-members_amount', 'id']
+
+    @classmethod
+    def get_siege_ranking_name(cls, ranking_id):
+        return dict(cls.SIEGE_RANKS)[ranking_id]
 
 class Wizard(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
@@ -624,3 +647,13 @@ class RiftDungeonRun(models.Model):
     @classmethod
     def get_rating_name(cls, id):
         return dict(cls.CLEAR_RATINGS)[id]
+
+class SiegeRecord(models.Model):
+    # id - response; defense_deck_list; deck_id
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE) # response; wizard_info_list, wizard_id
+    monsters = models.ManyToManyField(Monster, related_name="siege_defense_monsters") # response; defense_unit_list; unit_info; unit_id;
+    leader = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="siege_defense_leader", null=True, blank=True) # response; defense_unit_list; pos_id = 1;
+    win = models.IntegerField() # response; defense_deck_list; win_count
+    lose = models.IntegerField() # response; defense_deck_list; lose_count
+    ratio = models.FloatField() # response; defense_deck_list; winning_rate
+    last_update = models.DateTimeField() # response; tvalue

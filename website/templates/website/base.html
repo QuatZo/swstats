@@ -66,6 +66,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == "siege" %}active{% endif %}" href="{% url 'siege' %}" >
+                            <img src={% static 'website/images/icons/guild.svg' %} class="menu-img" />
+                            <span class="text">Siege</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == "contribute" %}active{% endif %}" href="{% url 'contribute' %}" >
                             <img src={% static 'website/images/icons/contribute.svg' %} class="menu-img" />
                             <span class="text">Contribute</span>
@@ -83,12 +89,6 @@
                         <span>Future updates</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
-                        <li class="nav-item">
-                            <a class="nav-link disabled" href="#">
-                                <img src={% static 'website/images/icons/guild.svg' %} class="menu-img" />
-                                <span class="text">Siege</span>
-                            </a>
-                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="https://www.rtapicks.info/">
                             <img src={% static 'website/images/icons/rta.svg' %} class="menu-img" />
