@@ -745,10 +745,10 @@ class UploadViewSet(viewsets.ViewSet):
                     return HttpResponse(f"Unknown stage for Rift Dungeon Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
                 
             elif request.data['command'] == 'GetGuildSiegeDefenseDeckByWizardId':
-                self.handle_siege_defenses_upload(request.data)
+                self.handle_siege_defenses_upload(request.data['response'])
 
             elif request.data['command'] == 'GetGuildSiegeRankingInfo':
-                self.handle_siege_ranking_upload(request.data)
+                self.handle_siege_ranking_upload(request.data['response'])
 
             return HttpResponse(status=status.HTTP_201_CREATED)
         
