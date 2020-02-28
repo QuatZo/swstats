@@ -1,8 +1,11 @@
 from django.contrib import admin
 from .models import *
 
+class CommandAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'name', 'message_type' )
+
 class GuildAdmin(admin.ModelAdmin):
-    list_display = ('id', 'level', 'members_max', 'members_amount', 'gw_best_place', 'gw_best_ranking', 'siege_ranking', 'last_update' )
+    list_display = ( 'id', 'level', 'members_max', 'members_amount', 'gw_best_place', 'gw_best_ranking', 'siege_ranking', 'last_update' )
 
 class WizardAdmin(admin.ModelAdmin):
     list_display = (
@@ -110,7 +113,15 @@ class SiegeRecordAdmin(admin.ModelAdmin):
     def get_monsters(self, obj):
         return "\n".join([str(monster) for monster in obj.monsters.all()])
 
+class DimensionHoleRunAdmin(admin.ModelAdmin):
+    list_display = ( 'id', 'wizard', 'dungeon', 'stage', 'clear_time', 'get_monsters', 'win', 'practice', 'date' )
+    
+    def get_monsters(self, obj):
+        return "\n".join([str(monster) for monster in obj.monsters.all()])
+
 # Register your models here.
+admin.site.register(Command, CommandAdmin)
+
 admin.site.register(Guild, GuildAdmin)
 admin.site.register(Wizard, WizardAdmin)
 admin.site.register(RuneSet, RuneSetAdmin)
@@ -138,3 +149,4 @@ admin.site.register(DungeonRun, DungeonRunAdmin)
 admin.site.register(RaidBattleKey, RaidBattleKeyAdmin)
 admin.site.register(RiftDungeonRun, RiftDungeonRunAdmin)
 admin.site.register(SiegeRecord, SiegeRecordAdmin)
+admin.site.register(DimensionHoleRun, DimensionHoleRunAdmin)

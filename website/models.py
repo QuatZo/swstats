@@ -4,6 +4,16 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 # Create your models here.
+class Command(models.Model):
+    COMMAND_TYPES = (
+        (1, 'Request'),
+        (2, 'Response'),
+        (3, 'Both'),
+    )
+
+    name = models.CharField(max_length=128)
+    message_type = models.IntegerField(choices=COMMAND_TYPES)
+
 class Guild(models.Model):
     GUILD_RANKS = (
         (1011, 'Challenger'),
@@ -657,3 +667,40 @@ class SiegeRecord(models.Model):
     lose = models.IntegerField() # response; defense_deck_list; lose_count
     ratio = models.FloatField() # response; defense_deck_list; winning_rate
     last_update = models.DateTimeField() # response; tvalue
+
+    def __str__(self):
+        return str(self.id) + ' (' + str(self.win) + '/' + str(self.lose) + ')'
+
+    class Meta:
+        ordering = ['-win', '-ratio']
+
+class DimensionHoleRun(models.Model):
+    DIM_HOLE_TYPES = (
+        (1101, 'Ellunia'),
+        (1201, 'Fairy (Ellunia)'),
+        (1202, 'Pixie (Ellunia)'),
+
+        (2101, 'Karzhan'),
+        (2202, 'Inugami (Karzhan)'),
+        (2201, 'Warbear (Karzhan)'),
+
+        (3101, 'Lumel'),
+        (3201, 'Werewolf (Lumel)'),
+        (3203, 'Martial Cat (Lumel)'),
+    )
+
+    # id - request; battle_key
+    wizard = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL) # wizard_info.wizard_id, response; if not exists then whole wizard_info in response
+    dungeon = models.IntegerField(choices=DIM_HOLE_TYPES) # dungeon_id, request
+    stage = models.IntegerField() # difficulty, response
+    win = models.BooleanField() # win_lose, response
+    practice = models.BooleanField() # practice_mode, response
+    clear_time = models.DurationField(null=True, blank=True) # response; clear_time.current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
+    monsters = models.ManyToManyField(Monster) # unit_id_list; request
+    date = models.DateTimeField() # tvalue; response
+
+    def __str__(self):
+        return str(self.get_dungeon_display) + ' B' + str(self.stage) + ' [' + str(clear_time) + ']'
+
+    class Meta:
+        ordering = ['dungeon', '-stage', 'clear_time', 'win']

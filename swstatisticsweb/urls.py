@@ -22,6 +22,7 @@ from rest_framework import routers, serializers, viewsets
 
 router = routers.DefaultRouter()
 router.register(r'upload', views.UploadViewSet, 'upload')
+router.register(r'command', views.CommandViewSet, 'command')
 
 if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabled ( i.e. when in need to update whole Database )
     router.register(r'monsterfamilyupload', views.MonsterFamilyUploadViewSet, 'monsterfamilyupload')

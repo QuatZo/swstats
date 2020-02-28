@@ -1,8 +1,10 @@
 from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
+
 import logging
 
 from website.models import *
+from website.serializers import CommandSerializer
 
 import copy
 import math
@@ -719,6 +721,48 @@ class UploadViewSet(viewsets.ViewSet):
     def handle_siege_ranking_upload(self, data):
         Guild.objects.filter(id=data['guildsiege_stat_info']['curr']['guild_id']).update(siege_ranking=data['guildsiege_stat_info']['curr']['rating_id'])
 
+    def handle_dimension_hole_run_upload(self, data_resp, data_req):
+        command = data_resp['command']
+        logger.debug(f"Starting Dimension Hole Run upload for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+        dungeon = dict()
+        wizard, created = Wizard.objects.update_or_create(id=data_resp['wizard_info']['wizard_id'], defaults=self.parse_wizard(data_resp['wizard_info'], data_resp['tvalue']))
+        dungeon['id'] = data_req['battle_key']
+        dungeon['wizard'] = Wizard.objects.get(id=data_resp['wizard_info']['wizard_id'])
+        dungeon['dungeon'] = data_resp['dungeon_id']
+        dungeon['stage'] = data_resp['difficulty']
+        dungeon['date'] = datetime.datetime.utcfromtimestamp(data_resp['tvalue'])
+        dungeon['practice'] = data_resp['practice_mode']
+
+
+        if data_resp['win_lose'] == 1:
+            dungeon['win'] = True
+            time_str = str(data_resp['clear_time']['current_time'])
+            _time = {
+                'hour': 0 if int(time_str[:-3]) < 3600 else round(int(time_str[:-3]) / 3600),
+                'minute': 0 if int(time_str[:-3]) < 60 else round(int(time_str[:-3]) / 60),
+                'second': int(time_str[:-3]) if int(time_str[:-3]) < 60 else int(time_str[:-3]) % 60,
+                'microsecond': int(time_str[-3:]) * 1000,
+            }
+            dungeon['clear_time'] = datetime.time(_time['hour'], _time['minute'], _time['second'], _time['microsecond'])
+        else:
+            dungeon['win'] = False
+            
+        monsters = list()
+        # whole info (with runes) is in response data, but by unknown reason sometimes it's a good JSON, sometimes bad
+        # good  ->  [Rune, Rune, Rune]
+        # bad   ->  instead of list of Rune objects, it has number objects { "5": Rune , "6": Rune, "7": Rune}
+        # so, using monster_id from request data, if exists in database
+        data_monsters = data_req['unit_id_list']
+        for temp_monster in data_monsters:
+            mon = Monster.objects.filter(id=temp_monster['unit_id'])
+            if mon.count() > 0:
+                monsters.append(mon.first())
+
+        obj, created = DimensionHoleRun.objects.update_or_create(id=data_req['battle_key'], defaults=dungeon)
+        obj.monsters.set(monsters)
+        obj.save()
+        logger.debug(f"Successfuly created Dimension Hole Run for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+
     def create(self, request):
         # prepare dictionaries for every command
         wizard = dict()
@@ -745,12 +789,20 @@ class UploadViewSet(viewsets.ViewSet):
                     return HttpResponse(f"Unknown stage for Rift Dungeon Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
                 
             elif request.data['command'] == 'GetGuildSiegeDefenseDeckByWizardId':
-                self.handle_siege_defenses_upload(request.data['response'])
+                self.handle_siege_defenses_upload(request.data)
 
             elif request.data['command'] == 'GetGuildSiegeRankingInfo':
-                self.handle_siege_ranking_upload(request.data['response'])
+                self.handle_siege_ranking_upload(request.data)
+
+            elif request.data['command'] == 'BattleDimensionHoleDungeonResult':
+                self.handle_dimension_hole_run_upload(request.data['response'], request.data['request'])
 
             return HttpResponse(status=status.HTTP_201_CREATED)
         
         logger.error("Given request is invalid")
         return HttpResponse(f"Given request is invalid", status=status.HTTP_400_BAD_REQUEST)
+
+class CommandViewSet(viewsets.ModelViewSet):
+    serializer_class = CommandSerializer
+    queryset = Command.objects.all()
+    http_method_names = ['get']
