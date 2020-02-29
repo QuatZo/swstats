@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['swstats.info', 'localhost', '51.83.129.23']
 
 
 # Application definition
@@ -118,13 +118,8 @@ USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-    '/var/www/static/',
-]
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
