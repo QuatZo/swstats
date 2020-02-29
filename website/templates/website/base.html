@@ -73,7 +73,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "dimhole" %}active{% endif %}" href="{% url 'contribute' %}" > <!-- placeholder -->
+                        <a class="nav-link {% if request.resolver_match.url_name == "dimhole" %}active{% endif %}" href="{% url 'dimhole' %}" > <!-- placeholder -->
                         <img src={% static 'website/images/icons/dimhole.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
                             <span class="text">Dimension Hole</span>
                         </a>

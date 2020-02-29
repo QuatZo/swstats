@@ -730,6 +730,92 @@ def get_siege_records_group_by_ranking(records):
 
     return { 'ids': ranking_id, 'name': ranking_name, 'quantity': ranking_count, 'length': len(ranking_id) }
 
+# dim hole
+def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
+    records = list()
+    for comp in comps:
+        runs = dungeon_runs
+        for monster_comp in comp:
+            if not base:
+                runs = runs.filter(monsters=monster_comp)
+            else:
+                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+        
+        runs_comp = runs.count()
+        wins_comp = runs.filter(win=True).count()
+
+        if not base:
+            monsters_in_comp = comp
+        else:
+            monsters_in_comp = [mon.base_monster for mon in comp]
+
+        record = {
+            'dungeon': runs.first().get_dungeon_display,
+            'stage': runs.first().stage,
+            'comp': monsters_in_comp,
+            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
+            'wins': wins_comp,
+            'loses': runs_comp - wins_comp,
+            'success_rate': round(wins_comp * 100 / runs_comp, 2),
+        }
+
+        # sort descending by 'ranking' formula: win_rate / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # 60 - seconds in one minute;
+        # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        if record['average_time'] is not None:
+            record['sorting_val'] = (record['success_rate'] / 100 / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )))
+            if not base:
+                records.append(record)
+            else:
+                exists = False
+                for temp_record_base in records:
+                    if record['comp'] == temp_record_base['comp']:
+                        exists = True
+                        break
+                if not exists:
+                    records.append(record)
+
+    return records
+
+def get_dimhole_runs_per_dungeon(dungeon_runs):
+    """Return names, amount of dim hole dungeon types and runs quantity per dungeon."""
+    group_by_dungeon = dungeon_runs.values('dungeon').annotate(total=Count('dungeon')).order_by('-total')
+
+    dungeon_name = list()
+    dungeon_count = list()
+
+    for group in group_by_dungeon:
+        dungeon_name.append(DimensionHoleRun().get_dungeon_name(group['dungeon']))
+        dungeon_count.append(group['total'])
+
+    return { 'name': dungeon_name, 'quantity': dungeon_count, 'length': len(dungeon_name) }
+
+def get_dimhole_runs_per_practice(dungeon_runs):
+    """Return names, amount of dim hole dungeon types and runs quantity per practice mode."""
+    group_by_practice = dungeon_runs.values('practice').annotate(total=Count('practice')).order_by('-total')
+
+    dungeon_name = list()
+    dungeon_count = list()
+
+    for group in group_by_practice:
+        dungeon_name.append(group['practice'])
+        dungeon_count.append(group['total'])
+
+    return { 'name': dungeon_name, 'quantity': dungeon_count, 'length': len(dungeon_name) }
+
+def get_dimhole_runs_per_stage(dungeon_runs):
+    """Return names, amount of dim hole dungeon types and runs quantity per stage (difficulty, B1-B5)."""
+    group_by_stage = dungeon_runs.values('stage').annotate(total=Count('stage')).order_by('-total')
+
+    dungeon_name = list()
+    dungeon_count = list()
+
+    for group in group_by_stage:
+        dungeon_name.append(group['stage'])
+        dungeon_count.append(group['total'])
+
+    return { 'name': dungeon_name, 'quantity': dungeon_count, 'length': len(dungeon_name) }
+
 # Create your views here.
 def get_runes(request):
     runes = Rune.objects.all().order_by('-efficiency')   
@@ -1438,6 +1524,99 @@ def get_siege_records(request):
     }
 
     return render( request, 'website/siege/siege_index.html', context)
+
+def get_dimension_hole(request):
+    is_filter = False
+    filters = list()
+
+    dungeon_runs = DimensionHoleRun.objects.all()
+
+    if request.GET:
+        is_filter = True
+
+    if request.GET.get('base'):
+        base = request.GET.get('base').replace('_', ' ')
+        filters.append('Base Monster: ' + base)
+        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
+
+    if request.GET.get('dungeon'):
+        dungeon = request.GET.get('dungeon').replace('_', ' ')
+        filters.append('Dungeon: ' + dungeon)
+        dungeon_runs = dungeon_runs.filter(dungeon=DimensionHoleRun().get_dungeon_id_by_name(dungeon))
+
+    if request.GET.get('practice'):
+        filters.append('Practice Mode: ' + request.GET.get('practice'))
+        dungeon_runs = dungeon_runs.filter(practice=request.GET.get('practice'))
+
+    if request.GET.get('stage'):
+        filters.append('Stage: ' + request.GET.get('stage'))
+        dungeon_runs = dungeon_runs.filter(stage=request.GET.get('stage'))
+
+    runs_distribution = get_dungeon_runs_distribution(dungeon_runs.exclude(clear_time__isnull=True), 20)
+    avg_time = dungeon_runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time']
+
+    comps = list()
+    for run in dungeon_runs:
+        monsters = list()
+        for monster in run.monsters.all():
+            monsters.append(monster)
+        if monsters not in comps and monsters:
+            comps.append(monsters)
+
+    try:
+        fastest_run = dungeon_runs.exclude(clear_time__isnull=True).order_by('clear_time').first().clear_time.total_seconds()
+    except AttributeError:
+        fastest_run = None
+
+    records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
+    records_base = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
+
+    dungeon_runs = dungeon_runs.exclude(clear_time__isnull=True) # exclude failed runs
+    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
+    runs_per_dungeon = get_dimhole_runs_per_dungeon(dungeon_runs)
+    runs_per_practice = get_dimhole_runs_per_practice(dungeon_runs)
+    runs_per_stage = get_dimhole_runs_per_stage(dungeon_runs)
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # all
+        'dungeon': dungeon_runs, # all runs for given dungeon
+        'avg_time': avg_time,
+        
+        # chart distribution
+        'runs_distribution': runs_distribution['distribution'],
+        'runs_means': runs_distribution['scope'],
+        'runs_colors': create_rgb_colors(runs_distribution['interval']),
+
+        # chart base
+        'base_names': base_names,
+        'base_quantity': base_quantities,
+        'base_colors': create_rgb_colors(len(base_names)),
+
+        # chart dungeon
+        'dungeon_names': runs_per_dungeon['name'],
+        'dungeon_quantity': runs_per_dungeon['quantity'],
+        'dungeon_colors': create_rgb_colors(runs_per_dungeon['length']),
+
+        # chart practice mode
+        'practice_names': runs_per_practice['name'],
+        'practice_quantity': runs_per_practice['quantity'],
+        'practice_colors': create_rgb_colors(runs_per_practice['length']),
+
+        # chart stage
+        'stage_names': runs_per_stage['name'],
+        'stage_quantity': runs_per_stage['name'],
+        'stage_colors': create_rgb_colors(runs_per_stage['length']),
+
+        # personal table
+        'records_personal': records_personal,
+        'records_base': records_base,
+    }
+
+    return render( request, 'website/dimhole/dimhole_index.html', context)
 
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')

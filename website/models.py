@@ -704,3 +704,13 @@ class DimensionHoleRun(models.Model):
 
     class Meta:
         ordering = ['dungeon', '-stage', 'clear_time', 'win']
+
+    @classmethod
+    def get_dungeon_name(cls, identifier):
+        return dict(cls.DIM_HOLE_TYPES)[identifier]
+
+    @classmethod
+    def get_dungeon_id_by_name(cls, name):
+        for key, val in dict(cls.DIM_HOLE_TYPES).items():
+            if val == name:
+                return key
