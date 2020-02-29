@@ -423,3 +423,9 @@ h1.h2
 .dungeon-header-img{
     border-top-left-radius: inherit;
 }
+
+.img-center{
+    display: block;
+    margin: auto;
+    max-width: 100%;
+}
