@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, render
-from django.db.models import F, Avg, Min, Max, Sum, Count
+from django.db.models import F, Q, Avg, Min, Max, Sum, Count
 from website.models import *
 
 from .web import create_rgb_colors
