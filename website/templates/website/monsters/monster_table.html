@@ -1,7 +1,10 @@
+{% load static %}
 {% load check_skillups %}
 {% load international_date %}
 {% load add_str %}
 {% load add_reverse_str %}
+{% load get_monster_avatar %}
+{% load get_sets %}
 
 <div class="title-container">
     <h2 class="title">
@@ -31,11 +34,9 @@
                 <th scope="col">Avg Eff</th>
                 <th scope="col">Eff. HP</th>
                 <th scope="col">Eff. HP D-B</th>
-                <th scope="col">Runes</th>
+                <th scope="col">Sets</th>
                 <th scope="col">Skilled Up</th>
                 <th scope="col">Acquired</th>
-                <th scope="col">Transmog</th>
-                <th scope="col">Storage</th>
                 <th scope="col">Awakened</th>
                 <th scope="col">Locked</th>
             </tr>
@@ -43,7 +44,11 @@
         <tbody>
             {% for monster in monsters %}
                 <tr onclick="goToMonster('{% url "monster_by_id" arg_id=monster.id %}')" style="cursor: pointer;">
-                    <td>{{ monster.base_monster }}</td>
+                    <td><a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
+                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar-min"/>
+                        </a>
+                        {{ monster.base_monster }}
+                    </td>
                     <td>{{ monster.level }}</td>
                     <td>{{ monster.stars }}*</td>
                     <td>{{ monster.base_monster.base_class }}*</td>
@@ -58,7 +63,21 @@
                     <td>{{ monster.avg_eff }}%</td>
                     <td>{{ monster.eff_hp }}</td>
                     <td>{{ monster.eff_hp_def_break }}</td>
-                    <td>{{ monster.runes.count }}</td>
+                    <td>
+                        {% if monster.runes.count > 0%}
+                            {% with monster.runes.all|get_sets as sets %}
+                                {% if not sets %}
+                                    Full Broken
+                                {% else %}
+                                    {% for set in sets %}
+                                        <img src="{% static 'website/images/runes/'|add_str:set|lower|add_str:".png" %}" class="table-monster-avatar-min" />
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>
                     <td>{% if monster|check_skillups %}
                             <span data-feather="check" style="color: green;"></span>
                         {% else %}
@@ -67,18 +86,6 @@
                     </td>
 
                     <td>{{ monster.created|international_date }}</td>
-                    <td>{% if monster.transmog %}
-                            <span data-feather="check" style="color: green;"></span>
-                        {% else %}
-                            <span data-feather="slash" style="color: red;"></span>
-                        {% endif %}
-                    </td>
-                    <td>{% if monster.storage %}
-                            <span data-feather="check" style="color: green;"></span>
-                        {% else %}
-                            <span data-feather="slash" style="color: red;"></span>
-                        {% endif %}
-                    </td>
                     <td>{% if monster.base_monster.awaken %}
                             <span data-feather="check" style="color: green;"></span>
                         {% else %}

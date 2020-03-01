@@ -5,19 +5,24 @@ from website.models import *
 from .web import create_rgb_colors
 from datetime import timedelta
 
+import time
+import numpy as np
+import pandas as pd
+
 # monster list w/ filters
 def get_monster_list_over_time(monsters):
     """Return amount of monsters acquired over time."""
     temp_monsters = monsters.order_by('created')
+    start = pd.Timestamp(temp_monsters.first().created)
+    end = pd.Timestamp(temp_monsters.last().created)
+    TIMESTAMPS = list(pd.to_datetime(np.linspace(start.value, end.value, 200)))
 
     time_values = list()
     time_quantity = list()
+    for timestamp in TIMESTAMPS:
+        time_values.append(timestamp.strftime("%Y-%m-%d"))
+        time_quantity.append(temp_monsters.filter(created__lte=timestamp).count())
 
-    for monster in temp_monsters:
-        if (monster.created).strftime("%Y-%m-%d") not in time_values: # only monsters per day
-            time_values.append((monster.created).strftime("%Y-%m-%d"))
-            time_quantity.append(temp_monsters.filter(created__lte=(monster.created + timedelta(days=1)).strftime("%Y-%m-%d")).count())
-    
     return { 'time': time_values, 'quantity': time_quantity }
 
 def get_monster_list_group_by_family(monsters):
@@ -201,7 +206,7 @@ def get_monster_rank_stats(monsters, monster, stat):
 
 # views
 def get_monsters(request):
-    monsters = Monster.objects.all().order_by('-avg_eff')   
+    monsters = Monster.objects.order_by('-avg_eff')   
     is_filter = False 
     filters = list()
 

@@ -191,7 +191,7 @@ def get_rune_similar(runes, rune):
 
 # views
 def get_runes(request):
-    runes = Rune.objects.all().order_by('-efficiency')   
+    runes = Rune.objects.order_by('-efficiency')   
     is_filter = False 
     filters = list()
 

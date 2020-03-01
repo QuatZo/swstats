@@ -64,3 +64,9 @@ urlpatterns = [
 
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
