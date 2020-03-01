@@ -9,6 +9,12 @@ import time
 import numpy as np
 import pandas as pd
 
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.views.decorators.cache import cache_page
+
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+
 # monster list w/ filters
 def get_monster_list_over_time(monsters):
     """Return amount of monsters acquired over time."""
@@ -205,6 +211,7 @@ def get_monster_rank_stats(monsters, monster, stat):
     return rank
 
 # views
+@cache_page(CACHE_TTL)
 def get_monsters(request):
     monsters = Monster.objects.order_by('-avg_eff')   
     is_filter = False 
