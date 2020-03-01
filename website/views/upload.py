@@ -469,15 +469,15 @@ class UploadViewSet(viewsets.ViewSet):
 
         for homie in homies.values():
             homie['build'] = HomunculusBuild.objects.get( depth_1=homie['depth_1'], depth_2=homie['depth_2'], depth_3=homie['depth_3'], depth_4=homie['depth_4'], depth_5=homie['depth_5'] )
-            obj, created = WizardHomunculus.objects.update_or_create( wizard_id=homie['wizard_id'], homunculus_id=homie['homunculus_id'], defaults=homie, )
+            obj, created = WizardHomunculus.objects.update_or_create( wizard=homie['wizard_id'], homunculus=homie['homunculus_id'], defaults=homie, )
 
     def parse_wizard_inventory(self, inventory):
         for temp_item in inventory:
             item = dict()
-            item['wizard_id'] = Wizard.objects.get(id=temp_item['wizard_id'])
-            item['master_item_id'] = Item.objects.get(item_id=temp_item['item_master_id'], item_type=temp_item['item_master_type'])
+            item['wizard'] = Wizard.objects.get(id=temp_item['wizard_id'])
+            item['master_item'] = Item.objects.get(item_id=temp_item['item_master_id'], item_type=temp_item['item_master_type'])
             item['quantity'] = temp_item['item_quantity']
-            obj, created = WizardItem.objects.update_or_create( wizard_id=item['wizard_id'], master_item_id=item['master_item_id'], defaults=item, )
+            obj, created = WizardItem.objects.update_or_create( wizard=item['wizard'], master_item=item['master_item'], defaults=item, )
 
     def handle_profile_upload(self, data):
         logger.debug(f"Checking if guild {data['guild']['guild_info']['guild_id']} exists...")
@@ -547,7 +547,7 @@ class UploadViewSet(viewsets.ViewSet):
             log_request_data(request.data)
 
         # monster rep
-        obj, created = MonsterRep.objects.update_or_create( wizard_id=wizard['id'], defaults={
+        obj, created = MonsterRep.objects.update_or_create( wizard__id=wizard['id'], defaults={
             'wizard_id': Wizard.objects.get(id=wizard['id']), 
             'monster_id': Monster.objects.get(id=temp_wizard['rep_unit_id'])
         }, )
