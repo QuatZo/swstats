@@ -331,6 +331,7 @@ def get_monsters(request):
 
     return render( request, 'website/monsters/monster_index.html', context)
 
+@cache_page(CACHE_TTL)
 def get_monster_by_id(request, arg_id):
     monsters = Monster.objects.all().order_by('-avg_eff')
     monster = get_object_or_404(Monster, id=arg_id)

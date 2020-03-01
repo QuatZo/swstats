@@ -4,6 +4,12 @@ from website.models import *
 
 from .web import create_rgb_colors
 
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.views.decorators.cache import cache_page
+
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+
 # rune list w/ filters
 def get_rune_list_avg_eff(runes):
     """Return the avg efficiency of given runes, incl. these runes splitted into two sets (above & equal, below)."""
@@ -190,6 +196,7 @@ def get_rune_similar(runes, rune):
     return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary, efficiency__range=[rune.efficiency - 15, rune.efficiency + 15]).exclude(id=rune.id).order_by('-efficiency')
 
 # views
+@cache_page(CACHE_TTL)
 def get_runes(request):
     runes = Rune.objects.order_by('-efficiency')   
     is_filter = False 
@@ -303,6 +310,7 @@ def get_runes(request):
 
     return render( request, 'website/runes/rune_index.html', context)
 
+@cache_page(CACHE_TTL)
 def get_rune_by_id(request, arg_id):
     rune = get_object_or_404(Rune, id=arg_id)
     runes = Rune.objects.all()

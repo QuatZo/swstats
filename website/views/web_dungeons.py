@@ -8,6 +8,12 @@ from datetime import timedelta
 from operator import itemgetter
 import math
 
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.views.decorators.cache import cache_page
+
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+
 # dungeons
 def get_dungeon_runs_distribution(runs, parts):
     """Return sets of clear times in specific number of parts, to make Distribution chart."""
@@ -259,6 +265,7 @@ def get_dimhole_runs_per_stage(dungeon_runs):
     return { 'name': dungeon_name, 'quantity': dungeon_count, 'length': len(dungeon_name) }
 
 # views
+@cache_page(CACHE_TTL)
 def get_dungeons(request):
     dungeons = DungeonRun.objects.values('dungeon', 'stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('id')).order_by('dungeon', '-stage', '-win')
     rift_dungeons = RiftDungeonRun.objects.values('dungeon', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('dungeon')).order_by('dungeon', '-win')
@@ -319,6 +326,7 @@ def get_dungeons(request):
     
     return render( request, 'website/dungeons/dungeon_index.html', context)
 
+@cache_page(CACHE_TTL)
 def get_dungeon_by_stage(request, name, stage):
     is_filter = False
     filters = list()
@@ -389,6 +397,7 @@ def get_dungeon_by_stage(request, name, stage):
     
     return render( request, 'website/dungeons/dungeon_by_stage.html', context)
 
+@cache_page(CACHE_TTL)
 def get_rift_dungeon_by_stage(request, name):
     is_filter = False
     filters = list()
@@ -457,6 +466,7 @@ def get_rift_dungeon_by_stage(request, name):
     
     return render( request, 'website/dungeons/rift_dungeon_by_stage.html', context)
 
+@cache_page(CACHE_TTL)
 def get_dimension_hole(request):
     is_filter = False
     filters = list()
