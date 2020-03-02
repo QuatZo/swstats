@@ -67,8 +67,8 @@ def get_deck_list_avg_eff(decks):
 
     return { 'above': avg_eff_above_decks, 'below': avg_eff_below_decks, 'avg': avg_eff }
 
-def get_deck_similar(deck):
-    return Deck.objects.filter(place=deck.place, team_runes_eff__range=[deck.team_runes_eff - 10, deck.team_runes_eff + 10]).exclude(id=deck.id)
+def get_deck_similar(deck, decks):
+    return [temp_deck for temp_deck in decks if temp_deck.place == deck.place and temp_deck.id != deck.id and deck.team_runes_eff - 10 < temp_deck.team_runes_eff and deck.team_runes_eff + 10 > temp_deck.team_runes_eff]
 
 # homunculus
 def get_homunculus_builds(homies):
@@ -215,7 +215,7 @@ def get_decks(request):
 
     # needs to be last, because it's for TOP table
     amount = min(100, decks.count())
-    decks = decks[:amount]
+    decks = decks.order_by('-team_runes_eff')[:amount].prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
 
     context = { 
         # filters
@@ -247,12 +247,12 @@ def get_decks(request):
 
 @cache_page(CACHE_TTL)
 def get_deck_by_id(request, arg_id):
-    deck = get_object_or_404(Deck, id=arg_id)
-    decks = Deck.objects.all().order_by('place')
+    deck = get_object_or_404(Deck.objects.prefetch_related('monsters', 'monsters__base_monster', 'monsters__runes__rune_set', 'monsters__runes__equipped_runes', 'monsters__runes__equipped_runes__base_monster', 'monsters__base_monster__family'), id=arg_id)
+    decks = Deck.objects.all().order_by('place').prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
 
     context = { 
         'deck': deck,
-        'similar': get_deck_similar(deck),
+        'similar': get_deck_similar(deck, decks),
     }
 
     return render( request, 'website/decks/deck_by_id.html', context)

@@ -25,16 +25,20 @@
                 <tr onclick="goToDeck('{% url "deck_by_id" arg_id=deck.id %}')" style="cursor: pointer;">
                     <td>{{ deck.get_place_display }}</td>
                     <td>
-                        {% for monster in deck.monsters.all %}
-                            <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
-                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" />
-                            </a>
-                        {% endfor %}
+                        {% with deck.monsters.all as monsters %}
+                            {% for monster in monsters %}
+                                <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" />
+                                </a>
+                            {% endfor %}
+                        {% endwith %}
                     </td>
                     <td>
-                        <a href="{% url 'monster_by_id' arg_id=deck.leader.id %}">
-                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:deck.leader %}" class="table-monster-avatar" />
-                        </a>
+                        {% with deck.leader as leader %}
+                            <a href="{% url 'monster_by_id' arg_id=leader.id %}">
+                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:leader %}" class="table-monster-avatar" />
+                            </a>
+                        {% endwith %}
                     </td>
                     <td>{{ deck.team_runes_eff|add_str:"%" }}</td>
                 </tr>

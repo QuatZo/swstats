@@ -4,7 +4,6 @@ register = template.Library()
 
 @register.filter
 def rune_grinded_val(stat, zeros=False):
-    print(stat)
     if stat == None or stat == '' or not stat:
         if zeros:
             return "0"
