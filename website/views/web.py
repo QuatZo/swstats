@@ -331,16 +331,24 @@ def get_siege_records(request):
         filters.append('Ranking: ' + request.GET.get('ranking'))
         records = records.filter(wizard__guild__siege_ranking=request.GET.get('ranking'))
 
+    records = records.prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild')
+
     records_by_family = get_siege_records_group_by_family(records)
     records_by_ranking = get_siege_records_group_by_ranking(records)
+
+    records_count = records.count()
+    min_records_count = min(100, records_count)
+
+    best_records = records.order_by('-win')[:min_records_count].prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster')
 
     context = {
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
 
-        'best_records': records.order_by('-win')[:min(100, records.count())],
-        'best_amount' : min(100, records.count()),
+        # table top
+        'best_records': best_records,
+        'best_amount' : min_records_count,
 
         # chart by monsters family
         'family_name': records_by_family['name'],

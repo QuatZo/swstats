@@ -26,11 +26,13 @@
             {% for record in records %}
                 <tr>
                     <td>
-                        {% for monster in record.monsters.all %}
-                            <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
-                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" />
-                            </a>
-                        {% endfor %}
+                        {% with record.monsters.all as monsters %}
+                            {% for monster in monsters %}
+                                <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" />
+                                </a>
+                            {% endfor %}
+                        {% endwith %}
                     </td>
                     <td>
                         <a href="{% url 'monster_by_id' arg_id=record.leader.id %}">
