@@ -8,13 +8,20 @@ import math
 
 @register.filter
 def get_sets(runes):
-    sets = runes.values('rune_set__name', 'rune_set__amount').annotate(total=Count('rune_set')).order_by()
+    sets = dict()
+    for rune in runes:
+        if rune.rune_set not in sets.keys():
+            sets[rune.rune_set] = {
+                'amount': 0,
+                'set': rune.rune_set.amount,
+            }
+        sets[rune.rune_set]['amount'] += 1
 
     set_names = list()
 
-    for _set in sets:
-        equipped_set = math.floor(_set['total'] / _set['rune_set__amount'])
+    for key, val in sets.items():
+        equipped_set = math.floor(val['amount'] / val['set'])
         for i in range(equipped_set):
-            set_names.append(_set['rune_set__name'])
+            set_names.append(key)
 
     return set_names

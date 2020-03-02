@@ -18,16 +18,25 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 # monster list w/ filters
 def get_monster_list_over_time(monsters):
     """Return amount of monsters acquired over time."""
+    LENGTH = 200
     temp_monsters = monsters.order_by('created')
     start = pd.Timestamp(temp_monsters.first().created)
     end = pd.Timestamp(temp_monsters.last().created)
-    TIMESTAMPS = list(pd.to_datetime(np.linspace(start.value, end.value, 200)))
-
+    TIMESTAMPS = list(pd.to_datetime(np.linspace(start.value, end.value, LENGTH)))
+    i = 0
     time_values = list()
-    time_quantity = list()
-    for timestamp in TIMESTAMPS:
-        time_values.append(timestamp.strftime("%Y-%m-%d"))
-        time_quantity.append(temp_monsters.filter(created__lte=timestamp).count())
+    time_quantity = [1]
+
+    for monster in temp_monsters:
+        while monster.created > TIMESTAMPS[i] and i <= LENGTH:
+            i += 1
+        
+        time_str = TIMESTAMPS[i].strftime("%Y-%m-%d")
+        if time_str not in time_values:
+            time_values.append(TIMESTAMPS[i].strftime("%Y-%m-%d"))
+            time_quantity.append(time_quantity[len(time_quantity) - 1])
+
+        time_quantity[len(time_quantity) - 1] += 1
 
     return { 'time': time_values, 'quantity': time_quantity }
 
@@ -45,28 +54,28 @@ def get_monster_list_group_by_family(monsters):
 
     return { 'name': family_name, 'quantity': family_count, 'length': len(family_name) }
 
-def get_monster_list_best(monsters, x):
+def get_monster_list_best(monsters, x, count):
     """Return TopX (or all, if there is no X elements in list) efficient monsters."""
-    return monsters[:min(x, monsters.count())]
+    return monsters[:min(x, count)]
 
-def get_monster_list_fastest(monsters, x):
+def get_monster_list_fastest(monsters, x, count):
     """Return TopX (or all, if there is no X elements in list) fastest monsters."""
     fastest_monsters = monsters.order_by(F('speed').desc(nulls_last=True))
-    fastest_monsters = fastest_monsters[:min(x, fastest_monsters.count())]
+    fastest_monsters = fastest_monsters[:min(x, count)]
 
     return fastest_monsters
 
-def get_monster_list_toughest(monsters, x):
+def get_monster_list_toughest(monsters, x, count):
     """Return TopX (or all, if there is no X elements in list) toughest (Effective HP) monsters."""
     toughest_monsters = monsters.order_by(F('eff_hp').desc(nulls_last=True))
-    toughest_monsters = toughest_monsters[:min(x, toughest_monsters.count())]
+    toughest_monsters = toughest_monsters[:min(x, count)]
 
     return toughest_monsters
 
-def get_monster_list_toughest_def_break(monsters, x):
+def get_monster_list_toughest_def_break(monsters, x, count):
     """Return TopX (or all, if there is no X elements in list) toughest (Effective HP while Defense Broken) monsters."""
     toughest_def_break_monsters = monsters.order_by(F('eff_hp_def_break').desc(nulls_last=True))
-    toughest_def_break_monsters = toughest_def_break_monsters[:min(x, toughest_def_break_monsters.count())]
+    toughest_def_break_monsters = toughest_def_break_monsters[:min(x, count)]
 
     return toughest_def_break_monsters
 
@@ -124,17 +133,19 @@ def get_monster_list_group_by_storage(monsters):
 
 def get_monsters_hoh():
     base_monsters_hoh = list()
-    for monster_hoh in MonsterHoh.objects.all().only('monster'):
-        base_monsters_hoh.append(monster_hoh.monster.id)
-        base_monsters_hoh.append(monster_hoh.monster.id + 10) # awakened also
+
+    monsters_hoh = [ record['monster'] for record in MonsterHoh.objects.all().values('monster') ]
+    base_monsters_hoh = [ record['id'] for record in MonsterBase.objects.filter(id__in=monsters_hoh).values('id') ]
+    base_monsters_hoh += [ record + 10 for record in base_monsters_hoh ]
 
     return base_monsters_hoh
 
 def get_monsters_fusion():
     base_monsters_fusion = list()
-    for monster_fusion in MonsterFusion.objects.all().only('monster'):
-        base_monsters_fusion.append(monster_fusion.monster.id)
-        base_monsters_fusion.append(monster_fusion.monster.id + 10) # awakened also
+
+    monster_fusion = [ record['monster'] for record in MonsterFusion.objects.all().values('monster') ]
+    base_monster_fusion = [ record['id'] for record in MonsterBase.objects.filter(id__in=monster_fusion).values('id') ]
+    base_monster_fusion += [ record + 10 for record in base_monster_fusion ]
 
     return base_monsters_fusion
 
@@ -142,19 +153,19 @@ def get_monster_list_group_by_hoh(monsters):
     """Return amount of monsters which have been & and not in Hall of Heroes."""
 
     base_monsters_hoh = get_monsters_hoh()
-    monsters_hoh = monsters.filter(base_monster__in=base_monsters_hoh)
-    monsters_hoh_exclude = monsters.exclude(base_monster__in=base_monsters_hoh)
+    monsters_hoh = monsters.filter(base_monster__in=base_monsters_hoh).count()
+    monsters_hoh_exclude = monsters.exclude(base_monster__in=base_monsters_hoh).count()
 
     hoh_values = list()
     hoh_quantity = list()
 
-    if monsters_hoh.count() > 0:
+    if monsters_hoh > 0:
         hoh_values.append(True)
-        hoh_quantity.append(monsters_hoh.count())
+        hoh_quantity.append(monsters_hoh)
 
-    if monsters_hoh_exclude.count() > 0:
+    if monsters_hoh_exclude > 0:
         hoh_values.append(False)
-        hoh_quantity.append(monsters_hoh_exclude.count())
+        hoh_quantity.append(monsters_hoh_exclude)
 
     return { 'value': hoh_values, 'quantity': hoh_quantity, 'length': len(hoh_values) }
 
@@ -162,19 +173,19 @@ def get_monster_list_group_by_fusion(monsters):
     """Return amount of monsters which have been & and not in Fusion."""
 
     base_monsters_fusion = get_monsters_fusion()
-    monsters_fusion = monsters.filter(base_monster__in=base_monsters_fusion)
-    monsters_fusion_exclude = monsters.exclude(base_monster__in=base_monsters_fusion)
+    monsters_fusion = monsters.filter(base_monster__in=base_monsters_fusion).count()
+    monsters_fusion_exclude = monsters.exclude(base_monster__in=base_monsters_fusion).count()
 
     fusion_values = list()
     fusion_quantity = list()
 
-    if monsters_fusion.count() > 0:
+    if monsters_fusion > 0:
         fusion_values.append(True)
-        fusion_quantity.append(monsters_fusion.count())
+        fusion_quantity.append(monsters_fusion)
 
-    if monsters_fusion_exclude.count() > 0:
+    if monsters_fusion_exclude > 0:
         fusion_values.append(False)
-        fusion_quantity.append(monsters_fusion_exclude.count())
+        fusion_quantity.append(monsters_fusion_exclude)
 
     return { 'value': fusion_values, 'quantity': fusion_quantity, 'length': len(fusion_values) }
 
@@ -255,6 +266,8 @@ def get_monsters(request):
         else:
             monsters = monsters.exclude(base_monster__in=get_monsters_fusion())
 
+    monsters_count = monsters.count()
+
     monsters_over_time = get_monster_list_over_time(monsters)
     monsters_by_family = get_monster_list_group_by_family(monsters)
     monsters_by_attribute = get_monster_list_group_by_attribute(monsters)
@@ -263,10 +276,15 @@ def get_monsters(request):
     monsters_by_storage = get_monster_list_group_by_storage(monsters)
     monsters_by_hoh = get_monster_list_group_by_hoh(monsters)
     monsters_by_fusion = get_monster_list_group_by_fusion(monsters)
-    best_monsters = get_monster_list_best(monsters, 100)
-    fastest_monsters = get_monster_list_fastest(monsters, 100)
-    toughest_monsters = get_monster_list_toughest(monsters, 100)
-    toughest_def_break_monsters = get_monster_list_toughest_def_break(monsters, 100)
+    best_monsters = get_monster_list_best(monsters, 100, monsters_count)
+    fastest_monsters = get_monster_list_fastest(monsters, 100, monsters_count)
+    toughest_monsters = get_monster_list_toughest(monsters, 100, monsters_count)
+    toughest_def_break_monsters = get_monster_list_toughest_def_break(monsters, 100, monsters_count)
+
+    best_monsters = best_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
+    fastest_monsters = fastest_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
+    toughest_monsters = toughest_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
+    toughest_def_break_monsters = toughest_def_break_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
 
     context = {
         # filters
@@ -314,19 +332,19 @@ def get_monsters(request):
 
         # table best by efficiency
         'best_monsters': best_monsters,
-        'best_amount': len(best_monsters),
+        'best_amount': best_monsters.count(),
 
         # table best by speed
         'fastest_monsters': fastest_monsters,
-        'fastest_amount': len(fastest_monsters),
+        'fastest_amount': fastest_monsters.count(),
 
         # table best by Effective HP
         'toughest_monsters': toughest_monsters,
-        'toughest_amount': len(toughest_monsters),
+        'toughest_amount': toughest_monsters.count(),
 
         # table best by Effective HP while Defense Broken
         'toughest_def_break_monsters': toughest_def_break_monsters,
-        'toughest_def_break_amount': len(toughest_def_break_monsters),
+        'toughest_def_break_amount': toughest_def_break_monsters.count(),
     }
 
     return render( request, 'website/monsters/monster_index.html', context)
