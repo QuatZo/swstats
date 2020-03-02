@@ -132,8 +132,6 @@ def get_monster_list_group_by_storage(monsters):
     return { 'value': storage_value, 'quantity': storage_count, 'length': len(storage_value) }
 
 def get_monsters_hoh():
-    base_monsters_hoh = list()
-
     monsters_hoh = [ record['monster'] for record in MonsterHoh.objects.all().values('monster') ]
     base_monsters_hoh = [ record['id'] for record in MonsterBase.objects.filter(id__in=monsters_hoh).values('id') ]
     base_monsters_hoh += [ record + 10 for record in base_monsters_hoh ]
@@ -141,11 +139,9 @@ def get_monsters_hoh():
     return base_monsters_hoh
 
 def get_monsters_fusion():
-    base_monsters_fusion = list()
-
     monster_fusion = [ record['monster'] for record in MonsterFusion.objects.all().values('monster') ]
-    base_monster_fusion = [ record['id'] for record in MonsterBase.objects.filter(id__in=monster_fusion).values('id') ]
-    base_monster_fusion += [ record + 10 for record in base_monster_fusion ]
+    base_monsters_fusion = [ record['id'] for record in MonsterBase.objects.filter(id__in=monster_fusion).values('id') ]
+    base_monsters_fusion += [ record + 10 for record in base_monsters_fusion ]
 
     return base_monsters_fusion
 
@@ -171,8 +167,10 @@ def get_monster_list_group_by_hoh(monsters):
 
 def get_monster_list_group_by_fusion(monsters):
     """Return amount of monsters which have been & and not in Fusion."""
+    print(get_monsters_fusion())
 
     base_monsters_fusion = get_monsters_fusion()
+
     monsters_fusion = monsters.filter(base_monster__in=base_monsters_fusion).count()
     monsters_fusion_exclude = monsters.exclude(base_monster__in=base_monsters_fusion).count()
 
