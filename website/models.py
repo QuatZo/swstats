@@ -148,8 +148,8 @@ class Rune(models.Model):
     sell_value = models.IntegerField() # sell_value
     primary = models.SmallIntegerField(choices=RUNE_EFFECTS, db_index=True) # pri_eff[0]
     primary_value = models.IntegerField(db_index=True) # pri_eff[1]
-    innate = models.SmallIntegerField(choices=RUNE_EFFECTS, db_index=True) # prefix_eff[0]
-    innate_value = models.IntegerField(db_index=True) # prefix_eff[1]
+    innate = models.SmallIntegerField(choices=RUNE_EFFECTS, blank=True, null=True, db_index=True) # prefix_eff[0]
+    innate_value = models.IntegerField(blank=True, null=True, db_index=True) # prefix_eff[1]
     
     ########################################
     # Substats

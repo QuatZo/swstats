@@ -13,7 +13,7 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 # rune list w/ filters
 def get_rune_list_avg_eff(runes):
     """Return the avg efficiency of given runes, incl. these runes splitted into two sets (above & equal, below)."""
-    if not runes.count():
+    if not runes.exists():
         return { 'above': [], 'below': [], 'avg': 0 }
 
     avg_eff = runes.aggregate(Avg('efficiency'))['efficiency__avg']
@@ -60,14 +60,15 @@ def get_rune_list_normal_distribution(runes, parts):
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_rune_list_best(runes, x):
+def get_rune_list_best(runes, x, count):
     """Return TopX (or all, if there is no X elements in list) efficient runes."""
-    return runes[:min(x, runes.count())]
+    best_runes = runes.order_by('-efficiency')[:min(x, count)]
+    return best_runes
 
-def get_rune_list_fastest(runes, x):
+def get_rune_list_fastest(runes, x, count):
     """Return TopX (or all, if there is no X elements in list) fastest runes."""
     fastest_runes = runes.order_by(F('sub_speed').desc(nulls_last=True))
-    fastest_runes = fastest_runes[:min(x, fastest_runes.count())]
+    fastest_runes = fastest_runes[:min(x, count)]
 
     return fastest_runes
 
@@ -241,6 +242,8 @@ def get_runes(request):
         filters.append('Stars: ' + str(stars))
         runes = runes.filter(Q(stars=stars) | Q(stars=stars + 10)) # since ancient runes have 11-16
 
+    runes_count = runes.count()
+
     avg_eff_runes = get_rune_list_avg_eff(runes)
     normal_distribution_runes = get_rune_list_normal_distribution(runes, 40)
     runes_by_set = get_rune_list_grouped_by_set(runes)
@@ -249,8 +252,11 @@ def get_runes(request):
     runes_by_quality_original = get_rune_list_grouped_by_quality_original(runes)
     runes_by_main_stat = get_rune_list_grouped_by_main_stat(runes)
     runes_by_stars = get_rune_list_grouped_by_stars(runes)
-    best_runes = get_rune_list_best(runes, 100)
-    fastest_runes = get_rune_list_fastest(runes, 100)
+    best_runes = get_rune_list_best(runes, 100, runes_count)
+    fastest_runes = get_rune_list_fastest(runes, 100, runes_count)
+
+    best_runes = best_runes.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster')
+    fastest_runes = fastest_runes.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster')
 
     context = {
         # filters
