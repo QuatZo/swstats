@@ -89,9 +89,9 @@ def get_homunculus_builds(homies):
 def get_homunculus_skill_description(base_homie_id, build_id=None):
     """Return skills & theirs description for specific homie."""
     if build_id is not None:
-        builds = HomunculusBuild.objects.filter(homunculus__id=base_homie_id, id=build_id)
+        builds = HomunculusBuild.objects.filter(homunculus__id=base_homie_id, id=build_id).prefetch_related('depth_1', 'depth_2', 'depth_3', 'depth_4', 'depth_5')
     else:
-        builds = HomunculusBuild.objects.filter(homunculus__id=base_homie_id)
+        builds = HomunculusBuild.objects.filter(homunculus__id=base_homie_id).prefetch_related('depth_1', 'depth_2', 'depth_3', 'depth_4', 'depth_5')
     unique_skills = list()
 
     for build in builds:
@@ -284,7 +284,7 @@ def get_homunculus_base(request, base):
     is_filter = False
     filters = list()
     homunculus_base = MonsterBase.objects.filter(id=base).first()
-    homunculuses = WizardHomunculus.objects.filter(homunculus__base_monster__id=base).order_by('-homunculus__base_monster__avg_eff')
+    homunculuses = WizardHomunculus.objects.filter(homunculus__base_monster__id=base).order_by('-homunculus__base_monster__avg_eff').prefetch_related('build', 'build__depth_1', 'build__depth_2', 'build__depth_3', 'build__depth_4', 'build__depth_5')
     
     if request.GET:
         is_filter = True
@@ -299,7 +299,7 @@ def get_homunculus_base(request, base):
 
     context = {
         'base': homunculus_base,
-        'records': homunculuses,
+        'records': homunculuses.prefetch_related('homunculus__base_monster'),
 
         # chart builds
         'builds_name': homunculus_chart_builds['name'],
