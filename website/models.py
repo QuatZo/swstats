@@ -696,11 +696,11 @@ class DimensionHoleRun(models.Model):
     win = models.BooleanField() # win_lose, response
     practice = models.BooleanField() # practice_mode, response
     clear_time = models.DurationField(null=True, blank=True, db_index=True) # response; clear_time.current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
-    monsters = models.ManyToManyField(Monster, db_index=True) # unit_id_list; request
+    monsters = models.ManyToManyField(Monster, db_index=True, related_name="monsters_in_run", related_query_name="monsters_in_comp") # unit_id_list; request
     date = models.DateTimeField(db_index=True) # tvalue; response
 
     def __str__(self):
-        return str(self.get_dungeon_display) + ' B' + str(self.stage) + ' [' + str(clear_time) + ']'
+        return str(self.dungeon) + ' B' + str(self.stage) + ' [' + str(self.clear_time) + ']'
 
     class Meta:
         ordering = ['dungeon', '-stage', 'clear_time', 'win']

@@ -183,6 +183,7 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
     records = list()
     for comp in comps:
         runs = dungeon_runs
+        # runs = [run for run in dungeon_runs if [monster for monster in dungeon_runs.monsters.all] not in comp]
         for monster_comp in comp:
             if not base:
                 runs = runs.filter(monsters=monster_comp)
@@ -347,10 +348,14 @@ def get_dungeon_by_stage(request, name, stage):
         filters.append('Base Monster: ' + base)
         dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
 
-    runs_distribution = get_dungeon_runs_distribution(dungeon_runs.exclude(clear_time__isnull=True), 20)
-    avg_time = dungeon_runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time']
+    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
+    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
+
+    runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
+    avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
     comps = list()
+
     for run in dungeon_runs:
         monsters = list()
         for monster in run.monsters.all():
@@ -359,7 +364,7 @@ def get_dungeon_by_stage(request, name, stage):
             comps.append(monsters)
 
     try:
-        fastest_run = dungeon_runs.exclude(clear_time__isnull=True).order_by('clear_time').first().clear_time.total_seconds()
+        fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
     except AttributeError:
         fastest_run = None
 
@@ -417,8 +422,13 @@ def get_rift_dungeon_by_stage(request, name):
         filters.append('Base Monster: ' + base)
         dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
 
+
+    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
+    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
+
     damage_distribution = get_rift_dungeon_damage_distribution(dungeon_runs, 20)
-    avg_time = dungeon_runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time']
+    avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
+
 
     comps = list()
     for run in dungeon_runs:
@@ -494,8 +504,11 @@ def get_dimension_hole(request):
         filters.append('Stage: ' + request.GET.get('stage'))
         dungeon_runs = dungeon_runs.filter(stage=request.GET.get('stage'))
 
-    runs_distribution = get_dungeon_runs_distribution(dungeon_runs.exclude(clear_time__isnull=True), 20)
-    avg_time = dungeon_runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time']
+    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
+    dungeon_runs_clear = dungeon_runs_clear.exclude(clear_time__isnull=True)
+
+    runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
+    avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
     comps = list()
     for run in dungeon_runs:
@@ -506,14 +519,14 @@ def get_dimension_hole(request):
             comps.append(monsters)
 
     try:
-        fastest_run = dungeon_runs.exclude(clear_time__isnull=True).order_by('clear_time').first().clear_time.total_seconds()
+        fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
     except AttributeError:
         fastest_run = None
 
     records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     records_base = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
 
-    dungeon_runs = dungeon_runs.exclude(clear_time__isnull=True) # exclude failed runs
+    dungeon_runs = dungeon_runs_clear # exclude failed runs
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
     runs_per_dungeon = get_dimhole_runs_per_dungeon(dungeon_runs)
     runs_per_practice = get_dimhole_runs_per_practice(dungeon_runs)
