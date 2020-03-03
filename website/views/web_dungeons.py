@@ -17,28 +17,25 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 # dungeons
 def get_dungeon_runs_distribution(runs, parts):
     """Return sets of clear times in specific number of parts, to make Distribution chart."""
-    if not runs.count():
+    if not runs.exists():
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
-    fastest = runs.aggregate(Min('clear_time'))['clear_time__min'].total_seconds()
-    slowest = runs.aggregate(Max('clear_time'))['clear_time__max'].total_seconds()
+    min_max = runs.aggregate(fastest=Min('clear_time'), slowest=Max('clear_time'))
+    fastest = min_max['fastest'].total_seconds()
+    slowest = min_max['slowest'].total_seconds()
 
     delta = (slowest - fastest) / parts
-
     points = [(fastest + (delta / 2) + i * delta) for i in range(parts)]
     distribution = [0 for _ in range(parts)]
 
+    i = 0
+    right = points[i] + delta / 2
     for run in runs:
-        for i in range(parts):
-            left = points[i] - delta / 2
-            right = points[i] + delta / 2
-            if i == parts - 1:
-                if run.clear_time.total_seconds() >= left and run.clear_time.total_seconds() <= right:
-                    distribution[i] += 1
-                    break
-            elif run.clear_time.total_seconds() >= left and run.clear_time.total_seconds() < right:
-                    distribution[i] += 1
-                    break
+        clear_time = run.clear_time.total_seconds()
+        while clear_time > right and i < parts - 1:
+            i += 1
+            right += delta
+        distribution[i] += 1
 
     points = [str(timedelta(seconds=round(point))) for point in points]
 
@@ -90,7 +87,7 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
 
 def get_dungeon_runs_by_base_class(dungeon_runs):
     base_monsters = dict()
-    for record in dungeon_runs.exclude(monsters__isnull=True):
+    for record in dungeon_runs:
         for monster in record.monsters.all():
             if monster.base_monster.name not in base_monsters.keys():
                 base_monsters[monster.base_monster.name] = 0
@@ -102,28 +99,25 @@ def get_dungeon_runs_by_base_class(dungeon_runs):
 # rift dungeons
 def get_rift_dungeon_damage_distribution(runs, parts):
     """Return sets of damages in specific number of parts, to make Distribution chart."""
-    if not runs.count():
+    if not runs.exists():
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
-    lowest = runs.aggregate(Min('dmg_total'))['dmg_total__min']
-    highest = runs.aggregate(Max('dmg_total'))['dmg_total__max']
+    min_max = runs.aggregate(lowest=Min('dmg_total'), highest=Max('dmg_total'))
+    lowest = min_max['lowest']
+    highest = min_max['highest']
 
     delta = (highest - lowest) / parts
-
     points = [(lowest + (delta / 2) + i * delta) for i in range(parts)]
     distribution = [0 for _ in range(parts)]
 
+    i = 0
+    right = points[i] + delta / 2
     for run in runs:
-        for i in range(parts):
-            left = points[i] - delta / 2
-            right = points[i] + delta / 2
-            if i == parts - 1:
-                if run.dmg_total >= left and run.dmg_total <= right:
-                    distribution[i] += 1
-                    break
-            elif run.dmg_total >= left and run.dmg_total < right:
-                    distribution[i] += 1
-                    break
+        dmg_total = run.dmg_total
+        while dmg_total > right and i < parts - 1:
+            i += 1
+            right += delta
+        distribution[i] += 1
 
     points = [str(round(point)) for point in points]
 
@@ -198,9 +192,11 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
         else:
             monsters_in_comp = [mon.base_monster for mon in comp]
 
+        first = runs.first()
+
         record = {
-            'dungeon': runs.first().get_dungeon_display,
-            'stage': runs.first().stage,
+            'dungeon': first.get_dungeon_display,
+            'stage': first.stage,
             'comp': monsters_in_comp,
             'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
             'wins': wins_comp,
@@ -338,7 +334,7 @@ def get_dungeon_by_stage(request, name, stage):
             names[i] = names[i].capitalize()
     name = ' '.join(names)
 
-    dungeon_runs = DungeonRun.objects.filter(dungeon=DungeonRun().get_dungeon_id(name), stage=stage)
+    dungeon_runs = DungeonRun.objects.filter(dungeon=DungeonRun().get_dungeon_id(name), stage=stage).order_by('clear_time')
 
     if request.GET:
         is_filter = True
@@ -347,16 +343,16 @@ def get_dungeon_by_stage(request, name, stage):
         base = request.GET.get('base').replace('_', ' ')
         filters.append('Base Monster: ' + base)
         dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
-
-    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
-    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
+        
+    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
 
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
-    comps = list()
+    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
 
-    for run in dungeon_runs:
+    comps = list()
+    for run in dungeon_runs:        
         monsters = list()
         for monster in run.monsters.all():
             monsters.append(monster)
@@ -371,8 +367,7 @@ def get_dungeon_by_stage(request, name, stage):
     records_personal = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     records_base = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
 
-    
-    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
+    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs_clear)
 
     context = {
         # filters
@@ -381,7 +376,6 @@ def get_dungeon_by_stage(request, name, stage):
 
         # all
         'name': name,
-        'dungeon': dungeon_runs, # all runs for given dungeon
         'stage': stage,
         'avg_time': avg_time,
         
@@ -481,7 +475,7 @@ def get_dimension_hole(request):
     is_filter = False
     filters = list()
 
-    dungeon_runs = DimensionHoleRun.objects.all()
+    dungeon_runs = DimensionHoleRun.objects.all().order_by('clear_time')
 
     if request.GET:
         is_filter = True
@@ -505,7 +499,7 @@ def get_dimension_hole(request):
         dungeon_runs = dungeon_runs.filter(stage=request.GET.get('stage'))
 
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
-    dungeon_runs_clear = dungeon_runs_clear.exclude(clear_time__isnull=True)
+    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
 
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
@@ -519,7 +513,7 @@ def get_dimension_hole(request):
             comps.append(monsters)
 
     try:
-        fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
+        fastest_run = dungeon_runs_clear.first().clear_time.total_seconds()
     except AttributeError:
         fastest_run = None
 

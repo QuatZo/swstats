@@ -167,8 +167,6 @@ def get_monster_list_group_by_hoh(monsters):
 
 def get_monster_list_group_by_fusion(monsters):
     """Return amount of monsters which have been & and not in Fusion."""
-    print(get_monsters_fusion())
-
     base_monsters_fusion = get_monsters_fusion()
 
     monsters_fusion = monsters.filter(base_monster__in=base_monsters_fusion).count()

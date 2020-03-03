@@ -159,7 +159,7 @@ def get_homepage(request):
         {
             'id': 2,
             'title': 'Equipped runes',
-            'text': f'From {runes.count()} runes in database, only {rune_equipped} are equipped. it gives us {round(rune_equipped / runes.count() * 100, 2) if runes.count() else 0}% \'useless\' runes.',
+            'text': f'From {runes.count()} runes in database, only {rune_equipped} are equipped. it gives us {round((1 - rune_equipped / runes.count())* 100, 2) if runes.count() else 0}% \'useless\' runes.',
         },
         {
             'id': 3,
