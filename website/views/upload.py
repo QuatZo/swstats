@@ -5,6 +5,7 @@ import logging
 
 from website.models import *
 from website.serializers import CommandSerializer
+from website.exceptions import ProfileDoesNotExist
 
 import copy
 import math
@@ -694,24 +695,29 @@ class UploadViewSet(viewsets.ViewSet):
     def handle_siege_defenses_upload(self, data):
         defenses = list()
         temp_mons = dict()
-        
+
         for deck in data['defense_deck_list']:
+            try:
+                wizard = Wizard.objects.get(id=data['wizard_info_list'][0]['wizard_id'])
+            except Wizard.DoesNotExist:
+                raise ProfileDoesNotExist
             temp_mons[deck['deck_id']] = list()
             defenses.append({
                 'id': deck['deck_id'],
                 'win': deck['win_count'],
                 'lose': deck['lose_count'],
                 'ratio': deck['winning_rate'],
-                'wizard': Wizard.objects.get(id=data['wizard_info_list'][0]['wizard_id']),
+                'wizard': wizard,
                 'last_update': datetime.datetime.utcfromtimestamp(data['tvalue']),
             })
         
         for deck_units in data['defense_unit_list']:
-            for defense in defenses:
-                if defense['id'] == deck_units['deck_id'] and len(temp_mons[deck_units['deck_id']]) < 3:
-                    temp_mons[deck_units['deck_id']].append(Monster.objects.get(id=deck_units['unit_info']['unit_id']))
-                    if deck_units['pos_id'] == 1:
-                        defense['leader'] = Monster.objects.get(id=deck_units['unit_info']['unit_id'])
+            if 'unit_info' in deck_units.keys():
+                for defense in defenses:
+                    if defense['id'] == deck_units['deck_id'] and len(temp_mons[deck_units['deck_id']]) < 3:
+                        temp_mons[deck_units['deck_id']].append(Monster.objects.get(id=deck_units['unit_info']['unit_id']))
+                        if deck_units['pos_id'] == 1:
+                            defense['leader'] = Monster.objects.get(id=deck_units['unit_info']['unit_id'])
         
         for defense in defenses:
             obj, created = SiegeRecord.objects.update_or_create(id=defense['id'], defaults=defense)
@@ -770,33 +776,35 @@ class UploadViewSet(viewsets.ViewSet):
         monster = dict()
 
         if request.data:
-            if request.data['command'] == 'HubUserLogin':
-                self.handle_profile_upload(request.data)
-            
-            elif request.data['command'] == 'GetUnitRecommendPage_V2':
-                self.handle_monster_recommendation_upload(request.data['response'], request.data['request'])
-
-            elif request.data['command'] == 'BattleRiftOfWorldsRaidStart':
-                self.handle_raid_start_upload(request.data)
-            elif request.data['command'] == 'BattleDungeonResult' or request.data['command'] == 'BattleRiftOfWorldsRaidResult':
-                if not self.handle_dungeon_run_upload(request.data['response'], request.data['request']):
-                    return HttpResponse(f"Unknown stage for Rift Raid Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
-            
-            elif request.data['command'] == 'BattleRiftDungeonStart':
-                self.handle_rift_dungeon_start_upload(request.data['response'], request.data['request'])
-            elif request.data['command'] == 'BattleRiftDungeonResult':
-                if not self.handle_rift_dungeon_run_upload(request.data['response'], request.data['request']):
-                    return HttpResponse(f"Unknown stage for Rift Dungeon Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
+            try:
+                if request.data['command'] == 'HubUserLogin':
+                    self.handle_profile_upload(request.data)
                 
-            elif request.data['command'] == 'GetGuildSiegeDefenseDeckByWizardId':
-                self.handle_siege_defenses_upload(request.data)
+                elif request.data['command'] == 'GetUnitRecommendPage_V2':
+                    self.handle_monster_recommendation_upload(request.data['response'], request.data['request'])
 
-            elif request.data['command'] == 'GetGuildSiegeRankingInfo':
-                self.handle_siege_ranking_upload(request.data)
+                elif request.data['command'] == 'BattleRiftOfWorldsRaidStart':
+                    self.handle_raid_start_upload(request.data)
+                elif request.data['command'] == 'BattleDungeonResult' or request.data['command'] == 'BattleRiftOfWorldsRaidResult':
+                    if not self.handle_dungeon_run_upload(request.data['response'], request.data['request']):
+                        return HttpResponse(f"Unknown stage for Rift Raid Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
+                
+                elif request.data['command'] == 'BattleRiftDungeonStart':
+                    self.handle_rift_dungeon_start_upload(request.data['response'], request.data['request'])
+                elif request.data['command'] == 'BattleRiftDungeonResult':
+                    if not self.handle_rift_dungeon_run_upload(request.data['response'], request.data['request']):
+                        return HttpResponse(f"Unknown stage for Rift Dungeon Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
+                    
+                elif request.data['command'] == 'GetGuildSiegeDefenseDeckByWizardId':
+                    self.handle_siege_defenses_upload(request.data)
 
-            elif request.data['command'] == 'BattleDimensionHoleDungeonResult':
-                self.handle_dimension_hole_run_upload(request.data['response'], request.data['request'])
+                elif request.data['command'] == 'GetGuildSiegeRankingInfo':
+                    self.handle_siege_ranking_upload(request.data)
 
+                elif request.data['command'] == 'BattleDimensionHoleDungeonResult':
+                    self.handle_dimension_hole_run_upload(request.data['response'], request.data['request'])
+            except ProfileDoesNotExist:
+                return HttpResponse(f"Profile does NOT exists. Please, restart game in order to upload profile before doing anything else. Thank you!", status=status.HTTP_400_BAD_REQUEST)
             return HttpResponse(status=status.HTTP_201_CREATED)
         
         logger.error("Given request is invalid")

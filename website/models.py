@@ -559,7 +559,7 @@ class DungeonRun(models.Model):
     )
 
     id = models.BigAutoField(primary_key=True, unique=True, db_index=True)
-    wizard = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL, db_index=True) # wizard_id, response; if not exists then wizard_info in request
+    wizard = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL, db_index=True, blank=True) # wizard_id, response; if not exists then wizard_info in request
     dungeon = models.IntegerField(choices=DUNGEON_TYPES, db_index=True) # dungeon_id, request
     stage = models.IntegerField() # stage_id, request
     win = models.BooleanField() # win_lose, request & response
@@ -660,7 +660,7 @@ class RiftDungeonRun(models.Model):
 
 class SiegeRecord(models.Model):
     # id - response; defense_deck_list; deck_id
-    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True) # response; wizard_info_list, wizard_id
+    wizard = models.ForeignKey(Wizard, on_delete=models.SET_NULL, db_index=True, null=True, blank=True) # response; wizard_info_list, wizard_id
     monsters = models.ManyToManyField(Monster, related_name="siege_defense_monsters", db_index=True) # response; defense_unit_list; unit_info; unit_id;
     leader = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="siege_defense_leader", null=True, blank=True, db_index=True) # response; defense_unit_list; pos_id = 1;
     win = models.IntegerField() # response; defense_deck_list; win_count
