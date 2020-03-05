@@ -189,7 +189,7 @@ def get_monster_list_group_by_fusion(monsters):
 def get_monster_rank_avg_eff(monsters, monster):
     return monsters.filter(avg_eff__gte=monster.avg_eff).count()
 
-def get_monster_rank_stats(monsters, monster, stat):
+def get_monster_rank_stats(monsters, monster, stat, count):
     """Return place of monster based on given stat."""
     stats = {
         'hp': monster.hp,
@@ -205,7 +205,7 @@ def get_monster_rank_stats(monsters, monster, stat):
     }
 
     if stats[stat] is None:
-        return monsters.count()
+        return count
 
     rank = 1
     value = stats[stat]
@@ -348,9 +348,9 @@ def get_monsters(request):
 @cache_page(CACHE_TTL)
 def get_monster_by_id(request, arg_id):
     monsters = Monster.objects.all().order_by('-avg_eff')
-    monster = get_object_or_404(Monster, id=arg_id)
+    monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster'), id=arg_id)
     
-    rta_monsters = RuneRTA.objects.filter(monster=arg_id)
+    rta_monsters = RuneRTA.objects.filter(monster=arg_id).prefetch_related('rune', 'rune__rune_set', 'monster', 'monster__base_monster')
     rta_build = list()
 
     for rta_monster in rta_monsters:
@@ -375,19 +375,21 @@ def get_monster_by_id(request, arg_id):
             rta_similar_builds[rta_similar.monster] = list()
         rta_similar_builds[rta_similar.monster].append(rta_similar.rune)
 
+    monsters_count = monsters.count()
+
     ranks = {
         'normal': {
             'avg_eff': get_monster_rank_avg_eff(monsters, monster),
-            'hp': get_monster_rank_stats(monsters, monster, 'hp'),
-            'attack': get_monster_rank_stats(monsters, monster, 'attack'),
-            'defense': get_monster_rank_stats(monsters, monster, 'defense'),
-            'speed': get_monster_rank_stats(monsters, monster, 'speed'),
-            'res': get_monster_rank_stats(monsters, monster, 'res'),
-            'acc': get_monster_rank_stats(monsters, monster, 'acc'),
-            'crit_rate': get_monster_rank_stats(monsters, monster, 'crit_rate'),
-            'crit_dmg': get_monster_rank_stats(monsters, monster, 'crit_dmg'),
-            'eff_hp': get_monster_rank_stats(monsters, monster, 'eff_hp'),
-            'eff_hp_def_break': get_monster_rank_stats(monsters, monster, 'eff_hp_def_break'),
+            'hp': get_monster_rank_stats(monsters, monster, 'hp', monsters_count),
+            'attack': get_monster_rank_stats(monsters, monster, 'attack', monsters_count),
+            'defense': get_monster_rank_stats(monsters, monster, 'defense', monsters_count),
+            'speed': get_monster_rank_stats(monsters, monster, 'speed', monsters_count),
+            'res': get_monster_rank_stats(monsters, monster, 'res', monsters_count),
+            'acc': get_monster_rank_stats(monsters, monster, 'acc', monsters_count),
+            'crit_rate': get_monster_rank_stats(monsters, monster, 'crit_rate', monsters_count),
+            'crit_dmg': get_monster_rank_stats(monsters, monster, 'crit_dmg', monsters_count),
+            'eff_hp': get_monster_rank_stats(monsters, monster, 'eff_hp', monsters_count),
+            'eff_hp_def_break': get_monster_rank_stats(monsters, monster, 'eff_hp_def_break', monsters_count),
         },
         'categorized': {
             'avg_eff_base': get_monster_rank_avg_eff(monsters_category_base, monster),
@@ -408,9 +410,9 @@ def get_monster_by_id(request, arg_id):
         'monster': monster, 
         'ranks': ranks,
         'rta': rta,
-        'similar': monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family, avg_eff__range=[monster.avg_eff - 20, monster.avg_eff + 20]).exclude(id=monster.id),
+        'similar': monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family, avg_eff__range=[monster.avg_eff - 20, monster.avg_eff + 20]).exclude(id=monster.id).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family'),
         'rta_similar': rta_similar_builds,
-        'decks': Deck.objects.all().filter(monsters__id=monster.id),
+        'decks': Deck.objects.all().filter(monsters__id=monster.id).prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster'),
     }
 
     return render( request, 'website/monsters/monster_by_id.html', context )

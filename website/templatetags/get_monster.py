@@ -5,4 +5,5 @@ register = template.Library()
 
 @register.filter
 def get_monster(rune):
-    return rune.equipped_runes.first()
+    for monster in rune.equipped_runes.all():
+        return monster

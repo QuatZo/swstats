@@ -36,6 +36,13 @@
         options: {
             onClick: handleClickRunesAll,
             maintainAspectRatio: false,
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        display: false
+                    }
+                }]
+            },
             tooltips: {
                 callbacks: {
                     label: function(tooltipItem, data) {

@@ -2,6 +2,10 @@
 {% load add_str %}
 {% load ancient_to_normal %}
 {% load get_monster_avatar %}
+{% load get_attribute_avatar %}
+{% load get_star_avatar %}
+{% load get_star_base_avatar %}
+{% load get_sets %}
 
 <div class="col-12 col-sm-6 rank">
     <div class="card">
@@ -15,15 +19,31 @@
             </div>
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Base Monster</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.base_monster }} </div>
+                <div class="col-6 col-sm-6"> 
+                    <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
+                        <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster.base_monster %}" class="table-monster-avatar"/>
+                    </a> 
+                </div>
             </div>
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Stars</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.stars }} </div>
+                <div class="col-6 col-sm-6"> 
+                    {% with ''|center:monster.stars as range %}
+                        {% for _ in range %}
+                            <img src="{% static 'website/images/stars/'|get_star_avatar:monster %}" class="table-monster-avatar-min"/>
+                        {% endfor %}
+                    {% endwith %}
+                </div>
             </div>
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Base Class</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.base_monster.base_class }} </div>
+                <div class="col-6 col-sm-6">
+                    {% with ''|center:monster.base_monster.base_class as range %}
+                        {% for _ in range %}
+                            <img src="{% static 'website/images/stars/'|get_star_base_avatar:monster %}" class="table-monster-avatar-min"/>
+                        {% endfor %}
+                    {% endwith %}
+                </div>
             </div>
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Type</b></div>
@@ -31,7 +51,9 @@
             </div>
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Attribute</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.base_monster.get_attribute_display }} </div>
+                <div class="col-6 col-sm-6"> 
+                    <img src="{% static 'website/images/attributes/'|get_attribute_avatar:monster %}" class="table-monster-avatar-min"/>
+                </div>
             </div>
             <div class="row">
                 <div class="col-6 col-sm-6"><b>Level</b></div>
@@ -68,6 +90,24 @@
                                 </div>
                             </a>
                         {% endfor %} 
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-sm-6"><b>Rune Sets</b></div>
+                <div class="col-6 col-sm-6">
+                    {% if monster.runes.count > 0%}
+                        {% with monster.runes.all|get_sets as sets %}
+                            {% if not sets %}
+                                Full Broken
+                            {% else %}
+                                {% for set in sets %}
+                                    <img src="{% static 'website/images/runes/'|add_str:set|lower|add_str:".png" %}" class="table-monster-avatar" />
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <span data-feather="slash" style="color: red;"></span>
                     {% endif %}
                 </div>
             </div>

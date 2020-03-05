@@ -51,7 +51,7 @@
 			{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_both value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}
 		</div>
 
-		{% if monster or rta_monster %}
+		{% if rune.equipped_runes or rta_monster %}
 			<div class="title-container">
 				<h2 class="title">
 					Monsters
@@ -61,8 +61,10 @@
 				</button>
 			</div>
 			<div class="row collapse" id="monster-row">
-				{% if monster %}
-					{% include "website/monsters/monster_card_compressed.html" with name=monster|add_str:" (Normal Build)" monster=monster %}
+				{% if rune.equipped_runes %}
+					{% for monster in rune.equipped_runes.all %}
+						{% include "website/monsters/monster_card_compressed.html" with name=monster|add_str:" (Normal Build)" monster=monster %}
+					{% endfor %}
 				{% endif %}
 				{% if rta_monster %}
 					{% include "website/monsters/monster_card_compressed.html" with name=rta_monster|add_str:" (RTA Build)" monster=rta_monster %}

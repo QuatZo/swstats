@@ -34,9 +34,9 @@ def get_rune_list_avg_eff(runes):
 
     return { 'above': avg_eff_above_runes, 'below': avg_eff_below_runes, 'avg': avg_eff }
 
-def get_rune_list_normal_distribution(runes, parts):
+def get_rune_list_normal_distribution(runes, parts, count):
     """Return sets of runes in specific number of parts, to make Normal Distribution chart."""
-    if not runes.count():
+    if not count:
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
     min_eff = runes.aggregate(Min('efficiency'))['efficiency__min']
@@ -156,7 +156,7 @@ def get_rune_rank_eff(runes, rune):
     """Return place of rune based on efficiency."""
     return runes.filter(efficiency__gte=rune.efficiency).count()
 
-def get_rune_rank_substat(runes, rune, substat, filters=None):
+def get_rune_rank_substat(runes, rune, substat, count, filters=None):
     """Return place of rune based on given substat."""
     substats = {
         'sub_hp_flat': rune.sub_hp_flat,
@@ -173,7 +173,7 @@ def get_rune_rank_substat(runes, rune, substat, filters=None):
     }
 
     if substats[substat] is None:
-        return runes.count()
+        return count
 
     remaining_filters = ""
     if filters:
@@ -194,7 +194,7 @@ def get_rune_rank_substat(runes, rune, substat, filters=None):
 
 def get_rune_similar(runes, rune):
     """Return runes similar to the given one."""
-    return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary, efficiency__range=[rune.efficiency - 15, rune.efficiency + 15]).exclude(id=rune.id).order_by('-efficiency')
+    return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary, efficiency__range=[rune.efficiency - 15, rune.efficiency + 15]).exclude(id=rune.id).order_by('-efficiency').prefetch_related('equipped_runes', 'equipped_runes__base_monster', 'rune_set')
 
 # views
 @cache_page(CACHE_TTL)
@@ -245,7 +245,7 @@ def get_runes(request):
     runes_count = runes.count()
 
     avg_eff_runes = get_rune_list_avg_eff(runes)
-    normal_distribution_runes = get_rune_list_normal_distribution(runes, 40)
+    normal_distribution_runes = get_rune_list_normal_distribution(runes, 40, runes_count)
     runes_by_set = get_rune_list_grouped_by_set(runes)
     runes_by_slot = get_rune_list_grouped_by_slot(runes)
     runes_by_quality = get_rune_list_grouped_by_quality(runes)
@@ -318,11 +318,11 @@ def get_runes(request):
 
 @cache_page(CACHE_TTL)
 def get_rune_by_id(request, arg_id):
-    rune = get_object_or_404(Rune, id=arg_id)
+    rune = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
     runes = Rune.objects.all()
-    monster = Monster.objects.filter(runes__id=rune.id).first()
+
     try:
-        rta_monster = RuneRTA.objects.filter(rune=rune.id).first().monster
+        rta_monster = RuneRTA.objects.filter(rune=rune.id).prefetch_related('monster', 'monster__base_monster', 'rune', 'rune__rune_set').first().monster
     except AttributeError:
         rta_monster = None
 
@@ -330,34 +330,35 @@ def get_rune_by_id(request, arg_id):
     runes_category_set = runes.filter(rune_set=rune.rune_set)
     runes_category_both = runes.filter(slot=rune.slot, rune_set=rune.rune_set)
 
+    runes_count = runes.count()
+
     ranks = {
         'normal': {
             'efficiency': get_rune_rank_eff(runes, rune),
-            'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat'),
-            'hp': get_rune_rank_substat(runes, rune, 'sub_hp'),
-            'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat'),
-            'atk': get_rune_rank_substat(runes, rune, 'sub_atk'),
-            'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat'),
-            'def': get_rune_rank_substat(runes, rune, 'sub_def'),
-            'speed': get_rune_rank_substat(runes, rune, 'sub_speed'),
-            'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate'),
-            'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg'),
-            'res': get_rune_rank_substat(runes, rune, 'sub_res'),
-            'acc': get_rune_rank_substat(runes, rune, 'sub_acc'),
+            'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat', runes_count),
+            'hp': get_rune_rank_substat(runes, rune, 'sub_hp', runes_count),
+            'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat', runes_count),
+            'atk': get_rune_rank_substat(runes, rune, 'sub_atk', runes_count),
+            'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat', runes_count),
+            'def': get_rune_rank_substat(runes, rune, 'sub_def', runes_count),
+            'speed': get_rune_rank_substat(runes, rune, 'sub_speed', runes_count),
+            'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate', runes_count),
+            'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg', runes_count),
+            'res': get_rune_rank_substat(runes, rune, 'sub_res', runes_count),
+            'acc': get_rune_rank_substat(runes, rune, 'sub_acc', runes_count),
         },
         'categorized': {
             'efficiency_slot': get_rune_rank_eff(runes_category_slot, rune),
             'efficiency_set': get_rune_rank_eff(runes_category_set, rune),
             'efficiency_both': get_rune_rank_eff(runes_category_both, rune),
-            'speed_slot': get_rune_rank_substat(runes_category_slot, rune, 'sub_speed', ['slot']),
-            'speed_set': get_rune_rank_substat(runes_category_set, rune, 'sub_speed', ['set']),
-            'speed_both': get_rune_rank_substat(runes_category_both, rune, 'sub_speed', ['slot', 'set']),
+            'speed_slot': get_rune_rank_substat(runes_category_slot, rune, 'sub_speed', runes_count, ['slot']),
+            'speed_set': get_rune_rank_substat(runes_category_set, rune, 'sub_speed', runes_count, ['set']),
+            'speed_both': get_rune_rank_substat(runes_category_both, rune, 'sub_speed', runes_count, ['slot', 'set']),
         }
     }
 
     context = { 
         'rune': rune, 
-        'monster': monster, 
         'rta_monster': rta_monster,
         'ranks': ranks,
         'similar_runes': get_rune_similar(runes, rune),
