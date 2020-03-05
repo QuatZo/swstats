@@ -86,15 +86,13 @@ def get_homunculus_builds(homies):
 
     return { 'name': build_name, 'quantity': build_count, 'length': len(build_name), 'identifier': build_identifier }
 
-def get_homunculus_skill_description(base_homie_id, build_id=None):
+def get_homunculus_skill_description(homunculuses):
     """Return skills & theirs description for specific homie."""
-    if build_id is not None:
-        builds = HomunculusBuild.objects.filter(homunculus__id=base_homie_id, id=build_id).prefetch_related('depth_1', 'depth_2', 'depth_3', 'depth_4', 'depth_5')
-    else:
-        builds = HomunculusBuild.objects.filter(homunculus__id=base_homie_id).prefetch_related('depth_1', 'depth_2', 'depth_3', 'depth_4', 'depth_5')
+    builds = homunculuses.prefetch_related('build', 'build__depth_1', 'build__depth_2', 'build__depth_3', 'build__depth_4', 'build__depth_5', 'build__homunculus')
     unique_skills = list()
 
-    for build in builds:
+    for homie in builds:
+        build = homie.build
         if build.depth_1 not in unique_skills:
             unique_skills.append(build.depth_1)
         if build.depth_2 not in unique_skills:
@@ -291,9 +289,8 @@ def get_homunculus_base(request, base):
 
     if request.GET.get('build'):
         homunculuses = homunculuses.filter(build=request.GET.get('build'))
-        homunculus_skills = get_homunculus_skill_description(base, request.GET.get('build'))
-    else:
-        homunculus_skills = get_homunculus_skill_description(base)
+
+    homunculus_skills = get_homunculus_skill_description(homunculuses)
 
     homunculus_chart_builds = get_homunculus_builds(homunculuses)
 

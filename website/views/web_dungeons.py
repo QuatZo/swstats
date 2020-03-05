@@ -177,7 +177,7 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
     records = list()
     for comp in comps:
         runs = dungeon_runs
-        # runs = [run for run in dungeon_runs if [monster for monster in dungeon_runs.monsters.all] not in comp]
+        
         for monster_comp in comp:
             if not base:
                 runs = runs.filter(monsters=monster_comp)
