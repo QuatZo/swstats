@@ -122,14 +122,25 @@ body {
 .carousel-caption{
     position: absolute;
     margin: auto;
+    height: 100%;
+    bottom: 0 !important;
 }
 
 .carousel-caption h5{
+    height: 100%;
+    vertical-align: text-bottom;
     font-size: 3rem;
 }
 .carousel-caption p{
     font-size: 1.25rem;
-    height: 50%;
+}
+
+.carousel-content{
+    max-height: 100%;
+    position: absolute;
+    left: 15%;
+    right: 15%;
+    bottom: 15%;
 }
 
 .carousel-caption .btn:hover a{
@@ -169,15 +180,48 @@ body {
 }
 
 @media (max-width: 768px) {
+    .navbar.toggled .navbar-brand{
+        max-width: 100%;
+        min-width: 100%;
+    }
+    .navbar.toggled .text{
+        display: unset;
+    }
+
     [role="main"],
     .sidebar.toggled ~ [role="main"]
     {
         margin: 0 !important;
+        max-width: 100%;
+        flex: 100%;
     }
 
     .sidebar.toggled{
-        max-width: 80px;
-        min-width: 80px;
+        display: none;
+    }
+
+    .carousel, 
+    .carousel-inner, 
+    .carousel-item, 
+    .carousel-inner img
+    {
+        height: 40vh; 
+    }
+
+    .carousel-caption h5{
+        font-size: 6vw;
+    }
+    .carousel-caption p{
+        font-size: 3vw;
+    }
+
+    .carousel-content{
+        bottom: 5px;
+    }
+
+    .carousel-content .btn{
+        max-height: 50px;
+        font-size: 3vw;
     }
 }
 
