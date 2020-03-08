@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == 'True'
 
-ALLOWED_HOSTS = ['swstats.info', 'localhost', '51.83.129.23']
+ALLOWED_HOSTS = ['www.swstats.info', 'swstats.info', 'localhost']
 
 
 # Application definition
