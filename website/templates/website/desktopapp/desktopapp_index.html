@@ -1,0 +1,28 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    Main title here
+{% endblock %}
+
+{% block content %} 
+    <form id='row'>
+        {% csrf_token %}
+        Something here, right?
+    </form>
+{% endblock %}
+
+{% block jquery %}
+<script>
+    $.ajax({
+        type: "POST",
+        url: '/api/desktopupload/',
+        contentType: 'application/json',
+        headers: { "X-CSRFToken": "{{ csrf_token }}" },
+        data: JSON.stringify({"command": "HubUserLogin"}), // placeholder, should be whole JSON file content
+        success : function(data) {
+             $('#row.replace').html(data);
+         }
+    });
+</script>
+{% endblock %}

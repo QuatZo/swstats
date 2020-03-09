@@ -265,6 +265,18 @@ class MonsterBase(models.Model):
         ordering = ['name']
 
     @classmethod
+    def get_attributes_as_dict(cls):
+        return dict(cls.MONSTER_ATTRIBUTES)
+    
+    @classmethod
+    def get_types_as_dict(cls):
+        return dict(cls.MONSTER_TYPES)
+    
+    @classmethod
+    def get_awaken_as_dict(cls):
+        return dict(cls.MONSTER_AWAKEN)
+
+    @classmethod
     def get_attribute_id(cls, name):
         for key, attribute in dict(cls.MONSTER_ATTRIBUTES).items():
             if attribute == name:
