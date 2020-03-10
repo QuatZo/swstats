@@ -6,10 +6,10 @@
 {% endblock %}
 
 {% block content %} 
-    <form id='row'>
+    <div id='row'>
         {% csrf_token %}
         Something here, right?
-    </form>
+    </div>
 {% endblock %}
 
 {% block jquery %}
@@ -19,9 +19,9 @@
         url: '/api/desktopupload/',
         contentType: 'application/json',
         headers: { "X-CSRFToken": "{{ csrf_token }}" },
-        data: JSON.stringify({"command": "HubUserLogin"}), // placeholder, should be whole JSON file content
+        data: JSON.stringify({ "command": "HubUserLogin", }), // placeholder, should be whole JSON file content
         success : function(data) {
-             $('#row.replace').html(data);
+             $('#row').html(data);
          }
     });
 </script>

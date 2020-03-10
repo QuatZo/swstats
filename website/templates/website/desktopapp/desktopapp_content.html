@@ -1,1 +1,28 @@
-{{ wizard.name }}
+{% if error %}
+    <h1>ERROR: {{ error }}</h1>
+{% else %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ wizard.name }}</h1>
+    </div>
+    {% include 'website/desktopapp/wizard_card.html' with wizard=wizard %}
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Monsters </h1>
+    </div>
+    {% include 'website/desktopapp/monsters_card.html' with monsters=monsters %}
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Runes </h1>
+    </div>
+    <div class="col-2-sm">{{ runes }}</div>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Guild ({{ guild.name }}) </h1>
+    </div>
+    <div class="col-2-sm">{{ guild }}</div>
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Friends </h1>
+    </div>
+    <div class="col-2-sm">{{ friends }}</div>
+{% endif %}

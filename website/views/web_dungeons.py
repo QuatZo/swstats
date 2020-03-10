@@ -407,7 +407,7 @@ def get_rift_dungeon_by_stage(request, name):
             names[i] = names[i].capitalize()
     name = ' '.join(names)
 
-    dungeon_runs = RiftDungeonRun.objects.filter(dungeon=RiftDungeonRun().get_dungeon_id(name))
+    dungeon_runs = RiftDungeonRun.objects.filter(dungeon=RiftDungeonRun().get_dungeon_id(name)).exclude(clear_rating=None)
     if request.GET:
         is_filter = True
 

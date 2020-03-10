@@ -443,12 +443,14 @@ h1.h2
 
 .table-monster-avatar{
     width: 50px;
-    border-radius: 10px;
+    height: 50px;
+    border-radius: 50%;
 }
 
 .table-monster-avatar-min{
     width: 25px;
-    border-radius: 10px;
+    height: 25px;
+    border-radius: 50%;
 }
 
 .card-body.inner{
