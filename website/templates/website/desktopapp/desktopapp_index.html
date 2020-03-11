@@ -2,27 +2,35 @@
 {% load add_str %}
 
 {% block content_title %}
-    Main title here
+    Content of old Summoners War Statistic Desktop App
 {% endblock %}
 
 {% block content %} 
     <div id='row'>
         {% csrf_token %}
-        Something here, right?
     </div>
 {% endblock %}
 
 {% block jquery %}
 <script>
-    $.ajax({
-        type: "POST",
-        url: '/api/desktopupload/',
-        contentType: 'application/json',
-        headers: { "X-CSRFToken": "{{ csrf_token }}" },
-        data: JSON.stringify({ "command": "HubUserLogin", }), // placeholder, should be whole JSON file content
-        success : function(data) {
-             $('#row').html(data);
-         }
-    });
+    var profile_data;
+    if(localStorage.getItem('profile_temp')){
+        profile_data = localStorage.getItem('profile_temp');
+        $.ajax({
+          type: "POST",
+          url: '/api/desktopupload/',
+          contentType: 'application/json',
+          headers: { "X-CSRFToken": "{{ csrf_token }}" },
+          data: profile_data,
+          success : function(data) {
+              $('#row').html(data);
+          }
+      });
+    }
+    else{
+        profile_data = JSON.stringify({"key": "val"});
+        // there should be a function which waits for file input or Submit Button click, then performs the AJAX function, then adds profile to localStorage
+    }
+    
 </script>
 {% endblock %}

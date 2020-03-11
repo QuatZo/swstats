@@ -1,0 +1,53 @@
+{% load static %}
+{% load add_str %}
+
+<div class="row">
+    <div class="col-12 col-sm-6 rank">
+        <div class="card">
+            <div class="card-header">
+                Introduction
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Name</b></div>
+                    <div class="col-6 col-sm-6"> {{ guild.name }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Leader</b></div>
+                    <div class="col-6 col-sm-6">
+                        <img src="{% static 'website/images/other/guild_leader.png' %}" class="table-monster-avatar-min"> {{ guild.master }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Members</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/guild_members.png' %}" class="table-monster-avatar-min"/> {{ guild.members_count }} / {{ guild.members_max }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 rank">
+        <div class="card">
+            <div class="card-header">
+                Guild War
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Actual Ranking</b></div>
+                    <div class="col-6 col-sm-6">
+                        <img src="{% static 'website/images/other/guild_ranking.png' %}" class="table-monster-avatar-min"> {{ guild.current_ranking }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Best Ranking</b></div>
+                    <div class="col-6 col-sm-6">
+                        <img src="{% static 'website/images/other/guild_ranking.png' %}" class="table-monster-avatar-min"> {{ guild.best_ranking }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Defenses</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/guild_defense.png' %}" class="table-monster-avatar-min"/> {{ guild.defenses_count }} / {{ guild.defenses_max }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

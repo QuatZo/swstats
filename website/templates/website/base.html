@@ -30,77 +30,94 @@
         <div class="row">
             <nav class="col-md-2 d-md-block bg-light sidebar" id="sidebar-lower">
                 <div class="sidebar-sticky">
-                    <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "home" %}active{% endif %}" href="{% url 'home' %}" >
-                            <img src={% static 'website/images/icons/home.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Homepage</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes' %}" >
-                                <img src={% static 'website/images/icons/runes.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Runes</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "monsters" %}active{% endif %}" href="{% url 'monsters' %}" >
-                            <img src={% static 'website/images/icons/monsters.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Monsters</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "decks" %}active{% endif %}" href="{% url 'decks' %}" >
-                            <img src={% static 'website/images/icons/decks.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Decks</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "dungeons" %}active{% endif %}" href="{% url 'dungeons' %}" >
-                            <img src={% static 'website/images/icons/dungeons.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Dungeons</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "homunculus" %}active{% endif %}" href="{% url 'homunculus' %}" >
-                            <img src={% static 'website/images/icons/homunculus.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Homunculus</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "siege" %}active{% endif %}" href="{% url 'siege' %}" >
-                            <img src={% static 'website/images/icons/siege.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Siege</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "dimhole" %}active{% endif %}" href="{% url 'dimhole' %}" > <!-- placeholder -->
-                        <img src={% static 'website/images/icons/dimhole.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Dimension Hole</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "contribute" %}active{% endif %}" href="{% url 'contribute' %}" >
-                            <img src={% static 'website/images/icons/contribute.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Contribute</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == "credits" %}active{% endif %}" href="{% url 'credits' %}" >
-                            <img src={% static 'website/images/icons/credits.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                            <span class="text">Credits</span>
-                        </a>
-                    </li>
-                    </ul>
-
                     <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted" style="padding: 0 !important;">
-                        <span>Future updates</span>
+                        <span>Data Logs</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "home" %}active{% endif %}" href="{% url 'home' %}" >
+                                <img src={% static 'website/images/icons/home.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Homepage</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes' %}" >
+                                    <img src={% static 'website/images/icons/runes.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Runes</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "monsters" %}active{% endif %}" href="{% url 'monsters' %}" >
+                                <img src={% static 'website/images/icons/monsters.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Monsters</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "decks" %}active{% endif %}" href="{% url 'decks' %}" >
+                                <img src={% static 'website/images/icons/decks.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Decks</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "dungeons" %}active{% endif %}" href="{% url 'dungeons' %}" >
+                                <img src={% static 'website/images/icons/dungeons.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Dungeons</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "homunculus" %}active{% endif %}" href="{% url 'homunculus' %}" >
+                                <img src={% static 'website/images/icons/homunculus.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Homunculus</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "siege" %}active{% endif %}" href="{% url 'siege' %}" >
+                                <img src={% static 'website/images/icons/siege.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Siege</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "dimhole" %}active{% endif %}" href="{% url 'dimhole' %}" > <!-- placeholder -->
+                            <img src={% static 'website/images/icons/dimhole.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Dimension Hole</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "contribute" %}active{% endif %}" href="{% url 'contribute' %}" >
+                                <img src={% static 'website/images/icons/contribute.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Contribute</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "credits" %}active{% endif %}" href="{% url 'credits' %}" >
+                                <img src={% static 'website/images/icons/credits.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Credits</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted" style="padding: 0 !important;">
+                        <span>Desktop App</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
                         <li class="nav-item">
-                            <a class="nav-link" href="https://www.rtapicks.info/">
-                            <img src={% static 'website/images/icons/rta.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                                <span class="text">RTA</span>
+                            <a class="nav-link {% if request.resolver_match.url_name == "desktop" %}active{% endif %}" href="{% url 'desktop' %}">
+                            <!-- Temporarily Credits Icon -->
+                            <img src="{% static 'website/images/icons/credits.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
+                                <span class="text">Profile</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "desktop" %}active{% endif %}" href="{% url 'desktop' %}">
+                            <!-- Temporarily Credits Icon -->
+                            <img src="{% static 'website/images/icons/credits.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
+                                <span class="text">Towers Calculator</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "dimhole" %}active{% endif %}" href="{% url 'desktop' %}">
+                            <!-- Temporarily Credits Icon -->
+                            <img src="{% static 'website/images/icons/dimhole.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
+                                <span class="text">Dim Hole Calculator</span>
                             </a>
                         </li>
                     </ul>

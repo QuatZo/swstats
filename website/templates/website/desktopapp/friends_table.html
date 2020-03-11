@@ -1,0 +1,29 @@
+{% load static %}
+{% load add_str %}
+
+<div class="table-responsive">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Offline Since</th>
+                <th scope="col">Days Since Last Login</th>
+                <th scope="col">Rep Monster</th>
+                <th scope="col">Rep Level</th>
+                <th scope="col">Rep Stars</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for friend in friends %}
+                <tr>
+                    <td>{{ friend.name }}</td>
+                    <td>{{ friend.last_login }}</td>
+                    <td>{{ friend.last_login_days }}</td>
+                    <td>{{ friend.rep.monster.name }}</td>
+                    <td>{{ friend.rep.level }}</td>
+                    <td>{{ friend.rep.stars }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

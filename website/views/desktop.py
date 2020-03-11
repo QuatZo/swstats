@@ -172,10 +172,29 @@ class DesktopUploadViewSet(viewsets.ViewSet):
         efficiencies = [self.calc_efficiency(rune)[0] for rune in runes] # only current efficiency
         eff_min = min(efficiencies)
         eff_max = max(efficiencies)
-        eff_mean = statistics.mean(efficiencies)
-        eff_median = statistics.median(efficiencies)
-        eff_st_dev = statistics.stdev(efficiencies)
-        maxed = len([True for rune in runes if rune['class'] == 15 ])
+        eff_mean = round(statistics.mean(efficiencies), 2)
+        eff_median = round(statistics.median(efficiencies), 2)
+        eff_st_dev = round(statistics.stdev(efficiencies), 2)
+        maxed = len([True for rune in runes if rune['upgrade_curr'] == 15 ])
+
+        runes_len = len(runes)
+        runes_unequipped_len = len(runes_unequipped)
+        runes_equipped_len = len(runes_equipped)
+        runes_locked_len = len(runes_locked)
+
+        sets = {row['id']:[row['name'].lower(), 0] for row in RuneSet.objects.values('id', 'name') if row['id'] != 99} # all sets except immemorial
+        slots = {
+            'slot_1': [1, 0],
+            'slot_2': [2, 0],
+            'slot_3': [3, 0],
+            'slot_4': [4, 0],
+            'slot_5': [5, 0],
+            'slot_6': [6, 0],
+        }
+
+        for rune in runes:
+            sets[rune['set_id']][1] += 1
+            slots['slot_' + str(rune['slot_no'])][1] += 1
 
         return {
             'all': runes,
@@ -184,10 +203,13 @@ class DesktopUploadViewSet(viewsets.ViewSet):
             'locked': runes_locked,
             'rta': runes_rta,
 
-            'count': len(runes),
-            'unequipped_count': len(runes_unequipped),
-            'equipped_count': len(runes_unequipped),
-            'locked_count': len(runes_locked),
+            'count': runes_len,
+            'unequipped_count': runes_unequipped_len,
+            'unequipped_percentage': round(runes_unequipped_len * 100 / runes_len, 2),
+            'equipped_count': runes_equipped_len,
+            'equipped_percentage': round(runes_equipped_len * 100 / runes_len, 2),
+            'locked_count': runes_locked_len,
+            'locked_percentage': round(runes_locked_len * 100 / runes_len, 2),
             
             'eff_min': eff_min,
             'eff_max': eff_max,
@@ -196,6 +218,10 @@ class DesktopUploadViewSet(viewsets.ViewSet):
             'eff_st_dev': eff_st_dev,
 
             'maxed': maxed,
+            'maxed_percentage': round(maxed * 100 / runes_len, 2),
+
+            'sets': sets,
+            'slots': slots,
         }
     
     def parse_guild_members(self, guild_members, guild_member_defenses):
@@ -207,14 +233,17 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                 defense_1 = len(defenses[0])
                 defense_2 = len(defenses[1])
 
+            last_login =  datetime.datetime.utcfromtimestamp(member['last_login_timestamp'])
             members.append({
                 'name': member['wizard_name'],
                 'joined': datetime.datetime.utcfromtimestamp(member['join_timestamp']),
-                'last_login': datetime.datetime.utcfromtimestamp(member['last_login_timestamp']),
+                'last_login': last_login,
+                'last_login_days': (datetime.datetime.today() - last_login).days,
                 'defense_1': defense_1,
                 'defense_2': defense_2,
             })
         
+            members = sorted(members, key=itemgetter('last_login'), reverse = True)
         return members
 
     def parse_guild(self, guild, ranking, guild_member_defenses):
@@ -222,25 +251,34 @@ class DesktopUploadViewSet(viewsets.ViewSet):
 
         siege_monsters = list()
 
+        gw_members_count = len(guild_member_defenses)
+        gw_members_defense_count = 0
+        for wizard in guild_member_defenses:
+            for defense in wizard['unit_list']:
+                gw_members_defense_count += len(defense)
+
         return {
             'name': guild_info['name'],
             'master': guild_info['master_wizard_name'],
             'best_ranking': Guild().get_guild_ranking_name(ranking['best']['rating_id']),
             'current_ranking': Guild().get_guild_ranking_name(ranking['current']['rating_id']),
-            'members_max': guild_info['member_now'],
+            'members_count': guild_info['member_now'],
             'members_max': guild_info['member_max'],
-            'defenses_count': len(guild_member_defenses),
-            'defenses_max': guild_info['member_now'] * 2 * 3, # 2 defenses and 3 monsters per defense
+            'members_gw': gw_members_count,
+            'defenses_count': gw_members_defense_count,
+            'defenses_max': gw_members_count * 2 * 3, # 2 defenses and 3 monsters per defense
             'members': self.parse_guild_members(guild['guild_members'], guild_member_defenses),
         }
 
     def parse_friends(self, friend_list):
         friends = list()
-        
+
         for friend in friend_list:
+            last_login = datetime.datetime.utcfromtimestamp(friend['last_login_timestamp'])
             friends.append({
                 'name': friend['wizard_name'],
-                'last_login': datetime.datetime.utcfromtimestamp(friend['last_login_timestamp']),
+                'last_login': last_login,
+                'last_login_days': (datetime.datetime.today() - last_login).days,
                 'rep': {
                     'monster': MonsterBase.objects.get(id=friend['rep_unit_master_id']),
                     'level': friend['rep_unit_level'],
@@ -248,6 +286,7 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                 },
             })
 
+        friends = sorted(friends, key=itemgetter('last_login'), reverse = True)
 
         return friends 
 
@@ -280,6 +319,7 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                 try: # basically, it's really bad idea to put whole thing in KeyError, need to think about other error handling later
                     runes_equipped = [rune for monster in data['unit_list'] for rune in monster['runes']]
                     context = {
+                        'date': datetime.datetime.utcfromtimestamp(data['tvalue']).strftime("%Y-%m-%d %H:%M:%S"),
                         'wizard': self.parse_wizard(data['wizard_info'], data['dimension_hole_info']['energy']),
                         'monsters': self.parse_monsters(data['unit_list'], data['unit_lock_list'], data['world_arena_rune_equip_list']),
                         'runes': self.parse_runes(data['runes'], runes_equipped, data['rune_lock_list'], data['world_arena_rune_equip_list']),

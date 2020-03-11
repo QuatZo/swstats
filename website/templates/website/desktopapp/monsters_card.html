@@ -18,7 +18,7 @@
                     <div class="col-6 col-sm-6"><b>Elements</b></div>
                     <div class="col-6 col-sm-6">
                         {% for element, count in monsters.elements.items %}
-                            <img src="{% static 'website/images/attributes/'|get_attribute_avatar:element %}" class="table-monster-avatar-min"/> {{ count }} <br />
+                            <img src="{% static 'website/images/attributes/'|get_attribute_avatar:element %}" class="table-monster-avatar-min" style="border-radius: 0;"/> {{ count }} <br />
                         {% endfor %}
                     </div>
                 </div>
