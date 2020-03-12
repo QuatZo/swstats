@@ -475,3 +475,9 @@ h1.h2
     margin: auto;
     max-width: 100%;
 }
+
+.profile-json-upload-button {
+    border: 1px solid #1112 !important;
+    height: 100% !important;
+    margin-bottom: 0;
+  }

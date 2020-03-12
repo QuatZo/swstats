@@ -329,8 +329,12 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                         'guild': self.parse_guild(data['guild'], data['guildwar_ranking_stat'], data['guild_member_defense_list']),
                         'friends': self.parse_friends(data['friend_list']),
                     }
-                except KeyError:
-                    context = {'error': "Given File is an invalid Summoners War JSON File."}
+                except KeyError as e:
+                    if 'world_arena_rune_equip_list' in str(e):
+                        context = {'error': "Given JSON File is before Separate Rune Management Update, please update your JSON profile."}
+                    else:
+                        context = {'error': "Given File is an invalid Summoners War JSON File."}
+                        logger.debug(e)
             html = render_to_string('website/desktopapp/desktopapp_content.html', context)
             return HttpResponse(html)
 
