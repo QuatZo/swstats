@@ -108,7 +108,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == "desktop" %}active{% endif %}" href="{% url 'desktop' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == "building" %}active{% endif %}" href="{% url 'building' %}">
                             <!-- Temporarily Credits Icon -->
                             <img src="{% static 'website/images/icons/building.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
                                 <span class="text">Towers Calculator</span>

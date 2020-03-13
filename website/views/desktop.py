@@ -21,6 +21,34 @@ logger = logging.getLogger(__name__)
 def log_request_data(data):
     logger.debug(f"Error/Warning during desktop app data upload occured for request: {json.dumps(data)}")
 
+def get_arena_towers_cost():
+    return {
+        'id_4': [ 100, 280, 460, 640, 820, 1000, 1180, 1360, 1540, 1720, ],
+        'id_5': [ 40, 90, 140, 190, 240, 290, 340, 390, 440, 490, ],
+        'id_6': [ 240, 440, 640, 840, 1040, 1240, 1440, 1640, 1840, 2040, ],
+        'id_7': [ 80, 130, 180, 230, 280, 330, 380, 430, 480, 530, ],
+        'id_8': [ 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, ],
+        'id_9': [ 150, 375, 600, 825, 1050, 1275, 1500, 1725, 1950, 2175, ],
+        'id_10': [ 20, 80, 140, 200, 260, 320, 380, 440, 500, 560, ],
+        'id_11': [ 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, ],
+        'id_15': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_16': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_17': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_18': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_19': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_31': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_34': [ 80, 130, 180, 230, 280, 330, 380, 430, 480, 530, ],
+        'id_35': [ 30, 80, 130, 180, 230, 280, 330, 380, 430, 480, ],
+    }
+
+def get_guild_flags_cost():
+    return {
+        'id_36': [ 280, 460, 800, 1250, 1810, 2320, 2910, 3590, 4350, 5200, ],
+        'id_37': [ 260, 410, 700, 1080, 1560, 1990, 2490, 3070, 3720, 4440, ],
+        'id_38': [ 330, 540, 930, 1450, 2100, 2680, 3360, 4140, 5020, 5990, ],
+        'id_39': [ 300, 460, 760, 1160, 1670, 2130, 2660, 3270, 3960, 4720, ],
+    }
+  
 # Create your views here.
 class DesktopUploadViewSet(viewsets.ViewSet):
     def calc_efficiency(self, rune):
@@ -290,22 +318,6 @@ class DesktopUploadViewSet(viewsets.ViewSet):
 
         return friends 
 
-    # check
-    def parse_wizard_buildings(self, decos, wizard_id):
-        for temp_building in Building.objects.all():
-            building = dict()
-            building['wizard'] = Wizard.objects.get(id=wizard_id)
-            building['building'] = temp_building
-            building['level'] = 0
-            obj, created = WizardBuilding.objects.update_or_create( wizard=building['wizard'], building=building['building'], defaults=building, )
-
-        for deco in decos:
-            building = dict()
-            building['wizard'] = Wizard.objects.get(id=deco['wizard_id'])
-            building['building'] = Building.objects.get(id=deco['master_id'])
-            building['level'] = deco['level']
-            obj, created = WizardBuilding.objects.update_or_create( wizard=building['wizard'], building=building['building'], defaults=building, )
-
     def create(self, request):
         # upload by using ajax, focused on stuff that Desktop App had
         context = { }
@@ -342,3 +354,15 @@ def get_desktop(request):
     """Return the Desktop page."""
     return render( request, 'website/desktopapp/desktopapp_index.html')
  
+def get_buildings_calculator(request):
+    buildings_cost = get_arena_towers_cost()
+    buildings_cost.update(get_guild_flags_cost())
+    
+    buildings = Building.objects.all()
+
+    context = {
+        'buildings_cost': buildings_cost,
+        'buildings': buildings,
+    }
+
+    return render( request, 'website/desktopapp/buildings_index.html', context)

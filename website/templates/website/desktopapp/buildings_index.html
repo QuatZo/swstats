@@ -1,0 +1,91 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    [Desktop App] Towers & Flags Calculator
+{% endblock %}
+
+{% block content %} 
+    <span id="profile-upload"></span><br />
+    <div id='calculator'>
+        There will be some sort of Form with AJAX (or onChange functions), which will calculate towers & flags upgrade level. 
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th scope="col">Area</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Level</th>
+                        <th scope="col">Next Upgrade</th>
+                        <th scope="col">Points To Max</th>
+                        <th scope="col">Days To Max</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for building in buildings %}
+                        <tr id={{ "id_"|add_str:building.id }}>
+                            <td id="area">{{ building.get_area_display }}</td>
+                            <td id="name">{{ building.name }}</td>
+                            <td id="level">0</td>
+                            <td id="upgrade">0</td>
+                            <td id="upgrade-max">0</td>
+                            <td id="days">Unknown</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block jquery %}
+{{ buildings_cost|json_script:'buildings'}}
+<script>
+    var buildings = JSON.parse(document.getElementById('buildings').textContent);
+    console.log(buildings);
+    var profile = localStorage.getItem('profile_json');
+
+    for (const [key, value] of Object.entries(buildings)) {
+        let level_id = "#" + key + " #level";
+        let upgrade_id = "#" + key + " #upgrade";
+        let upgrade_max_id = "#" + key + " #upgrade-max";
+
+        let sum = value.reduce((a, b) => a + b, 0);
+        $(upgrade_id).text(value[0]);
+        $(upgrade_max_id).text(sum);
+    }
+
+    if(!profile){
+        $('#profile-upload').html("<h2>No updated profile available. Please, <a href='{% url 'desktop' %}'>upload your profile</a> first if you want to use all calculator functionalities.</h2>")
+    }
+    else{
+        let decos = JSON.parse(profile).deco_list;
+        for(var deco_id in decos){
+            let deco = decos[deco_id];
+            let id_row = "#id_" + deco.master_id;
+            let level_id = id_row + " #level";
+            let upgrade_id = id_row + " #upgrade";
+            let upgrade_max_id = id_row + " #upgrade-max";
+            let level = deco.level;
+            var sum, next_upgrade;
+
+            if(level == 10) { 
+                sum = 0; 
+                next_upgrade = 0; 
+                $(id_row).addClass("building-done");
+            }
+            else{
+                let upgrades = buildings['id_' + deco.master_id].slice(level)
+                sum = upgrades.reduce((a, b) => a + b, 0);
+                next_upgrade = upgrades[0]
+            }
+            $(level_id).text(level);
+            $(upgrade_id).text(next_upgrade);
+            $(upgrade_max_id).text(sum);
+        }
+    }
+    
+
+    
+</script>
+{% endblock %}

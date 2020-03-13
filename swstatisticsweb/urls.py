@@ -64,6 +64,7 @@ urlpatterns = [
     path('credits/', views.get_credits, name='credits'),
 
     path('desktop/', views.get_desktop, name='desktop'),
+    path('building/', views.get_buildings_calculator, name='building'),
 
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]

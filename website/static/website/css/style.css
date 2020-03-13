@@ -481,3 +481,7 @@ h1.h2
     height: 100% !important;
     margin-bottom: 0;
   }
+
+  .building-done{
+      background-color: rgba(255, 0, 0, 0.35);
+  }

@@ -2,7 +2,7 @@
 {% load add_str %}
 
 {% block content_title %}
-    Content of old Summoners War Statistic Desktop App
+    [Desktop App] Profile Upload
 {% endblock %}
 
 {% block content %} 
@@ -15,7 +15,8 @@
         <input type="submit" value="Upload Profile" class="btn btn-secondary">
     </form>
     <p>
-        <br /><b>Disclaimer:</b> If you upload your profile on this page, it will <b>NOT</b> save itself to server database. It means that it will <b>NOT</b> be accessible for other people (even anonymously).
+        <br /><b>Disclaimer:</b> If you upload your profile on this page, it will <b>NOT</b> save itself to server database. 
+        It means that it will <b>NOT</b> be accessible for other people (even anonymously), but <b>if you want to contribute, check the <a href="{% url 'contribute' %}">Contribute</a> page</b>.
     </p>
     <div id='row'>
         {% csrf_token %}
