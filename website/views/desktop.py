@@ -49,6 +49,70 @@ def get_guild_flags_cost():
         'id_39': [ 300, 460, 760, 1160, 1670, 2130, 2660, 3270, 3960, 4720, ],
     }
   
+def get_siege_rewards():
+    return {
+        'rank_1011': {
+            'crystals': [20, 15, 10], # fixed
+            'points': [3, 2, 2], # percentage
+        },
+        'rank_2011': {
+            'crystals': [30, 25, 20], # fixed
+            'points': [6, 4, 4], # percentage
+        },
+        'rank_2012': {
+            'crystals': [40, 30, 25], # fixed
+            'points': [9, 6, 6], # percentage
+        },
+        'rank_2013': {
+            'crystals': [50, 40, 30], # fixed
+            'points': [12, 8, 8], # percentage
+        },
+        'rank_3011': {
+            'crystals': [60, 45, 35], # fixed
+            'points': [15, 11, 11], # percentage
+        },
+        'rank_3012': {
+            'crystals': [80, 65, 50], # fixed
+            'points': [18, 13, 13], # percentage
+        },
+        'rank_3013': {
+            'crystals': [100, 80, 60], # fixed
+            'points': [21, 15, 15], # percentage
+        },
+        'rank_4011': {
+            'crystals': [140, 100, 80], # fixed
+            'points': [27, 20, 20], # percentage
+        },
+        'rank_4012': {
+            'crystals': [200, 160, 130], # fixed
+            'points': [32, 25, 25], # percentage
+        },
+        'rank_4013': {
+            'crystals': [250, 200, 170], # fixed
+            'points': [37, 30, 30], # percentage
+        },
+    }
+
+def get_guild_war_rewards():
+    return {
+        'challenger': {
+            'battle': 7,
+            'war': 20,
+        },
+        'fighter': {
+            'battle': 8,
+            'war': 30,
+        },
+        'conqueror': {
+            'battle': 9,
+            'war': 40,
+        },
+        'guardian': {
+            'battle': 10,
+            'war': 50,
+        },
+    }
+
 # Create your views here.
 class DesktopUploadViewSet(viewsets.ViewSet):
     def calc_efficiency(self, rune):
@@ -357,12 +421,17 @@ def get_desktop(request):
 def get_buildings_calculator(request):
     buildings_cost = get_arena_towers_cost()
     buildings_cost.update(get_guild_flags_cost())
-    
+    siege_rewards = get_siege_rewards()
+    gw_rewards = get_guild_war_rewards()
+
     buildings = Building.objects.all()
 
     context = {
         'buildings_cost': buildings_cost,
         'buildings': buildings,
+
+        'siege': siege_rewards,
+        'gw': gw_rewards,
     }
 
     return render( request, 'website/desktopapp/buildings_index.html', context)
