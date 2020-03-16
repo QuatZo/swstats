@@ -1,0 +1,29 @@
+{% load static %}
+{% load add_str %}
+
+<div class="table-responsive">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Joined</th>
+                <th scope="col">Offline Since</th>
+                <th scope="col">Days Since Last Login</th>
+                <th scope="col">First Defense</th>
+                <th scope="col">Second Defense</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+                <tr>
+                    <td>{{ member.name }}</td>
+                    <td>{{ member.joined }}</td>
+                    <td>{{ member.last_login }}</td>
+                    <td>{{ member.last_login_days }}</td>
+                    <td>{{ member.defense_1 }}</td>
+                    <td>{{ member.defense_2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

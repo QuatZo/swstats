@@ -70,6 +70,14 @@ class Guild(models.Model):
     def get_siege_ranking_name(cls, ranking_id):
         return dict(cls.SIEGE_RANKS)[ranking_id]
 
+    @classmethod
+    def get_guild_ranking_names(cls):
+        return dict(cls.GUILD_RANKS)
+
+    @classmethod
+    def get_guild_ranking_name(cls, ranking_id):
+        return dict(cls.GUILD_RANKS)[ranking_id]
+
 class Wizard(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True, db_index=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
     mana = models.BigIntegerField(blank=True, null=True, default=None) # wizard_mana
@@ -263,6 +271,18 @@ class MonsterBase(models.Model):
 
     class Meta:
         ordering = ['name']
+
+    @classmethod
+    def get_attributes_as_dict(cls):
+        return dict(cls.MONSTER_ATTRIBUTES)
+    
+    @classmethod
+    def get_types_as_dict(cls):
+        return dict(cls.MONSTER_TYPES)
+    
+    @classmethod
+    def get_awaken_as_dict(cls):
+        return dict(cls.MONSTER_AWAKEN)
 
     @classmethod
     def get_attribute_id(cls, name):

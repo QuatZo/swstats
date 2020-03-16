@@ -513,7 +513,7 @@ class UploadViewSet(viewsets.ViewSet):
             logger.debug(f"Profile {data['wizard_info']['wizard_name']} (ID: {data['wizard_info']['wizard_id']}) does NOT exists. Starting first-time profile upload")
 
         if wizard_uptodate:
-            return HttpResponse(status=status.HTTP_200_OK)
+            return HttpResponse(status=status.HTTP_201_CREATED)
 
         temp_wizard = data['wizard_info']
         temp_runes = data['runes']
@@ -700,7 +700,7 @@ class UploadViewSet(viewsets.ViewSet):
             try:
                 wizard = Wizard.objects.get(id=data['wizard_info_list'][0]['wizard_id'])
             except Wizard.DoesNotExist:
-                raise ProfileDoesNotExist
+                return False
             temp_mons[deck['deck_id']] = list()
             defenses.append({
                 'id': deck['deck_id'],
@@ -723,6 +723,8 @@ class UploadViewSet(viewsets.ViewSet):
             obj, created = SiegeRecord.objects.update_or_create(id=defense['id'], defaults=defense)
             obj.monsters.set(temp_mons[defense['id']])
             obj.save()
+
+        return True
 
     def handle_siege_ranking_upload(self, data):
         Guild.objects.filter(id=data['guildsiege_stat_info']['curr']['guild_id']).update(siege_ranking=data['guildsiege_stat_info']['curr']['rating_id'])
@@ -796,7 +798,8 @@ class UploadViewSet(viewsets.ViewSet):
                         return HttpResponse(f"Unknown stage for Rift Dungeon Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
                     
                 elif request.data['command'] == 'GetGuildSiegeDefenseDeckByWizardId':
-                    self.handle_siege_defenses_upload(request.data)
+                    if not self.handle_siege_defenses_upload(request.data):
+                        return HttpResponse(status=status.HTTP_200_OK)
 
                 elif request.data['command'] == 'GetGuildSiegeRankingInfo':
                     self.handle_siege_ranking_upload(request.data)

@@ -1,0 +1,33 @@
+{% if error %}
+    <h2>ERROR: {{ error }}</h2>
+{% else %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ wizard.name }} (JSON from {{ date }}) </h1>
+    </div>
+    {% include 'website/desktopapp/wizard_card.html' with wizard=wizard %}
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Monsters </h1>
+    </div>
+    {% include 'website/desktopapp/monsters_card.html' with monsters=monsters %}
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Runes </h1>
+    </div>
+    {% include 'website/desktopapp/runes_card.html' with runes=runes %}
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Guild ({{ guild.name }}) </h1>
+    </div>
+    {% include 'website/desktopapp/guild_card.html' with guild=guild %}
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+        <h1 class="h2">Guild Members </h1>
+    </div>
+    {% include 'website/desktopapp/guild_members_table.html' with members=guild.members %}
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+        <h1 class="h2">Friends </h1>
+    </div>
+    {% include 'website/desktopapp/friends_table.html' with friends=friends %}
+{% endif %}

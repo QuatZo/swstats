@@ -1,0 +1,85 @@
+{% load static %}
+{% load add_str %}
+
+<div class="row">
+    <div class="col-12 col-sm-6 rank">
+        <div class="card">
+            <div class="card-header">
+                Introduction
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Name</b></div>
+                    <div class="col-6 col-sm-6"> {{ wizard.name }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Country</b></div>
+                    <div class="col-6 col-sm-6">
+                        <img src="{% static 'website/images/flags/'|add_str:wizard.country|add_str:'.png' %}" class="table-monster-avatar-min" style='border: 1px solid black;'>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Level</b></div>
+                    <div class="col-6 col-sm-6"> {{ wizard.level }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Energy / Max Energy</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_energy.png' %}" class="table-monster-avatar-min"/> {{ wizard.energy }} / {{ wizard.energy_max }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Dimension Hole Energy</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_dimensionenergy.png' %}" class="table-monster-avatar-min"/> {{ wizard.dim_hole_energy }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Arena Wings</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_arena.png' %}" class="table-monster-avatar-min"/> {{ wizard.arena_wings }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Dimensional Rift Crystals</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_dimensioncrystal.png' %}" class="table-monster-avatar-min"/> {{ wizard.dim_rift_crystals }} </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 rank">
+        <div class="card">
+            <div class="card-header">
+                Currency
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Mana</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_mana.png' %}" class="table-monster-avatar-min"/> {{ wizard.mana }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Crystals</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_crystal.png' %}" class="table-monster-avatar-min"/> {{ wizard.crystals }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Guild Points</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_guildpoint.png' %}" class="table-monster-avatar-min"/> {{ wizard.guild_points }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Glory Points</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_glorypoint.png' %}" class="table-monster-avatar-min"/> {{ wizard.glory_points }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>RTA Points</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_rta.png' %}" class="table-monster-avatar-min"/> {{ wizard.rta_points }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Shapeshifting Stones</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_shapestones.png' %}" class="table-monster-avatar-min"/> {{ wizard.shapeshifting_stones }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Social Points</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_socialpoint.png' %}" class="table-monster-avatar-min"/> {{ wizard.social_points }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Ancient Coins</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/currency_ancientcoin.png' %}" class="table-monster-avatar-min"/> {{ wizard.ancient_coins }} </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

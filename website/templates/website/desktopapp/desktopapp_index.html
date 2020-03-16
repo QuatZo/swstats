@@ -1,0 +1,83 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    [Desktop App] Profile Upload
+{% endblock %}
+
+{% block content %} 
+    <form method="POST" id="profile-upload">
+        {% csrf_token %}
+        <label for="profile-json" class="btn btn-light profile-json-upload-button">
+            <i class="fa fa-cloud-upload"></i> Choose JSON File
+        </label>
+        <input id="profile-json" name='profile-json-upload-button' type="file" style="display:none;">
+        <input type="submit" value="Upload Profile" class="btn btn-secondary">
+    </form>
+    <p>
+        <br /><b>Disclaimer:</b> If you upload your profile on this page, it will <b>NOT</b> save itself to server database. 
+        It means that it will <b>NOT</b> be accessible for other people (even anonymously), but <b>if you want to contribute, check the <a href="{% url 'contribute' %}">Contribute</a> page</b>.
+    </p>
+    <div id='row'>
+        {% csrf_token %}
+    </div>
+{% endblock %}
+
+{% block jquery %}
+<script>
+    $('#profile-json').change(function() {
+        var i = $(this).prev('label').clone();
+        var file = $('#profile-json')[0].files[0];
+        var name = "Choose JSON File";
+        if(file != undefined){ name = file.name; }
+        $(this).prev('label').text(name);
+    });
+
+    var url = '/api/desktopupload/';
+    $("#profile-upload").submit(function(e) {
+        e.preventDefault();
+        var profile = document.getElementById("profile-json").files[0];
+        if (profile) {
+            $('#row').text("Loading, please wait...");
+            var reader = new FileReader();
+            reader.readAsText(profile, "UTF-8");
+            reader.onload = function (evt) {
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    contentType: 'application/json',
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                    data: evt.target.result,
+                    success: function(data) {
+                        $('#row').html(data);
+                        localStorage.setItem('profile_json', evt.target.result);
+                    },
+                    error: function(){
+                        $('#row').html("<h2>Wrong file. Probably not a <b>JSON</b> file</h2>");
+                    }
+                });
+                $('#profile-json').val('');
+                $('#profile-json').prev('label').text("Choose JSON File");
+            }
+        }
+    });
+
+    if(localStorage.getItem('profile_json')){
+        var profile_data = localStorage.getItem('profile_json');
+        $('#row').text("Loading, please wait...");
+        $.ajax({
+            type: "POST",
+            url: url,
+            contentType: 'application/json',
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            data: profile_data,
+            success : function(data) {
+                $('#row').html(data);
+            },
+            error: function(){
+                $('#row').html("<h2>Wrong file. Probably not a <b>JSON</b> file</h2>");
+            }
+      });
+    }
+</script>
+{% endblock %}

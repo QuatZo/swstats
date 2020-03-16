@@ -1,0 +1,51 @@
+<div class="card" style="margin-bottom: 15px;">
+    <div class="card-header" >
+        Guild
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 col-sm-6">
+                <label for="guild-ranking"><b>Guild War Ranking</b></label><br/>
+                <select name="guild-ranking" id="guild-ranking" class="calc-input form-control">
+                    <option value="challenger" default>Challenger
+                    <option value="fighter">Fighter
+                    <option value="conqueror">Conqueror
+                    <option value="guardian">Guardian
+                </select>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label for="guild-wings"><b>Battles Won Per Week</b></label><br/>
+                <input type="number" name="guild-wings" id="guild-wings" class="calc-input form-control" min="0" max="12" value="12"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-sm-6">
+                <label for="siege-ranking"><b>Siege Ranking</b></label><br/>
+                <select name="siege-ranking" id="siege-ranking" class="calc-input form-control">
+                    <option value="1011" default>Challenger
+                    <option value="2011">Fighter I
+                    <option value="2012">Fighter II
+                    <option value="2013">Fighter III
+                    <option value="3011">Conqueror I
+                    <option value="3012">Conqueror II
+                    <option value="3013">Conqueror III
+                    <option value="4011">Guardian I
+                    <option value="4012">Guardian II
+                    <option value="4013">Guardian III / Legend
+                </select>
+            </div>
+            <div class="col-6 col-sm-3">
+                <label for="siege-first"><b>1st Siege Place</b></label><br/>
+                <input type="radio" id="1" name="siege-first" value="1" checked>First<br />
+                <input type="radio" id="2" name="siege-first" value="2">Second<br />
+                <input type="radio" id="3" name="siege-first" value="3">Third<br />
+            </div>
+            <div class="col-6 col-sm-3">
+                <label for="siege-ranking"><b>2nd Siege Place</b></label><br/>
+                <input type="radio" id="1" name="siege-second" value="1" checked>First<br />
+                <input type="radio" id="2" name="siege-second" value="2">Second<br />
+                <input type="radio" id="3" name="siege-second" value="3">Third<br />
+            </div>
+        </div>
+    </div>
+</div>

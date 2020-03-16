@@ -1,5 +1,6 @@
 # upload
 from .upload import *
+from .desktop import *
 
 # website
 from .web import *

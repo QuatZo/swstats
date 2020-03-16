@@ -1,0 +1,77 @@
+{% load static %}
+{% load add_str %}
+{% load get_attribute_avatar %}
+{% load get_star_avatar %}
+
+<div class="row">
+    <div class="col-12 col-sm-6 rank">
+        <div class="card">
+            <div class="card-header">
+                Introduction Part I
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Amount</b></div>
+                    <div class="col-6 col-sm-6"> {{ monsters.count }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Elements</b></div>
+                    <div class="col-6 col-sm-6">
+                        {% for element, count in monsters.elements.items %}
+                            <img src="{% static 'website/images/attributes/'|get_attribute_avatar:element %}" class="table-monster-avatar-min" style="border-radius: 0;"/> {{ count }} <br />
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Archetypes</b></div>
+                    <div class="col-6 col-sm-6">
+                        {% for archetype, count in monsters.archetypes.items %}
+                            {% if archetype != "None" %}
+                                {{ archetype }} {{ count }} <br />
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 rank">
+        <div class="card">
+            <div class="card-header">
+                Introduction Part II
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Base Class</b></div>
+                    <div class="col-6 col-sm-6">
+                        {% for class, count in monsters.base_class.items %}
+                            {% with ''|center:count.0 as range %}
+                                {% for _ in range %}
+                                    <img src="{% static 'website/images/stars/'|get_star_avatar:class %}" class="table-monster-avatar-min"/>
+                                {% endfor %}
+                                {{ count.1 }} <br />
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Non-Fusion Nat5</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/elements.png' %}" class="table-monster-avatar-min"/> {{ monsters.nat5_not_fusion|length }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Days Since Last Non-Fusion Nat5</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/clock.png' %}" class="table-monster-avatar-min"/> {{ monsters.last_nat5 }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Non-Fusion, Non-HoH L&D Nat4+</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/ld.png' %}" class="table-monster-avatar-min"/> {{ monsters.ld4plus_not_fusion|length }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Days Since Last Non-Fusion, Non-HoH L&D Nat4+</b></div>
+                    <div class="col-6 col-sm-6"><img src="{% static 'website/images/other/clock.png' %}" class="table-monster-avatar-min"/> {{ monsters.last_ld4plus }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

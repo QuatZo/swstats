@@ -1,0 +1,79 @@
+{% load static %}
+{% load add_str %}
+{% load get_attribute_avatar %}
+{% load get_star_avatar %}
+
+<div class="row">
+    <div class="col-12 col-sm-6 rank">
+        <div class="card">
+            <div class="card-header">
+                Introduction
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Amount</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.count }} </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>In inventory</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.unequipped_count }} ({{ runes.unequipped_percentage }}%) </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Equipped</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.equipped_count }} ({{ runes.equipped_percentage }}%) </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Locked</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.locked_count }} ({{ runes.locked_percentage }}%) </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Maxed</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.maxed }} ({{ runes.maxed_percentage }}%) </div>
+                </div> 
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Minimum Efficiency</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.eff_min }}% </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Maximum Efficiency</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.eff_max }}% </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Mean Efficiency</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.eff_mean }}% </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Median Efficiency</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.eff_median }}% </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-sm-6"><b>Standard Deviation Efficiency</b></div>
+                    <div class="col-6 col-sm-6"> {{ runes.eff_st_dev }}% </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 rank">
+        <div class="card">
+            <div class="card-header">
+                Sets & Slots
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for set, count in runes.sets.items %}
+                        <div class="col-6 col-sm-2" style="text-align: center;">
+                            <img src="{% static 'website/images/runes/'|add_str:count.0|add_str:'.png' %}" class="table-monster-avatar" style="height: auto; border-radius: 0;" title="{{ count.0 }}"/> {{ count.1 }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="row">
+                    {% for slot, count in runes.slots.items %}
+                        <div class="col-6 col-sm-2" style="text-align: center;">
+                            <img src="{% static 'website/images/runes/rune'|add_str:count.0|add_str:'.png' %}" class="table-monster-avatar" style="height: unset; border-radius: 0;" title="{{'Slot '|add_str:count.0 }}" /> {{ count.1 }} <br />
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
