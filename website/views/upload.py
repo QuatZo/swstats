@@ -787,7 +787,7 @@ class UploadViewSet(viewsets.ViewSet):
 
                 elif request.data['command'] == 'BattleRiftOfWorldsRaidStart':
                     self.handle_raid_start_upload(request.data)
-                elif request.data['command'] == 'BattleDungeonResult' or request.data['command'] == 'BattleRiftOfWorldsRaidResult':
+                elif request.data['command'] == 'BattleDungeonResult' or request.data['command'] == 'BattleRiftOfWorldsRaidResult' or request.data['command'] == 'BattleDungeonResult_V2':
                     if not self.handle_dungeon_run_upload(request.data['response'], request.data['request']):
                         return HttpResponse(f"Unknown stage for Rift Raid Battle (ID: {request.data['request']['battle_key']})", status=status.HTTP_400_BAD_REQUEST)
                 
