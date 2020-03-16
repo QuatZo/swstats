@@ -115,9 +115,9 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == "dimhole" %}active{% endif %}" href="{% url 'desktop' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == "dimholecalc" %}active{% endif %}" href="{% url 'dimholecalc' %}">
                             <!-- Temporarily Credits Icon -->
-                            <img src="{% static 'website/images/icons/dimhole.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
+                            <img src="{% static 'website/images/icons/dimholecalc.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
                                 <span class="text">Dim Hole Calculator</span>
                             </a>
                         </li>

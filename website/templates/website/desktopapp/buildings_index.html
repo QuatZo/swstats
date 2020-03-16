@@ -47,13 +47,13 @@
             <h1 class="h2">Calculation Method</h1>
         </div>
         <ol>
-            <li>Arena
+            <li><b>Arena</b>
             <ul>
                 <li>At the start of every week, devilmon cost (180 glory points) is added to the pool
                 <li>Wing per Day need to be between 20 and 500
                 <li>Calculator assumes every used wing is a win
             </ul>
-            <li>Guild
+            <li><b>Guild</b>
             <ul>
                 <li>At the start of every week, rainbowmon cost (150 guild points) is added to the pool
                 <li>At the start of every week, 1st siege reward is substracted from the pool
@@ -70,5 +70,6 @@
 {{ buildings_cost|json_script:'buildings'}}
 {{ siege|json_script:'siege'}}
 {{ gw|json_script:'gw'}}
+<script>var upload_url = "{% url 'desktop' %}";</script>
 <script src="{% static 'website/js/buildings.js' %}"></script>
 {% endblock %}

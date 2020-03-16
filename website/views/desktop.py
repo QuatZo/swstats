@@ -113,6 +113,9 @@ def get_guild_war_rewards():
         },
     }
 
+def get_dimhole_axp():
+    return [320, 420, 560, 740, 960]
+
 # Create your views here.
 class DesktopUploadViewSet(viewsets.ViewSet):
     def calc_efficiency(self, rune):
@@ -435,3 +438,13 @@ def get_buildings_calculator(request):
     }
 
     return render( request, 'website/desktopapp/buildings_index.html', context)
+
+def get_dimhole_calculator(request):
+    monsters = dict(MonsterBase.objects.values_list('id', 'name'))
+
+    context = {
+        'monsters': monsters,
+        'axp_per_level': json.dumps(get_dimhole_axp()),
+    }
+
+    return render( request, 'website/desktopapp/dimholecalc_index.html', context)

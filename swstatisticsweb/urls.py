@@ -65,6 +65,7 @@ urlpatterns = [
 
     path('desktop/', views.get_desktop, name='desktop'),
     path('building/', views.get_buildings_calculator, name='building'),
+    path('dimholecalc/', views.get_dimhole_calculator, name='dimholecalc'),
 
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 ]
