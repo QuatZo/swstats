@@ -714,7 +714,7 @@ class DimensionHoleRun(models.Model):
 
         (3101, 'Lumel'),
         (3201, 'Werewolf (Lumel)'),
-        (3203, 'Martial Cat (Lumel)'),
+        (3202, 'Martial Cat (Lumel)'),
     )
 
     # id - request; battle_key
