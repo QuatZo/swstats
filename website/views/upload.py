@@ -408,11 +408,10 @@ class UploadViewSet(viewsets.ViewSet):
 
     def parse_runes_rta(self, rta_runes):
         for rta_rune in rta_runes:
-            if all(key in rta_rune.keys() for key_req in ['rune_id', 'occupied_id']):
-                obj, created = RuneRTA.objects.update_or_create(rune=rta_rune['rune_id'], defaults={
-                    'monster': Monster.objects.get(id=rta_rune['occupied_id']),
-                    'rune': Rune.objects.get(id=rta_rune['rune_id']),
-                })
+            obj, created = RuneRTA.objects.update_or_create(rune=rta_rune['rune_id'], defaults={
+                'monster': Monster.objects.get(id=rta_rune['occupied_id']),
+                'rune': Rune.objects.get(id=rta_rune['rune_id']),
+            })
 
     def parse_decks(self, decks, wizard_id):
         for temp_deck in decks:
@@ -458,8 +457,8 @@ class UploadViewSet(viewsets.ViewSet):
         for el in homunculus:
             if el['unit_id'] not in homies.keys():
                 homies[el['unit_id']] = dict()
-                homies[el['unit_id']]['wizard_id'] = Wizard.objects.get(id=el['wizard_id'])
-                homies[el['unit_id']]['homunculus_id'] = Monster.objects.get(id=el['unit_id'])
+                homies[el['unit_id']]['wizard'] = Wizard.objects.get(id=el['wizard_id'])
+                homies[el['unit_id']]['homunculus'] = Monster.objects.get(id=el['unit_id'])
                 homies[el['unit_id']]['depth_1'] = None
                 homies[el['unit_id']]['depth_2'] =  None
                 homies[el['unit_id']]['depth_3'] = None
@@ -470,7 +469,11 @@ class UploadViewSet(viewsets.ViewSet):
 
         for homie in homies.values():
             homie['build'] = HomunculusBuild.objects.get( depth_1=homie['depth_1'], depth_2=homie['depth_2'], depth_3=homie['depth_3'], depth_4=homie['depth_4'], depth_5=homie['depth_5'] )
-            obj, created = WizardHomunculus.objects.update_or_create( wizard=homie['wizard_id'], homunculus=homie['homunculus_id'], defaults=homie, )
+            obj, created = WizardHomunculus.objects.update_or_create( wizard=homie['wizard'], homunculus=homie['homunculus'], defaults={
+                'wizard': homie['wizard'],
+                'homunculus': homie['homunculus'],
+                'build': homie['build'],
+            }, )
 
     def parse_wizard_inventory(self, inventory):
         for temp_item in inventory:
@@ -549,8 +552,8 @@ class UploadViewSet(viewsets.ViewSet):
 
         # monster rep
         obj, created = MonsterRep.objects.update_or_create( wizard__id=wizard['id'], defaults={
-            'wizard_id': Wizard.objects.get(id=wizard['id']), 
-            'monster_id': Monster.objects.get(id=temp_wizard['rep_unit_id'])
+            'wizard': Wizard.objects.get(id=wizard['id']), 
+            'monster': Monster.objects.get(id=temp_wizard['rep_unit_id'])
         }, )
 
         self.parse_decks(data['deck_list'], wizard['id'])
@@ -806,9 +809,10 @@ class UploadViewSet(viewsets.ViewSet):
 
                 elif request.data['command'] == 'BattleDimensionHoleDungeonResult':
                     self.handle_dimension_hole_run_upload(request.data['response'], request.data['request'])
+
+                return HttpResponse(status=status.HTTP_201_CREATED)
             except ProfileDoesNotExist:
                 return HttpResponse(f"Profile does NOT exists. Please, restart game in order to upload profile before doing anything else. Thank you!", status=status.HTTP_400_BAD_REQUEST)
-            return HttpResponse(status=status.HTTP_201_CREATED)
         
         logger.error("Given request is invalid")
         return HttpResponse(f"Given request is invalid", status=status.HTTP_400_BAD_REQUEST)

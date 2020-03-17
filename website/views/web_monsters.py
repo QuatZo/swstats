@@ -355,9 +355,9 @@ def get_monster_by_id(request, arg_id):
 
     for rta_monster in rta_monsters:
         rta_build.append(rta_monster.rune)
-    
+
     try:
-        rta_eff = sum([ rune.efficiency for rune in rta_build ]) / len(rta_build)
+        rta_eff = round(sum([ rune.efficiency for rune in rta_build ]) / len(rta_build), 2)
     except ZeroDivisionError:
         rta_eff = None
 
@@ -404,6 +404,7 @@ def get_monster_by_id(request, arg_id):
 
     rta = {
         'build': rta_build,
+        'eff': rta_eff,
     }
 
     context = { 
