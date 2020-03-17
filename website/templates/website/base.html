@@ -3,6 +3,16 @@
   {% load static %}
   {% load is_active %}
   <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161013694-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-161013694-1');
+    </script>
+
     <link rel="icon" href="{% static 'website/images/icons/runes_favicon.svg' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'website/css/style.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
