@@ -68,6 +68,8 @@ class Guild(models.Model):
 
     @classmethod
     def get_siege_ranking_name(cls, ranking_id):
+        if ranking_id is None:
+            return "Unknown"
         return dict(cls.SIEGE_RANKS)[ranking_id]
 
     @classmethod
@@ -687,7 +689,13 @@ class SiegeRecord(models.Model):
     lose = models.IntegerField() # response; defense_deck_list; lose_count
     ratio = models.FloatField(db_index=True) # response; defense_deck_list; winning_rate
     last_update = models.DateTimeField() # response; tvalue
+    full = models.BooleanField(default=True) # override save method
 
+    # override save method, to set if defense has 3 monsters
+    def save(self, *args, **kwargs):
+        if self.monsters.all().count() != 3:
+            self.full = False
+        super().save(*args, **kwargs)
     def __str__(self):
         return str(self.id) + ' (' + str(self.win) + '/' + str(self.lose) + ')'
 

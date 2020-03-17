@@ -24,26 +24,28 @@
         </thead>
         <tbody>
             {% for record in records %}
-                <tr>
-                    <td>
-                        {% with record.monsters.all as monsters %}
-                            {% for monster in monsters %}
-                                <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
-                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" />
-                                </a>
-                            {% endfor %}
-                        {% endwith %}
-                    </td>
-                    <td>
-                        <a href="{% url 'monster_by_id' arg_id=record.leader.id %}">
-                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:record.leader %}" class="table-monster-avatar" />
-                        </a>
-                    </td>
-                    <td>{{ record.win }}</td>
-                    <td>{{ record.lose }}</td>
-                    <td>{{ record.ratio|add_str:"%" }}</td>
-                    <td>{{ record.wizard.guild.get_siege_ranking_display|default:"No information given" }}</td>
-                </tr>
+                {% if record.full %}
+                    <tr>
+                        <td>
+                            {% with record.monsters.all as monsters %}
+                                {% for monster in monsters %}
+                                    <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
+                                        <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" />
+                                    </a>
+                                {% endfor %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            <a href="{% url 'monster_by_id' arg_id=record.leader.id %}">
+                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:record.leader %}" class="table-monster-avatar" />
+                            </a>
+                        </td>
+                        <td>{{ record.win }}</td>
+                        <td>{{ record.lose }}</td>
+                        <td>{{ record.ratio|add_str:"%" }}</td>
+                        <td>{{ record.wizard.guild.get_siege_ranking_display|default:"No information given" }}</td>
+                    </tr>
+                {% endif %}
             {% endfor %}
             <script>
                 feather.replace()

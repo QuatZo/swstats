@@ -564,6 +564,33 @@ class UploadViewSet(viewsets.ViewSet):
 
         logger.debug(f"Fully uploaded profile for {data['wizard_info']['wizard_name']} (ID: {data['wizard_info']['wizard_id']})")
 
+    def handle_friend_upload(self, data):
+        temp_wizard = data['friend']
+        logger.debug(f"[Friend Upload] Checking if profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) exists...")
+        # don't overwrite complete data with incomplete
+        if Wizard.objects.filter(id=temp_wizard['wizard_id']).exists():
+            logger.debug(f"[Friend Upload] Profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) exists... Ending... ")
+            return
+
+        logger.debug(f"[Friend Upload] Profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) does NOT exists. Starting first-time profile upload")
+        wizard = self.parse_wizard(temp_wizard, data['tvalue'])
+        obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
+
+        temp_runes = list()
+        for monster in temp_wizard['unit_list']:
+            for rune in monster['runes']:
+                temp_runes.append(rune)
+
+        for temp_rune in temp_runes:
+            self.parse_rune(temp_rune)
+
+        for temp_monster in temp_wizard['unit_list']:
+            self.parse_monster(temp_monster, temp_wizard['building_list'], )
+
+        self.parse_wizard_buildings(temp_wizard['deco_list'], wizard['id'])
+
+        logger.debug(f"[Friend Upload] Fully uploaded profile for {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']})")
+
     def handle_raid_start_upload(self, data):
         logger.debug(f"New Raid has been started")
         obj, created = RaidBattleKey.objects.get_or_create(battle_key=data['battle_info']['battle_key'], defaults={
@@ -699,18 +726,19 @@ class UploadViewSet(viewsets.ViewSet):
         defenses = list()
         temp_mons = dict()
 
+        wizards = Wizard.objects.all().values()
+
         for deck in data['defense_deck_list']:
-            try:
-                wizard = Wizard.objects.get(id=data['wizard_info_list'][0]['wizard_id'])
-            except Wizard.DoesNotExist:
-                return False
+            wizard = [wiz for wiz in wizards if wiz['id'] == data['wizard_info_list'][0]['wizard_id']]
+            if not wizard:
+                continue
             temp_mons[deck['deck_id']] = list()
             defenses.append({
                 'id': deck['deck_id'],
                 'win': deck['win_count'],
                 'lose': deck['lose_count'],
                 'ratio': deck['winning_rate'],
-                'wizard': wizard,
+                'wizard': Wizard.objects.get(id=wizard[0]['id']),
                 'last_update': datetime.datetime.utcfromtimestamp(data['tvalue']),
             })
         
@@ -718,9 +746,12 @@ class UploadViewSet(viewsets.ViewSet):
             if 'unit_info' in deck_units.keys():
                 for defense in defenses:
                     if defense['id'] == deck_units['deck_id'] and len(temp_mons[deck_units['deck_id']]) < 3:
-                        temp_mons[deck_units['deck_id']].append(Monster.objects.get(id=deck_units['unit_info']['unit_id']))
-                        if deck_units['pos_id'] == 1:
-                            defense['leader'] = Monster.objects.get(id=deck_units['unit_info']['unit_id'])
+                        monster = Monster.objects.filter(id=deck_units['unit_info']['unit_id'])
+                        monster_first = monster.first()
+                        if monster.exists():
+                            temp_mons[deck_units['deck_id']].append(monster_first)
+                            if deck_units['pos_id'] == 1:
+                                defense['leader'] = monster_first
         
         for defense in defenses:
             obj, created = SiegeRecord.objects.update_or_create(id=defense['id'], defaults=defense)
@@ -784,6 +815,9 @@ class UploadViewSet(viewsets.ViewSet):
             try:
                 if request.data['command'] == 'HubUserLogin':
                     self.handle_profile_upload(request.data)
+
+                elif request.data['command'] == 'VisitFriend':
+                    self.handle_friend_upload(request.data)
                 
                 elif request.data['command'] == 'GetUnitRecommendPage_V2':
                     self.handle_monster_recommendation_upload(request.data['response'], request.data['request'])
