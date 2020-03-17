@@ -51,7 +51,11 @@
 		</div>
 
 		{% include "website/runes/rune_table.html" with runes=monster.runes.all text=monster.base_monster|add_str:"'s Runes" collapse_id="monster-"|add_str:monster.id|add_str:"-runes" collapsed="collapse"%}
-	
+		
+		{% if rta.build %}
+			{% include "website/runes/rune_table.html" with runes=rta.build text=monster.base_monster|add_str:"'s RTA Runes (Avg. Eff: "|add_str:rta.eff|add_str:"%)" collapse_id="monster-rta-"|add_str:monster.id|add_str:"-runes" collapsed="collapse"%}
+		{% endif %}
+		
 		{% if decks %}
 			<div class="title-container">
 				<h2 class="title">
