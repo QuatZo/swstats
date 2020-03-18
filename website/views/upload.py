@@ -484,22 +484,29 @@ class UploadViewSet(viewsets.ViewSet):
             obj, created = WizardItem.objects.update_or_create( wizard=item['wizard'], master_item=item['master_item'], defaults=item, )
 
     def handle_profile_upload(self, data):
-        logger.debug(f"Checking if guild {data['guild']['guild_info']['guild_id']} exists...")
-        guild = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])
-        guild_uptodate = False
-        if guild.exists():
-            logger.debug(f"Guild {data['guild']['guild_info']['guild_id']} exists... Checking if it's up-to-date...")
-            guild = guild.filter(last_update__gte=datetime.datetime.utcfromtimestamp(data['tvalue']))
-            if guild.exists():
-                logger.debug(f"Guild {data['guild']['guild_info']['guild_id']} profile is up-to-date.")
-                guild_uptodate = True
-            else:
-                logger.debug(f"Updating guild profile {data['guild']['guild_info']['guild_id']}")
+        profile_guild = True
+        if data['guild']['guild_info'] is None:
+            logger.debug(f"Profile {data['wizard_info']['wizard_id']} has no guild.")
+            profile_guild = False
         else:
-            logger.debug(f"Guild profile does NOT exists. Starting first-time guild profile upload for {data['guild']['guild_info']['guild_id']}")
+            logger.debug(f"Checking if guild {data['guild']['guild_info']['guild_id']} exists...")
+            guild = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])
+            guild_uptodate = False
+            if guild.exists():
+                logger.debug(f"Guild {data['guild']['guild_info']['guild_id']} exists... Checking if it's up-to-date...")
+                guild = guild.filter(last_update__gte=datetime.datetime.utcfromtimestamp(data['tvalue']))
+                if guild.exists():
+                    logger.debug(f"Guild {data['guild']['guild_info']['guild_id']} profile is up-to-date.")
+                    guild_uptodate = True
+                else:
+                    logger.debug(f"Updating guild profile {data['guild']['guild_info']['guild_id']}")
+            else:
+                logger.debug(f"Guild profile does NOT exists. Starting first-time guild profile upload for {data['guild']['guild_info']['guild_id']}")
 
-        if not guild_uptodate:
-            self.parse_guild(data['guild']['guild_info'], data['guildwar_ranking_stat']['best'], data['tvalue'])
+            if not guild_uptodate:
+                self.parse_guild(data['guild']['guild_info'], data['guildwar_ranking_stat']['best'], data['tvalue'])
+
+        
 
         logger.debug(f"Checking if profile {data['wizard_info']['wizard_id']} exists...")
         wiz = Wizard.objects.filter(id=data['wizard_info']['wizard_id'])
@@ -532,9 +539,11 @@ class UploadViewSet(viewsets.ViewSet):
             wizard['storage_capacity'] = data['unit_depository_slots']['number']
         except KeyError:
             logger.info("[Wizard]: No info about anti bot feature, raid level nor storage capacity")
-        wizard_guilds = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])
-        if wizard_guilds.count() > 0:
-            wizard['guild'] = wizard_guilds.first()
+        
+        if profile_guild:
+            wizard_guilds = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])
+            if wizard_guilds.count() > 0:
+                wizard['guild'] = wizard_guilds.first()
         obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
         ########################################
 
