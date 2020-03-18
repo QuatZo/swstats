@@ -108,7 +108,7 @@ class RiftDungeonRunAdmin(admin.ModelAdmin):
         return "\n".join([str(monster) for monster in obj.monsters.all()])
 
 class SiegeRecordAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard', 'get_monsters', 'leader', 'win', 'lose', 'ratio', 'last_update' )
+    list_display = ( 'id', 'wizard', 'get_monsters', 'leader', 'win', 'lose', 'ratio', 'last_update', 'full' )
 
     def get_monsters(self, obj):
         return "\n".join([str(monster) for monster in obj.monsters.all()])

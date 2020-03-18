@@ -20,16 +20,16 @@ def create_rgb_colors(length):
 # deck list w/ filters
 def get_deck_list_group_by_family(decks):
     """Return name, amount of families and quantity of monsters for every family in given decks list."""
-    group_by_family = decks.values('monsters__base_monster__family__name').annotate(total=Count('monsters__base_monster__family__name')).order_by('-total')
+    family_monsters = dict()
+    
+    for deck in decks:
+        for monster in deck.monsters.all():
+            if monster.base_monster.family.name not in family_monsters.keys():
+                family_monsters[monster.base_monster.family.name] = 0
+            family_monsters[monster.base_monster.family.name] += 1
 
-    family_name = list()
-    family_count = list()
-
-    for group in group_by_family:
-        family_name.append(group['monsters__base_monster__family__name'])
-        family_count.append(group['total'])
-
-    return { 'name': family_name, 'quantity': family_count, 'length': len(family_name) }
+    family_monsters = {k: family_monsters[k] for k in sorted(family_monsters, key=family_monsters.get, reverse=True)}
+    return { 'name': list(family_monsters.keys()), 'quantity': list(family_monsters.values()), 'length': len(family_monsters.keys()) }
 
 def get_deck_list_group_by_place(decks):
     """Return names, amount of places and quantity of decks for every place in given decks list."""
@@ -206,14 +206,15 @@ def get_decks(request):
         place = request.GET.get('place').replace('_', ' ')
         filters.append('Place: ' + place)
         decks = decks.filter(place=Deck().get_place_id(place))
-
+    
+    decks = decks.prefetch_related('monsters', 'monsters__base_monster', 'monsters__base_monster__family', 'leader', 'leader__base_monster', 'leader__base_monster__family')
     decks_by_family = get_deck_list_group_by_family(decks)
     decks_by_place = get_deck_list_group_by_place(decks)
     decks_eff = get_deck_list_avg_eff(decks)
 
     # needs to be last, because it's for TOP table
     amount = min(100, decks.count())
-    decks = decks.order_by('-team_runes_eff')[:amount].prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
+    decks = decks.order_by('-team_runes_eff')[:amount]
 
     context = { 
         # filters
@@ -314,7 +315,7 @@ def get_homunculus_base(request, base):
 def get_siege_records(request):
     is_filter = False
     filters = list()
-    records = SiegeRecord.objects.all()
+    records = SiegeRecord.objects.filter(full=True)
 
     if request.GET:
         is_filter = True
