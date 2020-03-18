@@ -16,7 +16,7 @@
 {% block content %}
 	<p>
 		The position of comp on the list is calculated by using the following formula, where \(0 < win\_rate < 1\), \(clear\_time [s] \), \(fastest\_run [s]\)
-		$$points = {win\_rate \over exp({clear\_time \over fastest\_run})}$$
+		$$points =  {\sqrt[3]{wins} * win\_rate \over exp({clear\_time \over fastest\_run})}$$
 	</p>
 	{% include "website/dungeons/charts/dungeon_chart_distribution.html" with means=runs_means distribution=runs_distribution color=runs_colors %}
 

@@ -777,6 +777,10 @@ class UploadViewSet(viewsets.ViewSet):
         for defense in defenses:
             obj, created = SiegeRecord.objects.update_or_create(id=defense['id'], defaults=defense)
             obj.monsters.set(temp_mons[defense['id']])
+            guild = Guild.objects.filter(id=data['wizard_info_list'][0]['guild_id'])
+            if guild.exists():
+                defense['wizard'].guild = guild.first()
+                defense['wizard'].save()
             obj.save()
 
         return True

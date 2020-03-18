@@ -67,11 +67,12 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
             'success_rate': round(wins_comp * 100 / runs_comp, 2),
         }
 
-        # sort descending by 'ranking' formula: win_rate / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
-            record['sorting_val'] = (record['success_rate'] / 100 / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )))
+            record['sorting_val'] = (record['wins']**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
             if not base:
                 records.append(record)
             else:
@@ -141,7 +142,7 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=Fals
         else:
             monsters_in_comp = [mon.base_monster for mon in comp]
 
-        most_freq_rating = runs.values('win', 'clear_rating').annotate(rank=Count('clear_rating')).order_by('-win').first()['clear_rating']
+        most_freq_rating = runs.values('win', 'clear_rating').annotate(wins=Count('clear_rating')).order_by('-wins').first()['clear_rating']
 
         record = {
             'comp': monsters_in_comp,
@@ -154,11 +155,12 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=Fals
             'dmg_avg': round(runs.aggregate(avg_dmg=Avg('dmg_total'))['avg_dmg']),
         }
 
-        # sort descending by 'ranking' formula: win_rate / math.exp((dmg_avg * rating) / -(highest_damage * SSS) )
-        # rating - most frequest rating; SSS - 12
-        # visualization for highest_damage = 6000000: https://www.wolframalpha.com/input/?i=y%2Fexp%28%28x%29%2F-%286000000%29%29+for+x%3D1..6000000%2C+y%3D0..1
+        # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # 60 - seconds in one minute;
+        # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
-            record['sorting_val'] = ((record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) )))
+            record['sorting_val'] = (record['wins']**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
             if not base:
                 records.append(record)
             else:
@@ -204,11 +206,12 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
             'success_rate': round(wins_comp * 100 / runs_comp, 2),
         }
 
-        # sort descending by 'ranking' formula: win_rate / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
-            record['sorting_val'] = (record['success_rate'] / 100 / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )))
+            record['sorting_val'] = (record['wins']**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
             if not base:
                 records.append(record)
             else:

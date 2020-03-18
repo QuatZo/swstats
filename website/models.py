@@ -695,7 +695,10 @@ class SiegeRecord(models.Model):
     def save(self, *args, **kwargs):
         if self.monsters.all().count() != 3:
             self.full = False
+        else:
+            self.full = True
         super().save(*args, **kwargs)
+
     def __str__(self):
         return str(self.id) + ' (' + str(self.win) + '/' + str(self.lose) + ')'
 
