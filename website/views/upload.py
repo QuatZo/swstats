@@ -566,31 +566,36 @@ class UploadViewSet(viewsets.ViewSet):
 
     def handle_friend_upload(self, data):
         temp_wizard = data['friend']
-        logger.debug(f"[Friend Upload] Checking if profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) exists...")
-        # don't overwrite complete data with incomplete
-        if Wizard.objects.filter(id=temp_wizard['wizard_id']).exists():
-            logger.debug(f"[Friend Upload] Profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) exists... Ending... ")
-            return
+        try:
 
-        logger.debug(f"[Friend Upload] Profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) does NOT exists. Starting first-time profile upload")
-        wizard = self.parse_wizard(temp_wizard, data['tvalue'])
-        obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
+            logger.debug(f"[Friend Upload] Checking if profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) exists...")
+            # don't overwrite complete data with incomplete
+            if Wizard.objects.filter(id=temp_wizard['wizard_id']).exists():
+                logger.debug(f"[Friend Upload] Profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) exists... Ending... ")
+                return
 
-        temp_runes = list()
-        for monster in temp_wizard['unit_list']:
-            for rune in monster['runes']:
-                temp_runes.append(rune)
+            logger.debug(f"[Friend Upload] Profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) does NOT exists. Starting first-time profile upload")
+            wizard = self.parse_wizard(temp_wizard, data['tvalue'])
+            obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
 
-        for temp_rune in temp_runes:
-            self.parse_rune(temp_rune)
+            temp_runes = list()
+            for monster in temp_wizard['unit_list']:
+                for rune in monster['runes']:
+                    temp_runes.append(rune)
 
-        for temp_monster in temp_wizard['unit_list']:
-            self.parse_monster(temp_monster, temp_wizard['building_list'], )
+            for temp_rune in temp_runes:
+                self.parse_rune(temp_rune)
 
-        self.parse_wizard_buildings(temp_wizard['deco_list'], wizard['id'])
+            for temp_monster in temp_wizard['unit_list']:
+                self.parse_monster(temp_monster, temp_wizard['building_list'], )
 
-        logger.debug(f"[Friend Upload] Fully uploaded profile for {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']})")
+            self.parse_wizard_buildings(temp_wizard['deco_list'], wizard['id'])
 
+            logger.debug(f"[Friend Upload] Fully uploaded profile for {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']})")
+        except KeyError as e:
+            logger.debug(f"[Friend Upload] Encountered error while trying to upload friend profile:", e)
+            log_request_data(data)
+        
     def handle_raid_start_upload(self, data):
         logger.debug(f"New Raid has been started")
         obj, created = RaidBattleKey.objects.get_or_create(battle_key=data['battle_info']['battle_key'], defaults={
