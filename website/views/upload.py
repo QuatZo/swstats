@@ -501,19 +501,19 @@ class UploadViewSet(viewsets.ViewSet):
         if not guild_uptodate:
             self.parse_guild(data['guild']['guild_info'], data['guildwar_ranking_stat']['best'], data['tvalue'])
 
-        logger.debug(f"Checking if profile {data['wizard_info']['wizard_name']} (ID: {data['wizard_info']['wizard_id']}) exists...")
+        logger.debug(f"Checking if profile {data['wizard_info']['wizard_id']} exists...")
         wiz = Wizard.objects.filter(id=data['wizard_info']['wizard_id'])
         wizard_uptodate = False
         if wiz.exists():
-            logger.debug(f"Profile {data['wizard_info']['wizard_name']} (ID: {data['wizard_info']['wizard_id']}) exists... Checking if it's up-to-date...")
+            logger.debug(f"Profile {data['wizard_info']['wizard_id']} exists... Checking if it's up-to-date...")
             wizard = wiz.filter(last_update__gte=datetime.datetime.utcfromtimestamp(data['tvalue']))
             if wizard.exists():
-                logger.debug(f"Wizard profile {data['wizard_info']['wizard_name']} (ID: {data['wizard_info']['wizard_id']}) is up-to-date")
+                logger.debug(f"Wizard profile {data['wizard_info']['wizard_id']} is up-to-date")
                 wizard_uptodate = True
             else:
-                logger.debug(f"Updating profile {data['wizard_info']['wizard_name']} (ID: {data['wizard_info']['wizard_id']})")
+                logger.debug(f"Updating profile {data['wizard_info']['wizard_id']}")
         else:
-            logger.debug(f"Profile {data['wizard_info']['wizard_name']} (ID: {data['wizard_info']['wizard_id']}) does NOT exists. Starting first-time profile upload")
+            logger.debug(f"Profile {data['wizard_info']['wizard_id']} does NOT exists. Starting first-time profile upload")
 
         if wizard_uptodate:
             return HttpResponse(status=status.HTTP_201_CREATED)
@@ -562,36 +562,43 @@ class UploadViewSet(viewsets.ViewSet):
         self.parse_wizard_homunculus(data['homunculus_skill_list'])
         self.parse_wizard_inventory(data['inventory_info'])
 
-        logger.debug(f"Fully uploaded profile for {data['wizard_info']['wizard_name']} (ID: {data['wizard_info']['wizard_id']})")
+        logger.debug(f"Fully uploaded profile for {data['wizard_info']['wizard_id']}")
 
     def handle_friend_upload(self, data):
         temp_wizard = data['friend']
+        if 'wizard_id' not in temp_wizard.keys():
+            if len(temp_wizard['unit_list']):
+                wizard_id = temp_wizard['unit_list'][0]['wizard_id']
+            else:
+                logger.debug(f"[Friend Upload] No Wizard ID. Ending...")
+                return
+        else:
+            wizard_id = temp_wizard['wizard_id']
         try:
-
-            logger.debug(f"[Friend Upload] Checking if profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) exists...")
+            logger.debug(f"[Friend Upload] Checking if profile {wizard_id} exists...")
             # don't overwrite complete data with incomplete
-            if Wizard.objects.filter(id=temp_wizard['wizard_id']).exists():
-                logger.debug(f"[Friend Upload] Profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) exists... Ending... ")
+            if Wizard.objects.filter(id=wizard_id).exists():
+                logger.debug(f"[Friend Upload] Profile {wizard_id} exists... Ending... ")
                 return
 
-            logger.debug(f"[Friend Upload] Profile {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']}) does NOT exists. Starting first-time profile upload")
+            logger.debug(f"[Friend Upload] Profile {wizard_id} does NOT exists. Starting first-time profile upload")
             wizard = self.parse_wizard(temp_wizard, data['tvalue'])
+            wizard['id'] = wizard_id
             obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
 
-            temp_runes = list()
-            for monster in temp_wizard['unit_list']:
-                for rune in monster['runes']:
-                    temp_runes.append(rune)
-
-            for temp_rune in temp_runes:
-                self.parse_rune(temp_rune)
-
             for temp_monster in temp_wizard['unit_list']:
-                self.parse_monster(temp_monster, temp_wizard['building_list'], )
+                good = True
+                for rune in temp_monster['runes']:
+                    if type(rune) is str:
+                        good = False
+                        break
+                    self.parse_rune(rune)
+                if good:
+                    self.parse_monster(temp_monster, temp_wizard['building_list'], )
 
             self.parse_wizard_buildings(temp_wizard['deco_list'], wizard['id'])
 
-            logger.debug(f"[Friend Upload] Fully uploaded profile for {temp_wizard['wizard_name']} (ID: {temp_wizard['wizard_id']})")
+            logger.debug(f"[Friend Upload] Fully uploaded profile for {wizard_id}")
         except KeyError as e:
             logger.debug(f"[Friend Upload] Encountered error while trying to upload friend profile:", e)
             log_request_data(data)
@@ -606,7 +613,7 @@ class UploadViewSet(viewsets.ViewSet):
 
     def handle_dungeon_run_upload(self, data_resp, data_req):
         command = data_resp['command']
-        logger.debug(f"Starting Battle Dungeon Result upload for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+        logger.debug(f"Starting Battle Dungeon Result upload for {data_resp['wizard_info']['wizard_id']}")
         dungeon = dict()
         wizard, created = Wizard.objects.update_or_create(id=data_resp['wizard_info']['wizard_id'], defaults=self.parse_wizard(data_resp['wizard_info'], data_resp['tvalue']))
         dungeon['wizard'] = Wizard.objects.get(id=data_resp['wizard_info']['wizard_id'])
@@ -656,7 +663,7 @@ class UploadViewSet(viewsets.ViewSet):
         obj, created = DungeonRun.objects.update_or_create(wizard=dungeon['wizard'], date=dungeon['date'], defaults=dungeon)
         obj.monsters.set(monsters)
         obj.save()
-        logger.debug(f"Successfuly created Battle Dungeon Result for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+        logger.debug(f"Successfuly created Battle Dungeon ({dungeon['dungeon']}) Result for {data_resp['wizard_info']['wizard_id']}")
         return True
 
     def handle_rift_dungeon_start_upload(self, data_resp, data_req):
@@ -677,7 +684,7 @@ class UploadViewSet(viewsets.ViewSet):
         obj, created = RiftDungeonRun.objects.update_or_create(battle_key=dungeon['battle_key'], defaults=dungeon)
         obj.monsters.set(monsters)
         obj.save()
-        logger.debug(f"Successfuly created Rift Dungeon Start for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+        logger.debug(f"Successfuly created Rift Dungeon ({dungeon['dungeon']}) Start for {data_resp['wizard_info']['wizard_id']}")
 
     def handle_rift_dungeon_run_upload(self, data_resp, data_req):
         dungeon = dict()
@@ -770,7 +777,7 @@ class UploadViewSet(viewsets.ViewSet):
 
     def handle_dimension_hole_run_upload(self, data_resp, data_req):
         command = data_resp['command']
-        logger.debug(f"Starting Dimension Hole Run upload for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+        logger.debug(f"Starting Dimension Hole Run upload for {data_resp['wizard_info']['wizard_id']}")
         dungeon = dict()
         wizard, created = Wizard.objects.update_or_create(id=data_resp['wizard_info']['wizard_id'], defaults=self.parse_wizard(data_resp['wizard_info'], data_resp['tvalue']))
         dungeon['id'] = data_req['battle_key']
@@ -808,7 +815,7 @@ class UploadViewSet(viewsets.ViewSet):
         obj, created = DimensionHoleRun.objects.update_or_create(id=data_req['battle_key'], defaults=dungeon)
         obj.monsters.set(monsters)
         obj.save()
-        logger.debug(f"Successfuly created Dimension Hole Run for {data_resp['wizard_info']['wizard_name']} (ID: {data_resp['wizard_info']['wizard_id']})")
+        logger.debug(f"Successfuly created Dimension Hole ({dungeon['dungeon']}) Run for {data_resp['wizard_info']['wizard_id']}")
 
     def create(self, request):
         # prepare dictionaries for every command
