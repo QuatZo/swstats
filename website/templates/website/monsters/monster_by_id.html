@@ -138,7 +138,7 @@
 						{% for dungeon in records.dungeons|concat_arrays:records.rifts %}
 							{% if dungeon|is_rift_beast %}
 								<a href="{% url 'rift_dungeon_by_stage' name=dungeon|dungeon_to_div_id %}">
-									<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %}/>
+									<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
 								</a>
 							{% else %}
 								<a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=dungeon.stage %}">
