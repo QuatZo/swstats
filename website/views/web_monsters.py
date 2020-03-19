@@ -217,6 +217,21 @@ def get_monster_rank_stats(monsters, monster, stat, count):
 
     return rank
 
+# specific monster records
+def get_monster_records(monster):
+    siege = monster.siege_defense_monsters.all()
+    dungeons = monster.dungeon_monsters.all().distinct('dungeon')
+    rifts = monster.rift_dungeon_monsters.all().distinct('dungeon')
+    has_records = False
+    if siege.exists()  or dungeons.exists() or rifts.exists():
+        has_records = True
+    return {
+        'siege': siege,
+        'dungeons': dungeons,
+        'rifts': rifts,
+        'has': has_records,
+    }
+
 # views
 @cache_page(CACHE_TTL)
 def get_monsters(request):
@@ -348,7 +363,7 @@ def get_monsters(request):
 @cache_page(CACHE_TTL)
 def get_monster_by_id(request, arg_id):
     monsters = Monster.objects.all().order_by('-avg_eff')
-    monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster'), id=arg_id)
+    monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
     
     rta_monsters = RuneRTA.objects.filter(monster=arg_id).prefetch_related('rune', 'rune__rune_set', 'monster', 'monster__base_monster')
     rta_build = list()
@@ -414,6 +429,7 @@ def get_monster_by_id(request, arg_id):
         'similar': monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family, avg_eff__range=[monster.avg_eff - 20, monster.avg_eff + 20]).exclude(id=monster.id).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family'),
         'rta_similar': rta_similar_builds,
         'decks': Deck.objects.all().filter(monsters__id=monster.id).prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster'),
+        'records': get_monster_records(monster),
     }
 
     return render( request, 'website/monsters/monster_by_id.html', context )

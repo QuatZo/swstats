@@ -6,7 +6,7 @@
         <div class="card-header dungeon-header">
             <img class="dungeon-header-img" src={% static 'website/images/monsters/'|get_monster_avatar:card.base_monster %} />
             {{ card.base_monster }} 
-            <span style="position: relative; float: right; top: 40%; right: 10px;">
+            <span class="homunculus-card-link">
                 <a href="{% url 'homunculus_by_base' base=card.base_monster.id %}" style="position: relative; float: right;">More</a>
             </span>
         </div>

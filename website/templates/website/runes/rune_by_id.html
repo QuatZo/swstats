@@ -20,18 +20,18 @@
 			</button>
 		</div>
 		<div class="row collapse" id="substat-row">
-			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.normal.efficiency value=rune.efficiency|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Flat HP' rank=ranks.normal.hp_flat value=rune.sub_hp_flat|rune_grinded_val:True|add_reverse_str:'+' %}
-			{% include "website/runes/rune_card.html" with header='HP%' rank=ranks.normal.hp value=rune.sub_hp|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Flat ATK' rank=ranks.normal.atk_flat value=rune.sub_atk_flat|rune_grinded_val:True|add_reverse_str:'+' %}
-			{% include "website/runes/rune_card.html" with header='ATK%' rank=ranks.normal.atk value=rune.sub_atk|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Flat DEF' rank=ranks.normal.def_flat value=rune.sub_def_flat|rune_grinded_val:True|add_reverse_str:'+' %}
-			{% include "website/runes/rune_card.html" with header='DEF%' rank=ranks.normal.def value=rune.sub_def|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.normal.speed value=rune.sub_speed|rune_grinded_val:True %}
-			{% include "website/runes/rune_card.html" with header='Critical Rate' rank=ranks.normal.crit_rate value=rune.sub_crit_rate|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Critical Damage' rank=ranks.normal.crit_dmg value=rune.sub_crit_dmg|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Resistance' rank=ranks.normal.res value=rune.sub_res|rune_grinded_val:True|add_str:'%' %}
-			{% include "website/runes/rune_card.html" with header='Accuracy' rank=ranks.normal.acc value=rune.sub_acc|rune_grinded_val:True|add_str:'%' %}
+			{% if ranks.normal.efficiency %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.normal.efficiency value=rune.efficiency|add_str:'%' %}{% endif %}
+			{% if ranks.normal.hp_flat %}{% include "website/runes/rune_card.html" with header='Flat HP' rank=ranks.normal.hp_flat value=rune.sub_hp_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
+			{% if ranks.normal.hp %}{% include "website/runes/rune_card.html" with header='HP%' rank=ranks.normal.hp value=rune.sub_hp|rune_grinded_val:True|add_str:'%' %}{% endif %}
+			{% if ranks.normal.atk_flat %}{% include "website/runes/rune_card.html" with header='Flat ATK' rank=ranks.normal.atk_flat value=rune.sub_atk_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
+			{% if ranks.normal.atk %}{% include "website/runes/rune_card.html" with header='ATK%' rank=ranks.normal.atk value=rune.sub_atk|rune_grinded_val:True|add_str:'%' %}{% endif %}
+			{% if ranks.normal.def_flat %}{% include "website/runes/rune_card.html" with header='Flat DEF' rank=ranks.normal.def_flat value=rune.sub_def_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
+			{% if ranks.normal.def %}{% include "website/runes/rune_card.html" with header='DEF%' rank=ranks.normal.def value=rune.sub_def|rune_grinded_val:True|add_str:'%' %}{% endif %}
+			{% if ranks.normal.speed %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.normal.speed value=rune.sub_speed|rune_grinded_val:True %}{% endif %}
+			{% if ranks.normal.crit_rate %}{% include "website/runes/rune_card.html" with header='Critical Rate' rank=ranks.normal.crit_rate value=rune.sub_crit_rate|rune_grinded_val:True|add_str:'%' %}{% endif %}
+			{% if ranks.normal.crit_dmg %}{% include "website/runes/rune_card.html" with header='Critical Damage' rank=ranks.normal.crit_dmg value=rune.sub_crit_dmg|rune_grinded_val:True|add_str:'%' %}{% endif %}
+			{% if ranks.normal.res %}{% include "website/runes/rune_card.html" with header='Resistance' rank=ranks.normal.res value=rune.sub_res|rune_grinded_val:True|add_str:'%' %}{% endif %}
+			{% if ranks.normal.acc %}{% include "website/runes/rune_card.html" with header='Accuracy' rank=ranks.normal.acc value=rune.sub_acc|rune_grinded_val:True|add_str:'%' %}{% endif %}
 		</div>
 
 		<div class="title-container">
@@ -43,12 +43,12 @@
 			</button>
 		</div>
 		<div class="row collapse" id="substat-categorized-row">
-			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_slot value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot %}
-			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_set value=rune.efficiency|add_str:'%' categorized=True category="set "|add_str:rune.rune_set %}
-			{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_both value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}
-			{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_slot value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot %}
-			{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_set value=rune.sub_speed|rune_grinded_val:True categorized=True category="set "|add_str:rune.rune_set %}
-			{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_both value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}
+			{% if ranks.categorized.efficiency_slot %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_slot value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot %}{% endif %}
+			{% if ranks.categorized.efficiency_set %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_set value=rune.efficiency|add_str:'%' categorized=True category="set "|add_str:rune.rune_set %}{% endif %}
+			{% if ranks.categorized.efficiency_both %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_both value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}{% endif %}
+			{% if ranks.categorized.speed_slot %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_slot value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot %}{% endif %}
+			{% if ranks.categorized.speed_set %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_set value=rune.sub_speed|rune_grinded_val:True categorized=True category="set "|add_str:rune.rune_set %}{% endif %}
+			{% if ranks.categorized.speed_both %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_both value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}{% endif %}
 		</div>
 
 		{% if rune.equipped_runes or rta_monster %}

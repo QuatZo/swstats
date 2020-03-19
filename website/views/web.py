@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, render
-from django.db.models import F, Q, Avg, Min, Max, Sum, Count
+from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField
 
 from website.models import *
 
@@ -108,16 +108,16 @@ def get_homunculus_skill_description(homunculuses):
 # siege
 def get_siege_records_group_by_family(records):
     """Return name, amount of families and quantity of monsters for every family in given siege records."""
-    group_by_family = records.values('monsters__base_monster__family__name').annotate(total=Count('monsters__base_monster__family__name')).order_by('-total')
+    family_monsters = dict()
+    
+    for record in records:
+        for monster in record.monsters.all():
+            if monster.base_monster.family.name not in family_monsters.keys():
+                family_monsters[monster.base_monster.family.name] = 0
+            family_monsters[monster.base_monster.family.name] += 1
 
-    family_name = list()
-    family_count = list()
-
-    for group in group_by_family:
-        family_name.append(group['monsters__base_monster__family__name'])
-        family_count.append(group['total'])
-
-    return { 'name': family_name, 'quantity': family_count, 'length': len(family_name) }
+    family_monsters = {k: family_monsters[k] for k in sorted(family_monsters, key=family_monsters.get, reverse=True)}
+    return { 'name': list(family_monsters.keys()), 'quantity': list(family_monsters.values()), 'length': len(family_monsters.keys()) }
 
 def get_siege_records_group_by_ranking(records):
     """Return ranking, amount of records and quantity of records for every ranking in given siege records."""
@@ -139,12 +139,17 @@ def get_siege_records_group_by_ranking(records):
 def get_homepage(request):
     """Return the homepage with carousel messages & introduction."""
     runes = Rune.objects.all()
-    monsters = Monster.objects.all()
     rune_best = runes.order_by('-efficiency').first()
     rune_equipped = Rune.objects.filter(equipped=True).count()
+
+    monsters = Monster.objects.all()
     monster_best = monsters.order_by('-avg_eff').first()
     monster_cdmg = monsters.order_by('-crit_dmg').first()
     monster_speed = monsters.order_by('-speed').first()
+    
+    giants_fastest = DungeonRun.objects.filter(dungeon=8001, stage=10).order_by('clear_time').first()
+    dragons_fastest = DungeonRun.objects.filter(dungeon=9001, stage=10).order_by('clear_time').first()
+    necropolis_fastest = DungeonRun.objects.filter(dungeon=6001, stage=10).order_by('clear_time').first()
 
     MESSAGES = [
         {
@@ -179,6 +184,27 @@ def get_homepage(request):
             'text': f'Can something be faster than Flash? Yes! Such a monster is {str(monster_speed)} with an amazing {monster_speed.speed if monster_speed else 0} SPD',
             'type': 'monster',
             'arg': monster_speed.id if monster_speed else 0,
+        },
+        {
+            'id': 6,
+            'title': 'Fastest Giant\'s Keep B10 Run',
+            'text': f'You don\'t believe it! Someone beat Giant\'s Keep B10 in {int(giants_fastest.clear_time.total_seconds())} seconds!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(giants_fastest.dungeon), 'stage': 10},
+        },
+        {
+            'id': 7,
+            'title': 'Fastest Dragon\'s Lair B10 Run',
+            'text': f'Wait, what!? Someone set up Dragon B10 on fire in just {int(dragons_fastest.clear_time.total_seconds())} seconds. Incredible!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(dragons_fastest.dungeon), 'stage': 10},
+        },
+        {
+            'id': 8,
+            'title': 'Fastest Necropolis B10 Run',
+            'text': f'The Ancient Lich King was alive only for {int(necropolis_fastest.clear_time.total_seconds())} seconds after resurrection!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(necropolis_fastest.dungeon), 'stage': 10},
         },
     ]
 
@@ -338,6 +364,8 @@ def get_siege_records(request):
     min_records_count = min(100, records_count)
 
     best_records = records.order_by('-win')[:min_records_count].prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster')
+
+    best_records = records.prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster').annotate(sorting_val=Sum((F('win') + 250) * F('ratio'), output_field=FloatField())).order_by('-sorting_val')[:min_records_count]
 
     context = {
         # filters

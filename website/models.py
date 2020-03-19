@@ -586,7 +586,7 @@ class DungeonRun(models.Model):
     stage = models.IntegerField() # stage_id, request
     win = models.BooleanField() # win_lose, request & response
     clear_time = models.DurationField(null=True, blank=True, db_index=True) # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
-    monsters = models.ManyToManyField(Monster, db_index=True) # unit_list, response
+    monsters = models.ManyToManyField(Monster, db_index=True, related_name='dungeon_monsters') # unit_list, response
     date = models.DateTimeField(db_index=True) # tvalue
 
     def __str__(self):
@@ -647,7 +647,7 @@ class RiftDungeonRun(models.Model):
     dmg_phase_glory = models.IntegerField(default=0) # BattleRiftDungeonResult, request, round_list[1][1]
     dmg_phase_2 = models.IntegerField(default=0) # BattleRiftDungeonResult, request, round_list[2][1]
     dmg_total =  models.IntegerField(db_index=True) # overrided save function
-    monsters = models.ManyToManyField(Monster, db_index=True) # BattleRiftDungeonStart, request, unit_id_list
+    monsters = models.ManyToManyField(Monster, db_index=True, related_name='rift_dungeon_monsters') # BattleRiftDungeonStart, request, unit_id_list
     date = models.DateTimeField(null=True, blank=True, db_index=True) # BattleRiftDungeonStart, response, tvalue
 
     # override save function, to calculate total dmg automatically
@@ -727,7 +727,7 @@ class DimensionHoleRun(models.Model):
     win = models.BooleanField() # win_lose, response
     practice = models.BooleanField() # practice_mode, response
     clear_time = models.DurationField(null=True, blank=True, db_index=True) # response; clear_time.current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
-    monsters = models.ManyToManyField(Monster, db_index=True, related_name="monsters_in_run", related_query_name="monsters_in_comp") # unit_id_list; request
+    monsters = models.ManyToManyField(Monster, db_index=True, related_name="dimhole_monsters", related_query_name="dimhole_monsters") # unit_id_list; request
     date = models.DateTimeField(db_index=True) # tvalue; response
 
     def __str__(self):

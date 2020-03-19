@@ -156,7 +156,7 @@ def get_rune_rank_eff(runes, rune):
     """Return place of rune based on efficiency."""
     return runes.filter(efficiency__gte=rune.efficiency).count()
 
-def get_rune_rank_substat(runes, rune, substat, count, filters=None):
+def get_rune_rank_substat(runes, rune, substat, filters=None):
     """Return place of rune based on given substat."""
     substats = {
         'sub_hp_flat': rune.sub_hp_flat,
@@ -173,7 +173,7 @@ def get_rune_rank_substat(runes, rune, substat, count, filters=None):
     }
 
     if substats[substat] is None:
-        return count
+        return None
 
     remaining_filters = ""
     if filters:
@@ -335,25 +335,25 @@ def get_rune_by_id(request, arg_id):
     ranks = {
         'normal': {
             'efficiency': get_rune_rank_eff(runes, rune),
-            'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat', runes_count),
-            'hp': get_rune_rank_substat(runes, rune, 'sub_hp', runes_count),
-            'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat', runes_count),
-            'atk': get_rune_rank_substat(runes, rune, 'sub_atk', runes_count),
-            'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat', runes_count),
-            'def': get_rune_rank_substat(runes, rune, 'sub_def', runes_count),
-            'speed': get_rune_rank_substat(runes, rune, 'sub_speed', runes_count),
-            'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate', runes_count),
-            'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg', runes_count),
-            'res': get_rune_rank_substat(runes, rune, 'sub_res', runes_count),
-            'acc': get_rune_rank_substat(runes, rune, 'sub_acc', runes_count),
+            'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat'),
+            'hp': get_rune_rank_substat(runes, rune, 'sub_hp'),
+            'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat'),
+            'atk': get_rune_rank_substat(runes, rune, 'sub_atk'),
+            'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat'),
+            'def': get_rune_rank_substat(runes, rune, 'sub_def'),
+            'speed': get_rune_rank_substat(runes, rune, 'sub_speed'),
+            'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate'),
+            'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg'),
+            'res': get_rune_rank_substat(runes, rune, 'sub_res'),
+            'acc': get_rune_rank_substat(runes, rune, 'sub_acc'),
         },
         'categorized': {
             'efficiency_slot': get_rune_rank_eff(runes_category_slot, rune),
             'efficiency_set': get_rune_rank_eff(runes_category_set, rune),
             'efficiency_both': get_rune_rank_eff(runes_category_both, rune),
-            'speed_slot': get_rune_rank_substat(runes_category_slot, rune, 'sub_speed', runes_count, ['slot']),
-            'speed_set': get_rune_rank_substat(runes_category_set, rune, 'sub_speed', runes_count, ['set']),
-            'speed_both': get_rune_rank_substat(runes_category_both, rune, 'sub_speed', runes_count, ['slot', 'set']),
+            'speed_slot': get_rune_rank_substat(runes_category_slot, rune, 'sub_speed', ['slot']),
+            'speed_set': get_rune_rank_substat(runes_category_set, rune, 'sub_speed', ['set']),
+            'speed_both': get_rune_rank_substat(runes_category_both, rune, 'sub_speed', ['slot', 'set']),
         }
     }
 

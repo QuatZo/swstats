@@ -15,6 +15,17 @@ from django.views.decorators.cache import cache_page
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 # dungeons
+def get_unique_comps(comps):
+    new_comps = list()
+    for comp in comps:
+        exists = False
+        for new_comp in new_comps:
+            if set(comp) == set(new_comp):
+                exists = True
+        if not exists:
+            new_comps.append(comp)
+    return new_comps
+
 def get_dungeon_runs_distribution(runs, parts):
     """Return sets of clear times in specific number of parts, to make Distribution chart."""
     if not runs.exists():
@@ -43,7 +54,8 @@ def get_dungeon_runs_distribution(runs, parts):
 
 def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
     records = list()
-    for comp in comps:
+
+    for comp in get_unique_comps(comps):
         runs = dungeon_runs
         for monster_comp in comp:
             if not base:
@@ -51,6 +63,7 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
             else:
                 runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
         
+        runs = runs.distinct()
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
 
@@ -72,7 +85,7 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
-            record['sorting_val'] = (record['wins']**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
             if not base:
                 records.append(record)
             else:
@@ -126,14 +139,17 @@ def get_rift_dungeon_damage_distribution(runs, parts):
 
 def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=False):
     records = list()
-    for comp in comps:
+
+
+    for comp in get_unique_comps(comps):
         runs = dungeon_runs
         for monster_comp in comp:
             if not base:
                 runs = runs.filter(monsters=monster_comp)
             else:
                 runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
-        
+
+        runs = runs.distinct()
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
 
@@ -160,7 +176,7 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=Fals
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
-            record['sorting_val'] = (record['wins']**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
+            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
             if not base:
                 records.append(record)
             else:
@@ -177,7 +193,7 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=Fals
 # dim hole
 def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
     records = list()
-    for comp in comps:
+    for comp in get_unique_comps(comps):
         runs = dungeon_runs
         
         for monster_comp in comp:
@@ -186,6 +202,7 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
             else:
                 runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
         
+        runs = runs.distinct()
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
 
@@ -211,7 +228,7 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
-            record['sorting_val'] = (record['wins']**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
             if not base:
                 records.append(record)
             else:

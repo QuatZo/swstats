@@ -179,52 +179,6 @@ body {
     flex: 0 0 calc(100% - 80px);
 }
 
-@media (max-width: 768px) {
-    .navbar.toggled .navbar-brand{
-        max-width: 100%;
-        min-width: 100%;
-    }
-    .navbar.toggled .text{
-        display: unset;
-    }
-
-    [role="main"],
-    .sidebar.toggled ~ [role="main"]
-    {
-        margin: 0 !important;
-        max-width: 100%;
-        flex: 100%;
-    }
-
-    .sidebar.toggled{
-        display: none;
-    }
-
-    .carousel, 
-    .carousel-inner, 
-    .carousel-item, 
-    .carousel-inner img
-    {
-        height: 40vh; 
-    }
-
-    .carousel-caption h5{
-        font-size: 6vw;
-    }
-    .carousel-caption p{
-        font-size: 3vw;
-    }
-
-    .carousel-content{
-        bottom: 5px;
-    }
-
-    .carousel-content .btn{
-        max-height: 50px;
-        font-size: 3vw;
-    }
-}
-
 .title-container{
     overflow: auto;
 }
@@ -275,8 +229,6 @@ tr.orig-quality-Ancient.Magic
     min-height: 180px;
     display: flex;
 }
-
-
 
 .chart-2{
     width: 45%;
@@ -480,12 +432,72 @@ h1.h2
     border: 1px solid #1112 !important;
     height: 100% !important;
     margin-bottom: 0;
-  }
+}
 
-  .building-done{
-      background-color: rgba(255, 0, 0, 0.35);
-  }
+.building-done{
+    background-color: rgba(255, 0, 0, 0.35);
+}
 
-  .calc-input{
-      width: 100%;
-  }
+.calc-input{
+    width: 100%;
+}
+
+.homunculus-card-link{
+    position: relative; 
+    float: right; 
+    top: 40%;
+    right: 10px;
+}
+
+@media (max-width: 768px) {
+    .navbar.toggled .navbar-brand{
+        max-width: 100%;
+        min-width: 100%;
+    }
+    .navbar.toggled .text{
+        display: unset;
+    }
+
+    [role="main"],
+    .sidebar.toggled ~ [role="main"]
+    {
+        margin: 0 !important;
+        max-width: 100%;
+        flex: 100%;
+    }
+
+    .sidebar.toggled{
+        display: none;
+    }
+
+    .carousel, 
+    .carousel-inner, 
+    .carousel-item, 
+    .carousel-inner img
+    {
+        height: 40vh; 
+    }
+
+    .carousel-caption h5{
+        font-size: 6vw;
+    }
+    .carousel-caption p{
+        font-size: 3vw;
+    }
+
+    .carousel-content{
+        bottom: 5px;
+    }
+
+    .carousel-content .btn{
+        max-height: 50px;
+        font-size: 3vw;
+    }
+
+    .homunculus-card-link{
+        position: relative; 
+        float: left;
+        top: unset;
+        right: unset;
+    }
+}

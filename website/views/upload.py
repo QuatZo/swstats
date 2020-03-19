@@ -544,6 +544,8 @@ class UploadViewSet(viewsets.ViewSet):
             wizard_guilds = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])
             if wizard_guilds.count() > 0:
                 wizard['guild'] = wizard_guilds.first()
+        else:
+            wizard['guild'] = None
         obj, created = Wizard.objects.update_or_create( id=wizard['id'], defaults=wizard, )
         ########################################
 
@@ -874,7 +876,7 @@ class UploadViewSet(viewsets.ViewSet):
                 return HttpResponse(f"Profile does NOT exists. Please, restart game in order to upload profile before doing anything else. Thank you!", status=status.HTTP_400_BAD_REQUEST)
         
         logger.error("Given request is invalid")
-        return HttpResponse(f"Given request is invalid", status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(f"Given request is invalid. Try updating plugin or contact QuatZo on Reddit", status=status.HTTP_400_BAD_REQUEST)
 
 class CommandViewSet(viewsets.ModelViewSet):
     serializer_class = CommandSerializer

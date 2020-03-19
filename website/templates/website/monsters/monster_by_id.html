@@ -1,7 +1,12 @@
 {% extends "website/base.html" %}
+{% load static %}
 {% load add_str %}
 {% load add_reverse_str %}
 {% load to_list %}
+{% load get_dungeon_avatar %}
+{% load is_rift_beast %}
+{% load dungeon_to_div_id %}
+{% load concat_arrays %}
 
 {% block content_title %}
 	{{ monster }} <br />
@@ -31,7 +36,6 @@
 			{% include "website/monsters/monster_card.html" with header="Effective HP" rank=ranks.normal.eff_hp value=monster.eff_hp %}
 			{% include "website/monsters/monster_card.html" with header="Effective HP While Def Broken" rank=ranks.normal.eff_hp_def_break value=monster.eff_hp_def_break %}
 		</div>
-
 		<div class="title-container">
 			<h2 class="title">
 				Monster's Categorized Cards
@@ -42,7 +46,7 @@
 		</div>
 		<div class="row collapse" id="monster-categorized-row">
 			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_base value=monster.avg_eff|add_str:"%" categorized=True category="base monster "|add_str:monster.base_monster %}
-			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_family value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.family_id|add_str:" family" %}
+			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_family value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.family|add_str:" family" %}
 			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_attribute value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.get_attribute_display|add_str:" attribute" %}
 			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_type value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.get_archetype_display|add_str:" type" %}
 			{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_attr_type value=monster.avg_eff|add_str:"%" categorized=True category="attribute "|add_str:monster.base_monster.get_attribute_display|add_str:" and "|add_str:monster.base_monster.get_archetype_display|add_str:" type" %}
@@ -103,6 +107,47 @@
 				{% for rta_similar_monster, rta_similar_build in rta_similar.items %}
 					{% include "website/monsters/monster_card_compressed.html" with name=rta_similar_monster|add_str:" (RTA Build)" monster=rta_similar_monster rta_runes=rta_similar_build %}
 				{% endfor %}
+			</div>
+		{% endif %}
+
+		{% if records.has %}
+			<div class="title-container">
+				<h2 class="title">
+					Monster Records
+				</h2>
+				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-records-row" aria-expanded="true" aria-controls="#monster-records-row"> 
+					Show/Hide 
+				</button>
+			</div>
+			<div class="collapse" id="monster-records-row">
+				{% if records.siege %}
+					<div class="title-container">
+						<h4 class="title">
+							Siege
+						</h4>
+					</div>
+					{% include "website/siege/siege_table.html" with records=records.siege text="" only_table=True %}
+				{% endif %}
+				{% if records.dungeons %}
+					<div class="title-container">
+						<h4 class="title">
+							Dungeons
+						</h4>
+					</div>
+					<div>
+						{% for dungeon in records.dungeons|concat_arrays:records.rifts %}
+							{% if dungeon|is_rift_beast %}
+								<a href="{% url 'rift_dungeon_by_stage' name=dungeon|dungeon_to_div_id %}">
+									<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %}/>
+								</a>
+							{% else %}
+								<a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=dungeon.stage %}">
+									<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
+								</a>
+							{% endif %}
+						{% endfor %}
+					</div>
+				{% endif %}
 			</div>
 		{% endif %}
 	{% else %}

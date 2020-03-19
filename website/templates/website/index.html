@@ -1,6 +1,7 @@
 {% extends "website/base.html" %}
 
 {% load static %}
+{% load dungeon_to_div_id %}
 
 {% block content_title%}
     Curiosity
@@ -23,6 +24,8 @@
                                             <a class="nav-link" href="{% url 'rune_by_id' arg_id=message.arg %}">Check this out!</a>
                                         {% elif message.type == 'monster' %}
                                             <a class="nav-link" href="{% url 'monster_by_id' arg_id=message.arg %}">Check this out!</a>
+                                        {% elif message.type == 'dungeon' %}
+                                            <a class="nav-link" href="{% url 'dungeon_by_stage' name=message.arg.dungeon|dungeon_to_div_id stage=message.arg.stage %}">Check this out!</a>
                                         {% endif %}
                                     </div>
                                 {% endif %}
