@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load dungeon_to_div_id %}
+{% load random_id %}
 
 {% block content_title%}
     Curiosity
@@ -11,28 +12,30 @@
     <div class="content">
         <div id="carouselCaptions" class="carousel slide" data-ride="carousel">
             <div class="carousel-inner">
-                {% for message in messages %}
-                    <div class="carousel-item {% if message.id == 1 %}active{% endif %}">
-                    <img src="{% static 'website/carousel.png' %}" class="d-block w-100" alt="...">
-                        <div class="carousel-caption">
-                            <div class="carousel-content">
-                                <h5>{{ message.title }}</h5>
-                                <p>{{ message.text }}</p>
-                                {% if message.arg %}
-                                    <div type="button" class="btn btn-outline-light">
-                                        {% if message.type == 'rune' %}
-                                            <a class="nav-link" href="{% url 'rune_by_id' arg_id=message.arg %}">Check this out!</a>
-                                        {% elif message.type == 'monster' %}
-                                            <a class="nav-link" href="{% url 'monster_by_id' arg_id=message.arg %}">Check this out!</a>
-                                        {% elif message.type == 'dungeon' %}
-                                            <a class="nav-link" href="{% url 'dungeon_by_stage' name=message.arg.dungeon|dungeon_to_div_id stage=message.arg.stage %}">Check this out!</a>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
+                {% with ids|random_id as be_active %}
+                    {% for message in messages %}
+                        <div class="carousel-item {% if message.id == be_active %}active{% endif %}">
+                        <img src="{% static 'website/carousel.png' %}" class="d-block w-100" alt="...">
+                            <div class="carousel-caption">
+                                <div class="carousel-content">
+                                    <h5>{{ message.title }}</h5>
+                                    <p>{{ message.text }}</p>
+                                    {% if message.arg %}
+                                        <div type="button" class="btn btn-outline-light">
+                                            {% if message.type == 'rune' %}
+                                                <a class="nav-link" href="{% url 'rune_by_id' arg_id=message.arg %}">Check this out!</a>
+                                            {% elif message.type == 'monster' %}
+                                                <a class="nav-link" href="{% url 'monster_by_id' arg_id=message.arg %}">Check this out!</a>
+                                            {% elif message.type == 'dungeon' %}
+                                                <a class="nav-link" href="{% url 'dungeon_by_stage' name=message.arg.dungeon|dungeon_to_div_id stage=message.arg.stage %}">Check this out!</a>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                {% endwith %}
                 <a class="carousel-control-prev" href="#carouselCaptions" role="button" data-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="sr-only">Previous</span>

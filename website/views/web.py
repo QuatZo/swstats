@@ -135,7 +135,7 @@ def get_siege_records_group_by_ranking(records):
     return { 'ids': ranking_id, 'name': ranking_name, 'quantity': ranking_count, 'length': len(ranking_id) }
 
 # Create your views here.
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL)
 def get_homepage(request):
     """Return the homepage with carousel messages & introduction."""
     runes = Rune.objects.all()
@@ -161,8 +161,8 @@ def get_homepage(request):
         },
         {
             'id': 2,
-            'title': 'Equipped runes',
-            'text': f'From {runes.count()} runes in database, only {rune_equipped} are equipped. it gives us {round((1 - rune_equipped / runes.count())* 100, 2) if runes.count() else 0}% \'useless\' runes.',
+            'title': 'Database',
+            'text': f'Our datbase contains {runes.count()} runes and {monsters.count()} monsters.',
         },
         {
             'id': 3,
@@ -208,8 +208,11 @@ def get_homepage(request):
         },
     ]
 
+    ids = [el['id'] for el in MESSAGES]
+
     context = {
         'messages': MESSAGES,
+        'ids': ids,
     }
 
     return render( request, 'website/index.html', context )

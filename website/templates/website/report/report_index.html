@@ -1,0 +1,46 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    Report Generator
+{% endblock %}
+
+{% block content %} 
+    <form method="POST" id="report-upload">
+        {% csrf_token %}
+        <select name="base-monster" id="base-monster">
+            {% for monster in base_monsters %}
+                <option value="{{ monster.id }}">{{ monster }}
+            {% endfor %}
+        </select>
+        <input type="submit" value="Generate Report" class="btn btn-secondary">
+    </form>
+    <div id='report-generator'>
+        {% csrf_token %}
+    </div>
+{% endblock %}
+
+{% block jquery %}
+<script>
+    var url = "/api/reportgenerator/"
+    $("#report-upload").submit(function(e) {
+        e.preventDefault();
+        $('#report-generator').text("Loading, please wait...");
+        $.ajax({
+            type: "POST",
+            url: url,
+            contentType: 'application/json',
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            data: $('#base-monster').val(),
+            success: function(data) {
+                $('#report-generator').html(data);
+            },
+            error: function(){
+                $('#report-generator').html("<h2>Something went wrong. Check Server Logs.</h2>");
+            }
+        });
+        $('#profile-json').val('');
+        $('#profile-json').prev('label').text("Choose JSON File");
+    });
+</script>
+{% endblock %}

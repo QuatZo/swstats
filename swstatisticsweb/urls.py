@@ -24,6 +24,7 @@ router = routers.DefaultRouter()
 router.register(r'upload', views.UploadViewSet, 'upload')
 router.register(r'command', views.CommandViewSet, 'command')
 router.register(r'desktopupload', views.DesktopUploadViewSet, 'desktopupload')
+router.register(r'reportgenerator', views.ReportGeneratorViewSet, 'reportgenerator')
 
 if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabled ( i.e. when in need to update whole Database )
     router.register(r'monsterfamilyupload', views.MonsterFamilyUploadViewSet, 'monsterfamilyupload')
@@ -68,6 +69,8 @@ urlpatterns = [
     path('dimholecalc/', views.get_dimhole_calculator, name='dimholecalc'),
 
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
+
+    path('report/', views.get_report, name='report'),
 ]
 
 if settings.DEBUG:

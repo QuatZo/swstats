@@ -6,8 +6,6 @@ from django.template.loader import render_to_string
 import logging
 
 from website.models import *
-from website.serializers import CommandSerializer
-from website.exceptions import ProfileDoesNotExist
 
 import copy
 import math
@@ -389,7 +387,6 @@ class DesktopUploadViewSet(viewsets.ViewSet):
         # upload by using ajax, focused on stuff that Desktop App had
         context = { }
 
-        # temporarily
         if request.is_ajax():
             data = request.data
             if 'command' in data.keys() and data['command'] != 'HubUserLogin':
@@ -403,8 +400,6 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                         'monsters': self.parse_monsters(data['unit_list'], data['unit_lock_list'], data['world_arena_rune_equip_list']),
                         'runes': self.parse_runes(data['runes'], runes_equipped, data['rune_lock_list'], data['world_arena_rune_equip_list']),
                         # 'rta': self.parse_rta(request.data), # not sure if needed
-                        # 'dim_hole': self.dimension_hole_calculator(request.data), # not sure if worth
-                        # 'buildings': self.something_here(some_arguments),
                         'guild': self.parse_guild(data['guild'], data['guildwar_ranking_stat'], data['guild_member_defense_list']),
                         'friends': self.parse_friends(data['friend_list']),
                     }
