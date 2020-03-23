@@ -1,1 +1,12 @@
-<h3>{{ base_monster }}</h3>
+{% load add_str %}
+<button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download CSV</button>
+{% include "website/report/report_monster_table.html" with monsters=monsters %}
+
+<script>
+$("#download-csv").click(function() {
+    $("#monster-table").table2csv({
+        file_name:'jqueryscript.csv',
+        header_body_space: 0
+    });
+})
+</script>

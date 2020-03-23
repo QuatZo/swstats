@@ -5,24 +5,17 @@
 {% load add_reverse_str %}
 {% load get_monster_avatar %}
 {% load get_sets %}
+{% load get_set_names %}
 
-<div class="title-container">
-    <h2 class="title">
-        {{ text }}
-        
-    </h2>
-    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
-        Show/Hide 
-    </button>
-</div>
-<div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
+<div class="table-responsive">
     <table class="table table-hover table-sm" id="monster-table">
         <thead>
             <tr>
+                <th scope="col">ID</th>
                 <th scope="col">Monster</th>
                 <th scope="col">Level</th>
+                <th scope="col">Type</th>
                 <th scope="col">Stars</th>
-                <th scope="col">Nat</th>
                 <th scope="col">HP</th>
                 <th scope="col">Attack</th>
                 <th scope="col">Defense</th>
@@ -39,39 +32,37 @@
                 <th scope="col">Acquired</th>
                 <th scope="col">Awakened</th>
                 <th scope="col">Locked</th>
+                <th scope="col">Transmogrified</th>
             </tr>
         </thead>
         <tbody>
             {% for monster in monsters %}
                 <tr onclick="goToMonster('{% url "monster_by_id" arg_id=monster.id %}')" style="cursor: pointer;">
+                    <td>{{ monster.id }}</td>
                     <td><a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
                             <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar-min"/>
                         </a>
                         {{ monster.base_monster }}
                     </td>
                     <td>{{ monster.level }}</td>
-                    <td>{{ monster.stars }}*</td>
-                    <td>{{ monster.base_monster.base_class }}*</td>
+                    <td>{{ monster.base_monster.get_archetype_display }}</td>
+                    <td>{{ monster.stars }}</td>
                     <td>{{ monster.hp }}</td>
                     <td>{{ monster.attack }}</td>
                     <td>{{ monster.defense }}</td>
                     <td>{{ monster.speed }}</td>
-                    <td>{{ monster.res }}%</td>
-                    <td>{{ monster.acc }}%</td>
-                    <td>{{ monster.crit_rate }}%</td>
-                    <td>{{ monster.crit_dmg }}%</td>
-                    <td>{{ monster.avg_eff }}%</td>
+                    <td>{{ monster.res }}</td>
+                    <td>{{ monster.acc }}</td>
+                    <td>{{ monster.crit_rate }}</td>
+                    <td>{{ monster.crit_dmg }}</td>
+                    <td>{{ monster.avg_eff }}</td>
                     <td>{{ monster.eff_hp }}</td>
                     <td>{{ monster.eff_hp_def_break }}</td>
                     <td>
-                        {% if monster.runes.count > 0%}
+                        {% if monster.runes.count > 0 %}
                             {% with monster.runes.all|get_sets as sets %}
-                                {% if not sets %}
-                                    Full Broken
-                                {% else %}
-                                    {% for set in sets %}
-                                        <img src="{% static 'website/images/runes/'|add_str:set|lower|add_str:".png" %}" class="table-monster-avatar-min" />
-                                    {% endfor %}
+                                {% if sets %}
+                                    {{ monster.runes.all|get_set_names }}
                                 {% endif %}
                             {% endwith %}
                         {% else %}
@@ -79,29 +70,34 @@
                         {% endif %}
                     </td>
                     <td>{% if monster|check_skillups %}
-                            <span data-feather="check" style="color: green;"></span>
+                            True
                         {% else %}
-                            <span data-feather="slash" style="color: red;"></span>
+                            False
                         {% endif %}
                     </td>
 
                     <td>{{ monster.created|international_date }}</td>
                     <td>{% if monster.base_monster.awaken %}
-                            <span data-feather="check" style="color: green;"></span>
+                            True
                         {% else %}
-                            <span data-feather="slash" style="color: red;"></span>
+                            False
                         {% endif %}
                     </td>
                     <td> {% if monster.locked %}
-                        <span data-feather="check" style="color: green;"></span>
+                            True
                         {% else %}
-                        <span data-feather="slash" style="color: red;"></span>
+                            False
+                        {% endif %}
+                    </td>     
+                    <td> {% if monster.transmog %}
+                            True
+                        {% else %}
+                            False
                         {% endif %}
                     </td>                    
                 </tr>
             {% endfor %}
             <script>
-                feather.replace()
                 function goToMonster(href){
                     document.location.href = document.location.origin + href;
                 }

@@ -21,6 +21,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
             # there will be a report generator
             context = {
                 'base_monster': MonsterBase.objects.get(id=data),
+                'monsters': Monster.objects.filter(base_monster__id=data)
             }
             ########################################
             html = render_to_string('website/report/report_generate.html', context)

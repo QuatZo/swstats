@@ -1,4 +1,5 @@
 {% extends "website/base.html" %}
+{% load static %}
 {% load add_str %}
 
 {% block content_title %}
@@ -6,14 +7,16 @@
 {% endblock %}
 
 {% block content %} 
-    <form method="POST" id="report-upload">
+    <form method="POST" id="report-upload" class="form-group">
         {% csrf_token %}
-        <select name="base-monster" id="base-monster">
+        <label for="base-monster">Select Monster</label>
+        <select name="base-monster" id="base-monster" class="form-control">
             {% for monster in base_monsters %}
                 <option value="{{ monster.id }}">{{ monster }}
             {% endfor %}
         </select>
-        <input type="submit" value="Generate Report" class="btn btn-secondary">
+        <br />
+        <input type="submit" value="Generate Report" class="btn btn-secondary btn-block">
     </form>
     <div id='report-generator'>
         {% csrf_token %}
@@ -21,11 +24,12 @@
 {% endblock %}
 
 {% block jquery %}
+<script src="{% static 'website/js/table2csv.js' %}"></script>
 <script>
     var url = "/api/reportgenerator/"
     $("#report-upload").submit(function(e) {
         e.preventDefault();
-        $('#report-generator').text("Loading, please wait...");
+        $('#report-generator').text("Generating report, please wait...");
         $.ajax({
             type: "POST",
             url: url,
@@ -39,8 +43,6 @@
                 $('#report-generator').html("<h2>Something went wrong. Check Server Logs.</h2>");
             }
         });
-        $('#profile-json').val('');
-        $('#profile-json').prev('label').text("Choose JSON File");
     });
 </script>
 {% endblock %}
