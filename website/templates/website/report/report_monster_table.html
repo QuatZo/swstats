@@ -30,9 +30,11 @@
                 <th scope="col">Sets</th>
                 <th scope="col">Skilled Up</th>
                 <th scope="col">Acquired</th>
-                <th scope="col">Awakened</th>
                 <th scope="col">Locked</th>
                 <th scope="col">Transmogrified</th>
+                <th scope="col">HoH</th>
+                <th scope="col">HoH Date</th>
+                <th scope="col">Fusion</th>
             </tr>
         </thead>
         <tbody>
@@ -75,14 +77,7 @@
                             False
                         {% endif %}
                     </td>
-
                     <td>{{ monster.created|international_date }}</td>
-                    <td>{% if monster.base_monster.awaken %}
-                            True
-                        {% else %}
-                            False
-                        {% endif %}
-                    </td>
                     <td> {% if monster.locked %}
                             True
                         {% else %}
@@ -94,7 +89,10 @@
                         {% else %}
                             False
                         {% endif %}
-                    </td>                    
+                    </td>    
+                    <td>{{ hoh }}</td>
+                    <td>{% if hoh_date %}{{ hoh_date }}{% endif %}</td> 
+                    <td>{{ fusion }}</td>
                 </tr>
             {% endfor %}
             <script>

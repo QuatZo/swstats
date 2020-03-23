@@ -24,4 +24,4 @@ def get_set_names(runes):
         for i in range(equipped_set):
             set_names.append(key.name)
 
-    return '; '.join(set_names)
+    return ' + '.join(set_names)

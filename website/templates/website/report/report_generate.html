@@ -1,11 +1,11 @@
 {% load add_str %}
-<button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download CSV</button>
-{% include "website/report/report_monster_table.html" with monsters=monsters %}
+<button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download {{ filename }}</button>
+{% include "website/report/report_monster_table.html" with monsters=monsters hoh=hoh hoh_date=hoh_date fusion=fusion %}
 
 <script>
 $("#download-csv").click(function() {
     $("#monster-table").table2csv({
-        file_name:'jqueryscript.csv',
+        file_name: "{{ filename }}",
         header_body_space: 0
     });
 })
