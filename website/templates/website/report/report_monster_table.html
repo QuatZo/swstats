@@ -35,6 +35,12 @@
                 <th scope="col">HoH</th>
                 <th scope="col">HoH Date</th>
                 <th scope="col">Fusion</th>
+                <th scope="col">Rune #1</th>
+                <th scope="col">Rune #2</th>
+                <th scope="col">Rune #3</th>
+                <th scope="col">Rune #4</th>
+                <th scope="col">Rune #5</th>
+                <th scope="col">Rune #6</th>
             </tr>
         </thead>
         <tbody>
@@ -93,6 +99,13 @@
                     <td>{{ hoh }}</td>
                     <td>{% if hoh_date %}{{ hoh_date }}{% endif %}</td> 
                     <td>{{ fusion }}</td>
+                    {% for monster_runes in monsters_runes %}
+                        {% if monster_runes.monster == monster %}
+                            {% for rune in monster_runes.runes %}
+                                <td>{{ rune.get_primary_display }}</td>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </tbody>
