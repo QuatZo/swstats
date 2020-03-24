@@ -39,7 +39,7 @@
         </thead>
         <tbody>
             {% for monster in monsters %}
-                <tr onclick="goToMonster('{% url "monster_by_id" arg_id=monster.id %}')" style="cursor: pointer;">
+                <tr>
                     <td>{{ monster.id }}</td>
                     <td><a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
                             <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar-min"/>
@@ -65,10 +65,10 @@
                             {% with monster.runes.all|get_sets as sets %}
                                 {% if sets %}
                                     {{ monster.runes.all|get_set_names }}
+                                {% else %}
+                                    Broken
                                 {% endif %}
                             {% endwith %}
-                        {% else %}
-                            <span data-feather="slash" style="color: red;"></span>
                         {% endif %}
                     </td>
                     <td>{% if monster|check_skillups %}
@@ -95,11 +95,6 @@
                     <td>{{ fusion }}</td>
                 </tr>
             {% endfor %}
-            <script>
-                function goToMonster(href){
-                    document.location.href = document.location.origin + href;
-                }
-            </script>
         </tbody>
     </table>
 </div>
