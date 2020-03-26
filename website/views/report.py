@@ -78,7 +78,7 @@ def get_report(request):
     counts = list(Monster.objects.all().values('base_monster__name').annotate(total=Count('base_monster__name')))
     
     counts = sorted(counts, key=itemgetter('total'), reverse = True)
-    counts = [record for record in counts if record['total'] > 100]
+    counts = [record for record in counts if record['total'] > 200 and 'Rainbowmon' not in record['base_monster__name']]
     base_monsters = [record['base_monster__name'] for record in counts]
 
     monsters_runes = Monster.objects.filter(base_monster__name__in=base_monsters).prefetch_related('runes', 'base_monster')
@@ -94,10 +94,13 @@ def get_report(request):
         if record['equipped'] > record['total']:
             record['equipped'] = record['total']
 
+    counts = [record for record in counts if record['equipped'] > record['total'] / 2 or record['equipped'] >= 450]
+
     context = {
         'base_monsters': MonsterBase.objects.all(), 
         'counts': counts,
     }
+
     return render( request, 'website/report/report_index.html', context)
 
 def get_old_reports(request):
