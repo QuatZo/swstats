@@ -3,10 +3,13 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.db.models import Count
+
 
 import logging
 import time
 import os
+from operator import itemgetter
 
 from website.models import *
 from website.serializers import CommandSerializer
@@ -72,8 +75,28 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
 
 def get_report(request):
     """Return the Report page."""
+    counts = list(Monster.objects.all().values('base_monster__name').annotate(total=Count('base_monster__name')))
+    
+    counts = sorted(counts, key=itemgetter('total'), reverse = True)
+    counts = [record for record in counts if record['total'] > 100]
+    base_monsters = [record['base_monster__name'] for record in counts]
+
+    monsters_runes = Monster.objects.filter(base_monster__name__in=base_monsters).prefetch_related('runes', 'base_monster')
+
+    for record in counts:
+        for monster_runes in monsters_runes:
+            if monster_runes.base_monster.name == record['base_monster__name']: # base monster name
+                if 'equipped' not in record.keys():
+                    record['equipped'] = 0
+                runes_amount = monster_runes.runes.all().count()
+                if runes_amount == 6:
+                    record['equipped'] += 1
+        if record['equipped'] > record['total']:
+            record['equipped'] = record['total']
+
     context = {
         'base_monsters': MonsterBase.objects.all(), 
+        'counts': counts,
     }
     return render( request, 'website/report/report_index.html', context)
 
