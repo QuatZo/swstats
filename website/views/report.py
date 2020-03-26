@@ -2,9 +2,11 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from django.template.loader import render_to_string
+from django.conf import settings
 
 import logging
 import time
+import os
 
 from website.models import *
 from website.serializers import CommandSerializer
@@ -74,3 +76,18 @@ def get_report(request):
         'base_monsters': MonsterBase.objects.all(), 
     }
     return render( request, 'website/report/report_index.html', context)
+
+def get_old_reports(request):
+    image_list = list()
+
+    app_static_dir = os.path.join(settings.BASE_DIR, 'website', 'static', 'website', 'reports')
+
+    for filename in os.listdir(app_static_dir):
+        if filename.endswith(".png"):
+            image_list.append(filename)
+
+    context = {
+        'images': image_list, 
+    }
+
+    return render( request, 'website/report/report_old.html', context)

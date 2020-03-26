@@ -1,0 +1,17 @@
+{% extends "website/base.html" %}
+{% load static %}
+{% load add_str %}
+
+{% block content_title %}
+    Old Reports
+{% endblock %}
+
+{% block content %} 
+    <div class="col-6 col-sm-2 rank">
+        {% for image in images %}
+            <a href="{% static 'website/reports/'|add_str:image %}">
+                <img src="{% static 'website/reports/'|add_str:image %}" class="old-report-image">
+            </a>
+        {% endfor %}
+    </div>
+{% endblock %}

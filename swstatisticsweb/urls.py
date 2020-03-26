@@ -71,6 +71,7 @@ urlpatterns = [
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 
     path('report/', views.get_report, name='report'),
+    path('oldreports/', views.get_old_reports, name='old_reports')
 ]
 
 if settings.DEBUG:

@@ -1,5 +1,7 @@
 {% load add_str %}
-<button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download {{ filename }}</button>
+<button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download {{ filename }}</button><br />
+
+{{ base_monster }} ({{ monsters.count }})
 {% include "website/report/report_monster_table.html" with monsters=monsters hoh=hoh hoh_date=hoh_date fusion=fusion %}
 
 <script>

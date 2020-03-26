@@ -449,6 +449,10 @@ h1.h2
     right: 10px;
 }
 
+.old-report-image{
+    width: 100%;
+}
+
 @media (max-width: 768px) {
     .navbar.toggled .navbar-brand{
         max-width: 100%;

@@ -78,27 +78,40 @@
                         {% endif %}
                     </td>
                     <td>{% if monster|check_skillups %}
-                            True
+                            Yes
                         {% else %}
-                            False
+                            No
                         {% endif %}
                     </td>
                     <td>{{ monster.created|international_date }}</td>
                     <td> {% if monster.locked %}
-                            True
+                            Yes
                         {% else %}
-                            False
+                            No
                         {% endif %}
                     </td>     
                     <td> {% if monster.transmog %}
-                            True
+                            Yes
                         {% else %}
-                            False
+                            No
                         {% endif %}
                     </td>    
-                    <td>{{ hoh }}</td>
-                    <td>{% if hoh_date %}{{ hoh_date }}{% endif %}</td> 
-                    <td>{{ fusion }}</td>
+                    <td>{% if hoh %}
+                            Yes
+                        {% else %}
+                            No
+                        {% endif %}
+                    </td>
+                    <td>{% if hoh_date %}
+                            {{ hoh_date }}
+                        {% endif %}
+                    </td>
+                    <td>{% if fusion %}
+                            Yes
+                        {% else %}
+                            No
+                        {% endif %}
+                    </td>
                     {% for monster_runes in monsters_runes %}
                         {% if monster_runes.monster == monster %}
                             {% for rune in monster_runes.runes %}
