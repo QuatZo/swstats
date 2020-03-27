@@ -712,8 +712,9 @@ class DimensionHoleRun(models.Model):
         (1202, 'Pixie (Ellunia)'),
 
         (2101, 'Karzhan'),
-        (2202, 'Inugami (Karzhan)'),
         (2201, 'Warbear (Karzhan)'),
+        (2202, 'Inugami (Karzhan)'),
+        (2203, 'Griffon (Karzhan)'),
 
         (3101, 'Lumel'),
         (3201, 'Werewolf (Lumel)'),
