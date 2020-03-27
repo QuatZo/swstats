@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from django.template.loader import render_to_string
 from django.conf import settings
-from django.db.models import Count
+from django.db.models import Count, Q
 
 
 import logging
@@ -75,30 +75,20 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
 
 def get_report(request):
     """Return the Report page."""
-    counts = list(Monster.objects.all().values('base_monster__name').annotate(total=Count('base_monster__name')))
-    
-    counts = sorted(counts, key=itemgetter('total'), reverse = True)
-    counts = [record for record in counts if record['total'] > 200 and 'Rainbowmon' not in record['base_monster__name']]
-    base_monsters = [record['base_monster__name'] for record in counts]
+    monsters_base = MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).prefetch_related('monster_set') # archetype=5 -> Material Monsters, awaken=0 -> Unawakened
 
-    monsters_runes = Monster.objects.filter(base_monster__name__in=base_monsters).prefetch_related('runes', 'base_monster')
+    base = list()
+    for monster_base in monsters_base:
+        base.append({
+            'id': monster_base.id,
+            'name': monster_base.name,
+            'count': monster_base.monster_set.count(),
+        })
 
-    for record in counts:
-        for monster_runes in monsters_runes:
-            if monster_runes.base_monster.name == record['base_monster__name']: # base monster name
-                if 'equipped' not in record.keys():
-                    record['equipped'] = 0
-                runes_amount = monster_runes.runes.all().count()
-                if runes_amount == 6:
-                    record['equipped'] += 1
-        if record['equipped'] > record['total']:
-            record['equipped'] = record['total']
-
-    counts = [record for record in counts if record['equipped'] > record['total'] / 2 or record['equipped'] >= 450]
+    base = sorted(base, key=itemgetter('count'), reverse = True)
 
     context = {
-        'base_monsters': MonsterBase.objects.all(), 
-        'counts': counts,
+        'base': base,
     }
 
     return render( request, 'website/report/report_index.html', context)

@@ -7,19 +7,12 @@
 {% endblock %}
 
 {% block content %} 
-    <div class="row">
-        {% for mon in counts %}
-                <div class="col-3 col-sm-1">{{ mon.base_monster__name }}</div>
-                <div class="col-3 col-sm-1">{{ mon.equipped }} / {{ mon.total }}</div>
-        {% endfor %}
-    </div>
-
     <form method="POST" id="report-upload" class="form-group">
         {% csrf_token %}
         <label for="base-monster">Select Monster</label>
         <select name="base-monster" id="base-monster" class="form-control">
-            {% for monster in base_monsters %}
-                <option value="{{ monster.id }}">{{ monster }}
+            {% for el in base %}
+                <option value="{{ el.id }}">{{ el.name }} ({{ el.count }})
             {% endfor %}
         </select>
         <br />
