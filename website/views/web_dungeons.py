@@ -536,9 +536,13 @@ def get_dimension_hole(request):
         fastest_run = dungeon_runs_clear.first().clear_time.total_seconds()
     except AttributeError:
         fastest_run = None
-
-    records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
-    records_base = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
+    
+    if request.GET.get('stage') and request.GET.get('dungeon'):
+        records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
+        records_base = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
+    else:
+        records_personal = "Pick dungeon & stage to see recorded comps."
+        records_base = "Pick dungeon & stage to see recorded base monsters in comps."
 
     dungeon_runs = dungeon_runs_clear # exclude failed runs
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
@@ -577,7 +581,7 @@ def get_dimension_hole(request):
 
         # chart stage
         'stage_names': runs_per_stage['name'],
-        'stage_quantity': runs_per_stage['name'],
+        'stage_quantity': runs_per_stage['quantity'],
         'stage_colors': create_rgb_colors(runs_per_stage['length']),
 
         # personal table

@@ -3,6 +3,7 @@
 {% load add_reverse_str %}
 {% load to_list %}
 {% load get_runes %}
+{% load get_type %}
 
 {% block custom_script %}
 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -32,8 +33,16 @@
 {% endblock %}
 
 {% block table %}
-	{% include "website/dimhole/dimhole_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" base=False %}
-	
-	{% include "website/dimhole/dimhole_records_table.html" with records=records_base collapse_id="records_base" text="Comps per Base Monster" collapsed="collapse" base=True %}
+	{% if records_personal|get_type == 'str' %}
+		<h2>{{ records_personal }}</h2>
+	{% else %}
+		{% include "website/dimhole/dimhole_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" base=False %}
+	{% endif %}
+
+	{% if records_base|get_type == 'str' %}
+		<h2>{{ records_base }}</h2>
+	{% else %}
+		{% include "website/dimhole/dimhole_records_table.html" with records=records_base collapse_id="records_base" text="Comps per Base Monster" collapsed="collapse" base=True %}
+	{% endif %}
 {% endblock %}
 
