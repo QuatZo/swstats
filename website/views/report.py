@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from django.template.loader import render_to_string
 from django.conf import settings
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg
 
 
 import logging
@@ -70,6 +70,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
                 'fusion': fusion_exist,
                 'filename': filename,
             }
+
             html = render_to_string('website/report/report_generate.html', context)
             return HttpResponse(html)
 

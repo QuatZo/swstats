@@ -1,7 +1,24 @@
 {% load add_str %}
 <button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download {{ filename }}</button><br />
 
-{{ base_monster }} ({{ monsters.count }})
+<div class="row">
+    <div class="col-6 col-sm-2"><b>Monster</b></div>
+    <div class="col-6 col-sm-2"> {{ base_monster }} </div>
+    <div class="col-6 col-sm-2"><b>Count</b></div>
+    <div class="col-6 col-sm-2"> {{ monsters.count }} </div>
+    <div class="col-6 col-sm-2"><b>Type</b></div>
+    <div class="col-6 col-sm-2"> {{ base_monster.get_archetype_display }} </div>
+    <div class="col-6 col-sm-2"><b>Attribute</b></div>
+    <div class="col-6 col-sm-2"> {{ base_monster.get_attribute_display }} </div>
+    <div class="col-6 col-sm-2"><b>Hoh</b></div>
+    <div class="col-6 col-sm-2"> {{ hoh }} </div>
+    {% if hoh %}
+        <div class="col-6 col-sm-2"><b>HoH Date</b></div>
+        <div class="col-6 col-sm-2"> {{ hoh_date }} </div>
+    {% endif %}
+    <div class="col-6 col-sm-2"><b>Fusion</b></div>
+    <div class="col-6 col-sm-2"> {{ fusion }} </div>
+</div>
 {% include "website/report/report_monster_table.html" with monsters=monsters hoh=hoh hoh_date=hoh_date fusion=fusion %}
 
 <script>
