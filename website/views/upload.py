@@ -5,12 +5,13 @@ import logging
 
 from website.models import *
 from website.serializers import CommandSerializer
-from website.exceptions import ProfileDoesNotExist
+from website.exceptions import RecordDoesNotExist
 
 import copy
 import math
 import datetime
 import json
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -477,12 +478,15 @@ class UploadViewSet(viewsets.ViewSet):
 
     def parse_wizard_inventory(self, inventory):
         for temp_item in inventory:
-            item = dict()
-            item['wizard'] = Wizard.objects.get(id=temp_item['wizard_id'])
-            item['master_item'] = Item.objects.get(item_id=temp_item['item_master_id'], item_type=temp_item['item_master_type'])
-            item['quantity'] = temp_item['item_quantity']
-            obj, created = WizardItem.objects.update_or_create( wizard=item['wizard'], master_item=item['master_item'], defaults=item, )
-
+            try:
+                item = dict()
+                item['wizard'] = Wizard.objects.get(id=temp_item['wizard_id'])
+                item['master_item'] = Item.objects.get(item_id=temp_item['item_master_id'], item_type=temp_item['item_master_type'])
+                item['quantity'] = temp_item['item_quantity']
+                obj, created = WizardItem.objects.update_or_create( wizard=item['wizard'], master_item=item['master_item'], defaults=item, )
+            except Item.DoesNotExist:
+                raise RecordDoesNotExist(f"Item with Master ID {temp_item['item_master_type']} & ID {temp_item['item_master_id']} is missing from Database.")
+                
     def handle_profile_upload(self, data):
         profile_guild = True
         if data['guild']['guild_info'] is None:
@@ -505,8 +509,6 @@ class UploadViewSet(viewsets.ViewSet):
 
             if not guild_uptodate:
                 self.parse_guild(data['guild']['guild_info'], data['guildwar_ranking_stat']['best'], data['tvalue'])
-
-        
 
         logger.debug(f"Checking if profile {data['wizard_info']['wizard_id']} exists...")
         wiz = Wizard.objects.filter(id=data['wizard_info']['wizard_id'])
@@ -870,11 +872,17 @@ class UploadViewSet(viewsets.ViewSet):
 
                 elif request.data['command'] == 'BattleDimensionHoleDungeonResult':
                     self.handle_dimension_hole_run_upload(request.data['response'], request.data['request'])
+            except RecordDoesNotExist as e:
+                logger.error(e)
+                log_request_data(request.data)
+            except Exception as e: # to find all exceptions and fix them without breaking the whole app, it is a temporary solution
+                trace_back = traceback.format_exc()
+                message = "Unexpected, UNHANDLED error has occured.\n" + str(e) + " " + str(trace_back)
+                logger.error(message)
+                log_request_data(request.data)
 
-                return HttpResponse(status=status.HTTP_201_CREATED)
-            except ProfileDoesNotExist:
-                return HttpResponse(f"Profile does NOT exists. Please, restart game in order to upload profile before doing anything else. Thank you!", status=status.HTTP_400_BAD_REQUEST)
-        
+            return HttpResponse(status=status.HTTP_201_CREATED)
+            
         logger.error("Given request is invalid")
         return HttpResponse(f"Given request is invalid. Try updating plugin or contact QuatZo on Reddit", status=status.HTTP_400_BAD_REQUEST)
 

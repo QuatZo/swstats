@@ -13,7 +13,6 @@ from operator import itemgetter
 
 from website.models import *
 from website.serializers import CommandSerializer
-from website.exceptions import ProfileDoesNotExist
 
 # Create your views here.
 class ReportGeneratorViewSet(viewsets.ViewSet):
