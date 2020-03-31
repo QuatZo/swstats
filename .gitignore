@@ -140,3 +140,6 @@ migrations/
 
 # logs
 logs/
+
+# celerybeat
+celerybeat*.*

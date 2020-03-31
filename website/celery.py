@@ -18,6 +18,12 @@ app.conf.update(
     result_expires=3600,
 )
 
+from celery import signals
+@signals.setup_logging.connect
+def setup_celery_logging(**kwargs):
+    pass
+app.log.setup()
+
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 
