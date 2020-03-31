@@ -7,11 +7,13 @@
 {% endblock %}
 
 {% block content %} 
-    <div class="col-6 col-sm-2 rank">
+    <div class="row">
         {% for image in images %}
-            <a href="{% static 'website/reports/'|add_str:image %}">
-                <img src="{% static 'website/reports/'|add_str:image %}" class="old-report-image">
-            </a>
+            <div class="col-6 col-sm-2">
+                <a href="{% static 'website/reports/'|add_str:image %}">
+                    <img src="{% static 'website/reports/'|add_str:image %}" class="old-report-image">
+                </a>
+            </div>
         {% endfor %}
     </div>
 {% endblock %}
