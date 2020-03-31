@@ -416,17 +416,20 @@ class UploadViewSet(viewsets.ViewSet):
 
     def parse_decks(self, decks, wizard_id):
         for temp_deck in decks:
-            deck = dict()
-            deck['wizard'] = Wizard.objects.get(id=wizard_id)
-            deck['place'] = temp_deck['deck_type']
-            deck['number'] = temp_deck['deck_seq']
-            deck['leader'] = Monster.objects.get(id=temp_deck['leader_unit_id'])
-            deck_monsters = [Monster.objects.get(id=monster_id) for monster_id in temp_deck['unit_id_list'] if monster_id]
-            temp_team_eff = [mon.avg_eff for mon in deck_monsters]
-            deck['team_runes_eff'] = round(sum(temp_team_eff) / len(temp_team_eff), 2)
-            obj, created = Deck.objects.update_or_create( wizard=wizard_id, place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
-            obj.monsters.set(deck_monsters)
-            obj.save()
+            try:
+                deck = dict()
+                deck['wizard'] = Wizard.objects.get(id=wizard_id)
+                deck['place'] = temp_deck['deck_type']
+                deck['number'] = temp_deck['deck_seq']
+                deck['leader'] = Monster.objects.get(id=temp_deck['leader_unit_id'])
+                deck_monsters = [Monster.objects.get(id=monster_id) for monster_id in temp_deck['unit_id_list'] if monster_id]
+                temp_team_eff = [mon.avg_eff for mon in deck_monsters]
+                deck['team_runes_eff'] = round(sum(temp_team_eff) / len(temp_team_eff), 2)
+                obj, created = Deck.objects.update_or_create( wizard=wizard_id, place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
+                obj.monsters.set(deck_monsters)
+                obj.save()
+            except Monster.DoesNotExist as e:
+                continue
 
     def parse_wizard_buildings(self, decos, wizard_id):
         for temp_building in Building.objects.all():
@@ -510,6 +513,7 @@ class UploadViewSet(viewsets.ViewSet):
             if not guild_uptodate:
                 self.parse_guild(data['guild']['guild_info'], data['guildwar_ranking_stat']['best'], data['tvalue'])
 
+
         logger.debug(f"Checking if profile {data['wizard_info']['wizard_id']} exists...")
         wiz = Wizard.objects.filter(id=data['wizard_info']['wizard_id'])
         wizard_uptodate = False
@@ -528,10 +532,12 @@ class UploadViewSet(viewsets.ViewSet):
             return HttpResponse(status=status.HTTP_201_CREATED)
 
         temp_wizard = data['wizard_info']
+
         temp_runes = data['runes']
         for monster in data['unit_list']:
             for rune in monster['runes']:
                 temp_runes.append(rune)
+
         ########################################
         # Wizard Model
         wizard = self.parse_wizard(temp_wizard, data['tvalue'])
