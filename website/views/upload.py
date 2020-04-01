@@ -472,6 +472,8 @@ class UploadViewSet(viewsets.ViewSet):
             homies[el['unit_id']]['depth_' + str(el['skill_depth'])] = el['skill_id']
 
         for homie in homies.values():
+            if None in homie.values():
+                continue
             homie['build'] = HomunculusBuild.objects.get( depth_1=homie['depth_1'], depth_2=homie['depth_2'], depth_3=homie['depth_3'], depth_4=homie['depth_4'], depth_5=homie['depth_5'] )
             obj, created = WizardHomunculus.objects.update_or_create( wizard=homie['wizard'], homunculus=homie['homunculus'], defaults={
                 'wizard': homie['wizard'],
