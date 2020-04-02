@@ -1,7 +1,10 @@
 from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponse
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField
+from django.template.loader import render_to_string
 
 from website.models import *
+from website.tasks import *
 
 import matplotlib.cm as cm
 import numpy as np
@@ -11,11 +14,6 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.views.decorators.cache import cache_page
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
-
-# bar chart colors
-def create_rgb_colors(length):
-    """Return the array of 'length', which contains 'rgba(r, g, b, a)' strings for Chart.js."""
-    return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
 
 # deck list w/ filters
 def get_deck_list_group_by_family(decks):
@@ -105,37 +103,9 @@ def get_homunculus_skill_description(homunculuses):
             unique_skills.append(build.depth_5)
     return unique_skills
 
-# siege
-def get_siege_records_group_by_family(records):
-    """Return name, amount of families and quantity of monsters for every family in given siege records."""
-    family_monsters = dict()
-    
-    for record in records:
-        for monster in record.monsters.all():
-            if monster.base_monster.family.name not in family_monsters.keys():
-                family_monsters[monster.base_monster.family.name] = 0
-            family_monsters[monster.base_monster.family.name] += 1
-
-    family_monsters = {k: family_monsters[k] for k in sorted(family_monsters, key=family_monsters.get, reverse=True)}
-    return { 'name': list(family_monsters.keys()), 'quantity': list(family_monsters.values()), 'length': len(family_monsters.keys()) }
-
-def get_siege_records_group_by_ranking(records):
-    """Return ranking, amount of records and quantity of records for every ranking in given siege records."""
-    group_by_rank = records.values('wizard__guild__siege_ranking').annotate(total=Count('wizard__guild__siege_ranking')).order_by('-total')
-
-    ranking_id = list()
-    ranking_name = list()
-    ranking_count = list()
-
-    for group in group_by_rank:
-        ranking_id.append(group['wizard__guild__siege_ranking'])
-        ranking_name.append(Guild().get_siege_ranking_name(group['wizard__guild__siege_ranking']))
-        ranking_count.append(group['total'])
-
-    return { 'ids': ranking_id, 'name': ranking_name, 'quantity': ranking_count, 'length': len(ranking_id) }
 
 # Create your views here.
-# @cache_page(CACHE_TTL)
+@cache_page(CACHE_TTL)
 def get_homepage(request):
     """Return the homepage with carousel messages & introduction."""
     runes = Rune.objects.all()
@@ -340,58 +310,23 @@ def get_homunculus_base(request, base):
 
     return render( request, 'website/homunculus/homunculus_base.html', context)
 
-@cache_page(CACHE_TTL)
 def get_siege_records(request):
-    is_filter = False
-    filters = list()
-    records = SiegeRecord.objects.filter(full=True)
+    task = get_siege_records_task.delay(dict(request.GET))
 
-    if request.GET:
-        is_filter = True
-    
-    if request.GET.get('family'):
-        family = request.GET.get('family').replace('_', ' ')
-        filters.append('Family: ' + family)
-        records = records.filter(monsters__base_monster__family__name=family)
+    return render( request, 'website/siege/siege_index.html', {'task_id': task.id})
 
-    if request.GET.get('ranking'):
-        filters.append('Ranking: ' + request.GET.get('ranking'))
-        records = records.filter(wizard__guild__siege_ranking=request.GET.get('ranking'))
+def get_siege_records_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_siege_records_task.AsyncResult(task_id) 
 
-    records = records.prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild')
+        if data.ready():
+            context = data.get()
+            context['best_records'] = SiegeRecord.objects.filter(id__in=context['records_ids']).prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster', 'monsters__base_monster__family').annotate(sorting_val=Sum((F('win') + 250) * F('ratio'), output_field=FloatField())).order_by('-sorting_val')[:context['best_amount']]
 
-    records_by_family = get_siege_records_group_by_family(records)
-    records_by_ranking = get_siege_records_group_by_ranking(records)
+            html = render_to_string('website/siege/siege_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
 
-    records_count = records.count()
-    min_records_count = min(100, records_count)
-
-    best_records = records.order_by('-win')[:min_records_count].prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster')
-
-    best_records = records.prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster').annotate(sorting_val=Sum((F('win') + 250) * F('ratio'), output_field=FloatField())).order_by('-sorting_val')[:min_records_count]
-
-    context = {
-        # filters
-        'is_filter': is_filter,
-        'filters': '[' + ', '.join(filters) + ']',
-
-        # table top
-        'best_records': best_records,
-        'best_amount' : min_records_count,
-
-        # chart by monsters family
-        'family_name': records_by_family['name'],
-        'family_count': records_by_family['quantity'],
-        'family_color': create_rgb_colors(records_by_family['length']),
-
-        # chart by ranking
-        'ranking_id': records_by_ranking['ids'],
-        'ranking_name': records_by_ranking['name'],
-        'ranking_count': records_by_ranking['quantity'],
-        'ranking_color': create_rgb_colors(records_by_ranking['length']),
-    }
-
-    return render( request, 'website/siege/siege_index.html', context)
+    return HttpResponse('')
 
 @cache_page(CACHE_TTL)
 def get_contribute_info(request):

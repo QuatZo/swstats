@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'website',
-    'cachalot',
+    # 'cachalot', # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 ]
 
 MIDDLEWARE = [
@@ -188,7 +188,7 @@ CACHES = {
     }
 }
 
-CACHE_TTL = 60 * 30 # 30 minutes cache
+# CACHE_TTL = 60 * 30 # 30 minutes cache # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 
 CELERY_BEAT_SCHEDULE = {
  'generate-cache-every-hour': {

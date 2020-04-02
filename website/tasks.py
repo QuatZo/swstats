@@ -7,18 +7,21 @@ from .functions import *
 import requests
 import logging
 import datetime
-import json
+import pickle
 
 logger = logging.getLogger(__name__)
 
-@shared_task 
-def generate_cache():
-    print('Starting generating cache...')
-    namespaces = ['home', 'runes', 'monsters', 'decks', 'dungeons', 'homunculus', 'dimhole', 'siege', 'contribute', 'credits']
-    for namespace in namespaces:
-        requests.get('https://swstats.info' + reverse(namespace))
-    print('Ended generating cache...')
+########################## CACHE ##########################
+# @shared_task 
+# def generate_cache():
+#     print('Starting generating cache...')
+#     namespaces = ['home', 'runes', 'monsters', 'decks', 'dungeons', 'homunculus', 'dimhole', 'siege', 'contribute', 'credits']
+#     for namespace in namespaces:
+#         requests.get('https://swstats.info' + reverse(namespace))
+#     print('Ended generating cache...')
 
+
+########################## UPLOAD #########################
 @shared_task
 def handle_profile_upload_task(data):
     try:
@@ -393,3 +396,59 @@ def handle_dimension_hole_run_upload_task(data_resp, data_req):
         logger.debug(f"Successfuly created Dimension Hole ({dungeon['dungeon']}) Run for {data_resp['wizard_info']['wizard_id']}")
     except Exception as e: # to find all exceptions and fix them without breaking the whole app, it is a temporary solution
         log_exception(e, data_resp=data_resp, data_req=data_req)
+
+########################### WEB ###########################
+@shared_task
+def get_siege_records_task(request_get):
+    is_filter = False
+    filters = list()
+    records = SiegeRecord.objects.filter(full=True)
+
+    if request_get:
+        is_filter = True
+    
+    if 'family' in request_get.keys() and request_get['family']:
+        family = [family_member.replace('_', ' ') for family_member in request_get['family']]
+        filters.append('Family: ' + ', '.join(family))
+        for member in family:
+            records = records.filter(monsters__base_monster__family__name=member)
+
+    if 'ranking' in request_get.keys() and request_get['ranking']:
+        rankings = [ranking for ranking in request_get['ranking']]
+        ranking_names = [Guild().get_siege_ranking_name(int(ranking)) for ranking in rankings]
+        filters.append('Ranking: ' + ', '.join(ranking_names))
+        for ranking in rankings:
+            records = records.filter(wizard__guild__siege_ranking=ranking)
+
+    records = records.prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'monsters__base_monster__family')
+
+    records_by_family = get_siege_records_group_by_family(records)
+    records_by_ranking = get_siege_records_group_by_ranking(records)
+
+    records_count = records.count()
+    min_records_count = min(100, records_count)
+
+    records_ids = [ record.id for record in records ]
+    
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # table top
+        'records_ids': records_ids,
+        'best_amount' : min_records_count,
+
+        # chart by monsters family
+        'family_name': records_by_family['name'],
+        'family_count': records_by_family['quantity'],
+        'family_color': create_rgb_colors(records_by_family['length']),
+
+        # chart by ranking
+        'ranking_id': records_by_ranking['ids'],
+        'ranking_name': records_by_ranking['name'],
+        'ranking_count': records_by_ranking['quantity'],
+        'ranking_color': create_rgb_colors(records_by_ranking['length']),
+    }
+
+    return context

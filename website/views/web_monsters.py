@@ -233,7 +233,7 @@ def get_monster_records(monster):
     }
 
 # views
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL) # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 def get_monsters(request):
     monsters = Monster.objects.order_by('-avg_eff')   
     is_filter = False 
@@ -360,7 +360,7 @@ def get_monsters(request):
 
     return render( request, 'website/monsters/monster_index.html', context)
 
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL) # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 def get_monster_by_id(request, arg_id):
     monsters = Monster.objects.all().order_by('-avg_eff')
     monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)

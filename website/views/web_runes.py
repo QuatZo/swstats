@@ -197,7 +197,7 @@ def get_rune_similar(runes, rune):
     return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary, efficiency__range=[rune.efficiency - 15, rune.efficiency + 15]).exclude(id=rune.id).order_by('-efficiency').prefetch_related('equipped_runes', 'equipped_runes__base_monster', 'rune_set')
 
 # views
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL) # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 def get_runes(request):
     runes = Rune.objects.order_by('-efficiency')   
     is_filter = False 
@@ -316,7 +316,7 @@ def get_runes(request):
 
     return render( request, 'website/runes/rune_index.html', context)
 
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL) # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 def get_rune_by_id(request, arg_id):
     rune = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
     runes = Rune.objects.all()

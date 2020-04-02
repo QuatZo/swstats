@@ -1,11 +1,15 @@
 from .models import *
+from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField
 
 import copy
 import math
 import datetime
 import logging
+import matplotlib.cm as cm
+import numpy as np
 
-############################# RUNES #############################
+########################################################## UPLOAD #########################################################
+# region RUNES
 def calc_efficiency(rune):
     primary = rune['pri_eff']
     innate = rune['prefix_eff']
@@ -132,8 +136,9 @@ def parse_runes_rta(rta_runes):
             'monster': Monster.objects.get(id=rta_rune['occupied_id']),
             'rune': Rune.objects.get(id=rta_rune['rune_id']),
         })
+# endregion
 
-############################ MONSTERS ###########################
+# region MONSTERS
 def calc_stats(monster, runes):
     base_stats = {
         'hp': monster['con'] * 15,
@@ -264,8 +269,9 @@ def parse_wizard_homunculus(homunculus):
             'homunculus': homie['homunculus'],
             'build': homie['build'],
         }, )
+# endregion
 
-############################# GUILD #############################
+# region GUILD
 def parse_guild(guild_info, guildwar, tvalue):
     guild = dict()
 
@@ -284,8 +290,9 @@ def parse_guild(guild_info, guildwar, tvalue):
 
     guild['last_update'] = datetime.datetime.utcfromtimestamp(tvalue)
     obj, created = Guild.objects.update_or_create( id=guild['id'], defaults=guild, )
+# endregion
 
-############################# WIZARD ############################
+# region WIZARD
 def parse_wizard(temp_wizard, tvalue):
     com2us_keys = [
         'wizard_id', 'wizard_mana', 'wizard_crystal', 'wizard_crystal_paid', 'wizard_last_login', 'wizard_last_country', 'wizard_last_lang', 'wizard_level', 
@@ -356,8 +363,9 @@ def parse_decks(decks, wizard_id):
             obj.save()
         except Monster.DoesNotExist as e:
             continue
+# endregion
 
-############################# OTHER #############################
+# region OTHER
 logger = logging.getLogger(__name__)
 
 def log_request_data(data):
@@ -379,3 +387,98 @@ def log_exception(e, **kwargs):
     for key, val in kwargs.items():
         logger.error(key)
         log_request_data(value)
+# endregion
+
+########################################################## VIEWS ##########################################################
+# region SIEGE - should be async and in tasks
+def get_siege_records_group_by_family(records):
+    """Return name, amount of families and quantity of monsters for every family in given siege records."""
+    family_monsters = dict()
+    
+    for record in records:
+        for monster in record.monsters.all():
+            if monster.base_monster.family.name not in family_monsters.keys():
+                family_monsters[monster.base_monster.family.name] = 0
+            family_monsters[monster.base_monster.family.name] += 1
+
+    family_monsters = {k: family_monsters[k] for k in sorted(family_monsters, key=family_monsters.get, reverse=True)}
+    return { 'name': list(family_monsters.keys()), 'quantity': list(family_monsters.values()), 'length': len(family_monsters.keys()) }
+
+def get_siege_records_group_by_ranking(records):
+    """Return ranking, amount of records and quantity of records for every ranking in given siege records."""
+    group_by_rank = records.values('wizard__guild__siege_ranking').annotate(total=Count('wizard__guild__siege_ranking')).order_by('-total')
+
+    ranking_id = list()
+    ranking_name = list()
+    ranking_count = list()
+
+    for group in group_by_rank:
+        ranking_id.append(group['wizard__guild__siege_ranking'])
+        ranking_name.append(Guild().get_siege_ranking_name(group['wizard__guild__siege_ranking']))
+        ranking_count.append(group['total'])
+
+    return { 'ids': ranking_id, 'name': ranking_name, 'quantity': ranking_count, 'length': len(ranking_id) }
+# endregion
+
+# region OTHER
+def create_rgb_colors(length):
+    """Return the array of 'length', which contains 'rgba(r, g, b, a)' strings for Chart.js."""
+    return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
+# endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

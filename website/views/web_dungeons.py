@@ -282,7 +282,7 @@ def get_dimhole_runs_per_stage(dungeon_runs):
     return { 'name': dungeon_name, 'quantity': dungeon_count, 'length': len(dungeon_name) }
 
 # views
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL) # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 def get_dungeons(request):
     dungeons = DungeonRun.objects.values('dungeon', 'stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('id')).order_by('dungeon', '-stage', '-win')
     rift_dungeons = RiftDungeonRun.objects.values('dungeon', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('dungeon')).order_by('dungeon', '-win')
@@ -343,7 +343,7 @@ def get_dungeons(request):
     
     return render( request, 'website/dungeons/dungeon_index.html', context)
 
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL) # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 def get_dungeon_by_stage(request, name, stage):
     is_filter = False
     filters = list()
@@ -416,7 +416,7 @@ def get_dungeon_by_stage(request, name, stage):
     
     return render( request, 'website/dungeons/dungeon_by_stage.html', context)
 
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL) # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 def get_rift_dungeon_by_stage(request, name):
     is_filter = False
     filters = list()
@@ -490,7 +490,7 @@ def get_rift_dungeon_by_stage(request, name):
     
     return render( request, 'website/dungeons/rift_dungeon_by_stage.html', context)
 
-@cache_page(CACHE_TTL)
+# @cache_page(CACHE_TTL) # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 def get_dimension_hole(request):
     is_filter = False
     filters = list()

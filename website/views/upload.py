@@ -142,7 +142,6 @@ class ItemUploadViewSet(viewsets.ViewSet):
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
 class UploadViewSet(viewsets.ViewSet):
-   
     def create(self, request):
         if request.data:
             if request.data['command'] == 'HubUserLogin':

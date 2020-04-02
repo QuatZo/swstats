@@ -60,6 +60,7 @@ urlpatterns = [
     path('dimhole/', views.get_dimension_hole, name='dimhole'),
 
     path('siege/', views.get_siege_records, name='siege'),
+    path('siege/<str:task_id>/', views.get_siege_records_ajax, name='siege_ajax'),
 
     path('contribute/', views.get_contribute_info, name='contribute'),
     path('credits/', views.get_credits, name='credits'),
