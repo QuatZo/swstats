@@ -390,7 +390,149 @@ def log_exception(e, **kwargs):
 # endregion
 
 ########################################################## VIEWS ##########################################################
-# region SIEGE - should be async and in tasks
+# region RUNES - should be async and in tasks to speed things up even more
+def get_rune_list_avg_eff(runes):
+    """Return the avg efficiency of given runes, incl. these runes splitted into two sets (above & equal, below)."""
+    if not runes.exists():
+        return { 'above': [], 'below': [], 'avg': 0 }
+
+    avg_eff = runes.aggregate(Avg('efficiency'))['efficiency__avg']
+    avg_eff_above_runes = list()
+    avg_eff_below_runes = list()
+
+    for rune in runes:
+        if rune.efficiency >= avg_eff:
+            avg_eff_above_runes.append({
+                'x': rune.id,
+                'y': rune.efficiency
+            })
+        else:
+            avg_eff_below_runes.append({
+                'x': rune.id,
+                'y': rune.efficiency
+            })
+
+    return { 'above': avg_eff_above_runes, 'below': avg_eff_below_runes, 'avg': avg_eff }
+
+def get_rune_list_normal_distribution(runes, parts, count):
+    """Return sets of runes in specific number of parts, to make Normal Distribution chart."""
+    if not count:
+        return { 'distribution': [], 'scope': [], 'interval': parts }
+
+    min_eff = runes.aggregate(Min('efficiency'))['efficiency__min']
+    max_eff = runes.aggregate(Max('efficiency'))['efficiency__max']
+    delta = (max_eff - min_eff) / parts
+
+    points = [round(min_eff + (delta / 2) + i * delta, 2) for i in range(parts)]
+    distribution = [0 for _ in range(parts)]
+
+    for rune in runes:
+        for i in range(parts):
+            left = round(points[i] - delta / 2, 2)
+            right = round(points[i] + delta / 2, 2)
+            if i == parts - 1:
+                if rune.efficiency >= left and rune.efficiency <= right:
+                    distribution[i] += 1
+                    break
+            elif rune.efficiency >= left and rune.efficiency < right:
+                    distribution[i] += 1
+                    break
+
+    return { 'distribution': distribution, 'scope': points, 'interval': parts }
+
+def get_rune_list_best(runes, x, count):
+    """Return TopX (or all, if there is no X elements in list) efficient runes."""
+    best_runes = runes.order_by('-efficiency')[:min(x, count)]
+    return best_runes
+
+def get_rune_list_fastest(runes, x, count):
+    """Return TopX (or all, if there is no X elements in list) fastest runes."""
+    fastest_runes = runes.order_by(F('sub_speed').desc(nulls_last=True))
+    fastest_runes = fastest_runes[:min(x, count)]
+
+    return fastest_runes
+
+def get_rune_list_grouped_by_set(runes):
+    """Return names, amount of sets and quantity of runes in every set in given runes list."""
+    group_by_set = runes.values('rune_set__name').annotate(total=Count('rune_set')).order_by('-total')
+    set_name = list()
+    set_count = list()
+
+    for group in group_by_set:
+        set_name.append(group['rune_set__name'])
+        set_count.append(group['total'])
+
+    return { 'name': set_name, 'quantity': set_count, 'length': len(set_name) }
+
+def get_rune_list_grouped_by_slot(runes):
+    """Return numbers, amount of slots and quantity of runes for every slot in given runes list."""
+    group_by_slot = runes.values('slot').annotate(total=Count('slot')).order_by('slot')
+    slot_number = list()
+    slot_count = list()
+
+    for group in group_by_slot:
+        slot_number.append(group['slot'])
+        slot_count.append(group['total'])
+
+    return { 'number': slot_number, 'quantity': slot_count, 'length': len(slot_number) }
+
+def get_rune_list_grouped_by_quality(runes):
+    """Return names, amount of qualities and quantity of runes for every quality in given runes list."""
+    group_by_quality = runes.values('quality').annotate(total=Count('quality')).order_by('-total')
+    quality_name = list()
+    quality_count = list()
+
+    for group in group_by_quality:
+        quality_name.append(Rune().get_rune_quality(group['quality']))
+        quality_count.append(group['total'])
+
+    return { 'name': quality_name, 'quantity': quality_count, 'length': len(quality_name) }
+
+def get_rune_list_grouped_by_quality_original(runes):
+    """Return names, amount of qualities and quantity of runes for every original quality in given runes list."""
+    group_by_quality_original = runes.values('quality_original').annotate(total=Count('quality_original')).order_by('-total')
+    quality_original_name = list()
+    quality_original_count = list()
+
+    for group in group_by_quality_original:
+        quality_original_name.append(Rune().get_rune_quality(group['quality_original']))
+        quality_original_count.append(group['total'])
+
+    return { 'name': quality_original_name, 'quantity': quality_original_count, 'length': len(quality_original_name) }
+
+def get_rune_list_grouped_by_main_stat(runes):
+    """Return names, amount of qualities and quantity of runes for every main stat type in given runes list."""
+    group_by_main_stat = runes.values('primary').annotate(total=Count('primary')).order_by('-total')
+    main_stat_name = list()
+    main_stat_count = list()
+
+    for group in group_by_main_stat:
+        main_stat_name.append(Rune().get_rune_primary(group['primary']))
+        main_stat_count.append(group['total'])
+
+    return { 'name': main_stat_name, 'quantity': main_stat_count, 'length': len(main_stat_name) }
+
+def get_rune_list_grouped_by_stars(runes):
+    """Return numbers, amount of stars and quantity of runes for every star in given runes list."""
+    group_by_stars = runes.values('stars').annotate(total=Count('stars')).order_by('stars')
+    stars = dict()
+    stars_number = list()
+    stars_count = list()
+
+    for group in group_by_stars:
+        temp_stars = group['stars'] % 10 # ancient runes have 11-16 stars, instead of 1-6
+        if temp_stars not in stars.keys():
+            stars[temp_stars] = 0
+        stars[temp_stars] += group['total']
+
+    for key, val in stars.items():
+        stars_number.append(key)
+        stars_count.append(val)
+
+    return { 'number': stars_number, 'quantity': stars_count, 'length': len(stars_number) }
+# endregion
+
+# region SIEGE - should be async and in tasks to speed things up even more
 def get_siege_records_group_by_family(records):
     """Return name, amount of families and quantity of monsters for every family in given siege records."""
     family_monsters = dict()

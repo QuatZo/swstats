@@ -42,6 +42,7 @@ urlpatterns = [
     url(r'^$', views.get_homepage, name='home'),
 
     path('runes/', views.get_runes, name='runes'),
+    path('runes/<str:task_id>/', views.get_runes_ajax, name='runes_ajax'),
     path('runes/id/<int:arg_id>/', views.get_rune_by_id, name='rune_by_id'),
 
     path('monsters/', views.get_monsters, name='monsters'),

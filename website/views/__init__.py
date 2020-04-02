@@ -10,3 +10,6 @@ from .web_dungeons import *
 
 # report
 from .report import *
+
+# all
+from .views import *

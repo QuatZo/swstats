@@ -399,6 +399,125 @@ def handle_dimension_hole_run_upload_task(data_resp, data_req):
 
 ########################### WEB ###########################
 @shared_task
+def get_runes_task(request_get):
+    runes = Rune.objects.order_by('-efficiency')   
+    is_filter = False 
+    filters = list()
+
+    if request_get:
+        is_filter = True
+
+    if 'set' in request_get.keys() and request_get['set']:
+        filters.append('Set: ' + request_get['set'][0])
+        runes = runes.filter(rune_set__name=request_get['set'][0])
+
+    if 'slot' in request_get.keys() and request_get['slot']:
+        try:
+            slot = int(request_get['slot'][0])
+        except ValueError:
+            slot = 0
+        filters.append('Slot: ' + str(slot))
+        runes = runes.filter(slot=slot)
+    
+    if 'quality' in request_get.keys() and request_get['quality']:
+        filters.append('Quality: ' + request_get['quality'][0])
+        quality_id = Rune().get_rune_quality_id(request_get['quality'][0])
+        runes = runes.filter(quality=quality_id)
+    
+    if 'quality-original' in request_get.keys() and request_get['quality-original']:
+        filters.append('Original Quality: ' + request_get['quality-original'][0])
+        quality_original_id = Rune().get_rune_quality_id(request_get['quality-original'][0])
+        runes = runes.filter(quality_original=quality_original_id)
+
+    if 'main-stat' in request_get.keys() and request_get['main-stat']:
+        main_stat = request_get['main-stat'][0].replace('plus', '+').replace('percent', '%')
+        filters.append('Main Stat: ' + main_stat)
+        main_stat_id = Rune().get_rune_primary_id(main_stat)
+        runes = runes.filter(primary=main_stat_id)
+    
+    if 'stars' in request_get.keys() and request_get['stars']:
+        try:
+            stars = int(request_get['stars'][0]) % 10
+        except ValueError:
+            stars = 0
+        filters.append('Stars: ' + str(stars))
+        runes = runes.filter(Q(stars=stars) | Q(stars=stars + 10)) # since ancient runes have 11-16
+
+    runes_count = runes.count()
+
+    avg_eff_runes = get_rune_list_avg_eff(runes)
+    normal_distribution_runes = get_rune_list_normal_distribution(runes, 40, runes_count)
+    runes_by_set = get_rune_list_grouped_by_set(runes)
+    runes_by_slot = get_rune_list_grouped_by_slot(runes)
+    runes_by_quality = get_rune_list_grouped_by_quality(runes)
+    runes_by_quality_original = get_rune_list_grouped_by_quality_original(runes)
+    runes_by_main_stat = get_rune_list_grouped_by_main_stat(runes)
+    runes_by_stars = get_rune_list_grouped_by_stars(runes)
+    best_runes = get_rune_list_best(runes, 100, runes_count)
+    fastest_runes = get_rune_list_fastest(runes, 100, runes_count)
+
+    best_runes_ids = [rune.id for rune in best_runes]
+    fastest_runes_ids = [rune.id for rune in fastest_runes]
+    
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # chart best
+        'avg_eff_above_runes': avg_eff_runes['above'],
+        'avg_eff_above_quantity': len(avg_eff_runes['above']),
+        'avg_eff_below_runes': avg_eff_runes['below'],
+        'avg_eff_below_quantity': len(avg_eff_runes['below']),
+        'avg_eff': round(avg_eff_runes['avg'], 2),
+
+        # chart distribution
+        'all_distribution': normal_distribution_runes['distribution'],
+        'all_means': normal_distribution_runes['scope'],
+        'all_color': create_rgb_colors(normal_distribution_runes['interval']),
+
+        # chart group by set
+        'set_name': runes_by_set['name'],
+        'set_count': runes_by_set['quantity'],
+        'set_color': create_rgb_colors(runes_by_set['length']),
+
+        # chart group by slot
+        'slot_number': runes_by_slot['number'],
+        'slot_count': runes_by_slot['quantity'],
+        'slot_color': create_rgb_colors(runes_by_slot['length']),
+
+        # chart group by quality
+        'quality_name': runes_by_quality['name'],
+        'quality_count': runes_by_quality['quantity'],
+        'quality_color': create_rgb_colors(runes_by_quality['length']),
+
+        # chart group by original quality
+        'quality_original_name': runes_by_quality_original['name'],
+        'quality_original_count': runes_by_quality_original['quantity'],
+        'quality_original_color': create_rgb_colors(runes_by_quality_original['length']),
+
+        # chart group by main stat
+        'main_stat_name': runes_by_main_stat['name'],
+        'main_stat_count': runes_by_main_stat['quantity'],
+        'main_stat_color': create_rgb_colors(runes_by_main_stat['length']),
+
+        # chart group by stars
+        'stars_number': runes_by_stars['number'],
+        'stars_count': runes_by_stars['quantity'],
+        'stars_color': create_rgb_colors(runes_by_stars['length']),
+
+        # table best by efficiency
+        'best_runes_ids': best_runes_ids,
+        'best_amount': len(best_runes),
+
+        # table best by speed
+        'fastest_runes_ids': fastest_runes_ids,
+        'fastest_amount': len(fastest_runes),
+    }
+
+    return context
+
+@shared_task
 def get_siege_records_task(request_get):
     is_filter = False
     filters = list()

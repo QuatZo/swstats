@@ -22,16 +22,10 @@
             $.ajax({
                 url: "{% url 'siege_ajax' task_id=task_id %}",
                 type: "GET",
-                // filters below
-                //data: { 
-                //    filter1: value1, 
-                //    filter2: value2
-                //},
                 success: function(response) {
                     seconds += 1;
                     $('#secs').text(seconds);
                     if(response){
-                        console.log(response)
                         $('#content-ajax-container').html(response);
                         MathJax.typesetPromise();
                         clearInterval(fetchDataInterval);

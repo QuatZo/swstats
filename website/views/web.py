@@ -310,24 +310,6 @@ def get_homunculus_base(request, base):
 
     return render( request, 'website/homunculus/homunculus_base.html', context)
 
-def get_siege_records(request):
-    task = get_siege_records_task.delay(dict(request.GET))
-
-    return render( request, 'website/siege/siege_index.html', {'task_id': task.id})
-
-def get_siege_records_ajax(request, task_id):
-    if request.is_ajax():
-        data = get_siege_records_task.AsyncResult(task_id) 
-
-        if data.ready():
-            context = data.get()
-            context['best_records'] = SiegeRecord.objects.filter(id__in=context['records_ids']).prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster', 'monsters__base_monster__family').annotate(sorting_val=Sum((F('win') + 250) * F('ratio'), output_field=FloatField())).order_by('-sorting_val')[:context['best_amount']]
-
-            html = render_to_string('website/siege/siege_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
-            return HttpResponse(html)
-
-    return HttpResponse('')
-
 @cache_page(CACHE_TTL)
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')

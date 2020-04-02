@@ -1,0 +1,47 @@
+{% load add_str %}
+
+{% if avg_eff %}<h3>Average Efficiency: {{ avg_eff }}%</h3>{% endif %}
+{% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %} 
+
+<center>
+    <h5>
+        Runes Scatter Plot has been hidden because of poor optimisation. It was causing browser crash for lower-end PC's.<br />
+        Once I find a way to optimise it or some sort of replacement, it will be back. Sorry for the trouble!
+    </h5>
+</center>
+
+<!-- Normal Distribution Chart -->
+{% include "website/runes/charts/rune_chart_distribution.html" with means=all_means distribution=all_distribution color=all_color %}
+
+<div class='chart'>
+    <!-- Runes Grouped By Slot Chart -->
+    {% include "website/runes/charts/rune_chart_group_by_slot.html" with number=slot_number color=slot_color count=slot_count class='chart-2' %}
+
+    <!-- Runes Grouped By Quality Chart -->
+    {% include "website/runes/charts/rune_chart_group_by_quality.html" with name=quality_name color=quality_color count=quality_count class='chart-2 right' %}
+</div>
+
+<div class='chart'>
+    <!-- Runes Grouped By Original Quality Chart -->
+    {% include "website/runes/charts/rune_chart_group_by_quality_original.html" with name=quality_original_name color=quality_original_color count=quality_original_count class='chart-2' %}
+    
+    <!-- Runes Grouped By Set Chart -->
+    {% include "website/runes/charts/rune_chart_group_by_set.html" with name=set_name color=set_color count=set_count class='chart-2 right' %}
+</div>
+
+<div class='chart'>
+    <!-- Runes Grouped By Main Stat -->
+    {% include "website/runes/charts/rune_chart_group_by_main_stat.html" with name=main_stat_name color=main_stat_color count=main_stat_count class='chart-2' %}
+    
+    <!-- Runes Grouped By Stars -->
+    {% include "website/runes/charts/rune_chart_group_by_stars.html" with number=stars_number color=stars_color count=stars_count class='chart-2 right' %}
+</div>
+
+{% with "Top "|add_str:best_amount|add_str:" runes" as text %}
+    {% include "website/runes/rune_table.html" with runes=best_runes collapse_id="top_runes" text=text collapsed="collapse" %}
+{% endwith %}
+
+
+{% with "Fastest "|add_str:fastest_amount|add_str:" runes" as text %}
+    {% include "website/runes/rune_table.html" with runes=fastest_runes collapse_id="fastest_runes" text=text collapsed="collapse" %}
+{% endwith %}
