@@ -1,0 +1,33 @@
+{% load get_type %}
+
+{% if avg_time %}<h3>Average Time: {{ avg_time }}</h3>{% endif %}
+{% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %} 
+
+<p>
+	The position of comp on the list is calculated by using the following formula, where \(0 < win\_rate < 1\), \(clear\_time [s] \), \(fastest\_run [s]\) and \(wins = min(wins, 1000)\)
+	$$points = {\sqrt[3]{wins} * win\_rate \over exp({clear\_time \over fastest\_run})}$$
+</p>
+{% include "website/dungeons/charts/dungeon_chart_distribution.html" with means=runs_means distribution=runs_distribution color=runs_colors %}
+
+{% include "website/dungeons/charts/dungeon_chart_group_by_base.html" with name=base_names color=base_colors count=base_quantity %}
+
+{% include "website/dimhole/charts/dimhole_chart_group_by_dungeon.html" with name=dungeon_names color=dungeon_colors count=dungeon_quantity %}
+
+<div class='chart'>
+	{% include "website/dimhole/charts/dimhole_chart_group_by_practice.html" with name=practice_names color=practice_colors count=practice_quantity class='chart-2' %}
+
+	{% include "website/dimhole/charts/dimhole_chart_group_by_stage.html" with name=stage_names color=stage_colors count=stage_quantity class='chart-2 right' %}
+</div>
+
+{% if records_personal|get_type == 'str' %}
+	<h2>{{ records_personal }}</h2>
+{% else %}
+	{% include "website/dimhole/dimhole_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" base=False %}
+{% endif %}
+
+{% if records_base|get_type == 'str' %}
+	<h2>{{ records_base }}</h2>
+{% else %}
+	{% include "website/dimhole/dimhole_records_table.html" with records=records_base collapse_id="records_base" text="Comps per Base Monster" collapsed="collapse" base=True %}
+{% endif %}
+

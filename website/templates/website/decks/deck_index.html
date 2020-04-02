@@ -1,25 +1,30 @@
 {% extends "website/base.html" %}
-{% load add_str %}
 
 {% block content_title %}
-    Decks {% if is_filter %} {{ filters }} {% endif %} 
+    Decks
 {% endblock %}
 
-{% block content %} 
-    <!-- Chart Decks Group By Monsters Family Members -->
-    {% include "website/decks/charts/deck_chart_group_by_family.html" with name=family_name color=family_color count=family_count %}
-
-    <div class='chart'>
-        <!-- Chart Decks Group By Place -->
-        {% include "website/decks/charts/deck_chart_group_by_place.html" with name=place_name color=place_color count=place_count class='chart-2' %}
-
-        <!-- Chart All Decks -->
-        {% include "website/decks/charts/deck_chart_efficiency.html" with above=avg_eff_above_decks above_quantity=avg_eff_above_quantity below=avg_eff_below_decks below_quantity=avg_eff_below_quantity avg_eff=avg_eff class='chart-2 right'%}
-    </div>
-{% endblock %}
-
-{% block table %}
-    {% with "Top "|add_str:amount|add_str:" decks" as text %}
-        {% include "website/decks/deck_table.html" with decks=decks collapse_id="top_decks" text=text collapsed="collapse" %}
-    {% endwith %}
+{% block jquery %}
+    <script>
+        function fetchData(){
+            $.ajax({
+                url: "{% url 'decks_ajax' task_id=task_id %}",
+                type: "GET",
+                success: function(response) {
+                    seconds += 1;
+                    $('#secs').text(seconds);
+                    if(response){
+                        $('#content-ajax-container').html(response);
+                        clearInterval(fetchDataInterval);
+                    }
+                },
+                error: function(xhr) {
+                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.</h2>");
+                    clearInterval(fetchDataInterval);
+                }
+            });
+        }
+        var seconds = 0;
+        var fetchDataInterval = setInterval(fetchData, 1000);
+    </script>
 {% endblock %}

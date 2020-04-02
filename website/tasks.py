@@ -9,6 +9,7 @@ import logging
 import datetime
 import pickle
 import time
+from operator import itemgetter
 
 logger = logging.getLogger(__name__)
 
@@ -724,6 +725,370 @@ def get_monsters_task(request_get):
         # table best by Effective HP while Defense Broken
         'toughest_def_break_monsters_ids': toughest_def_break_monsters_ids,
         'toughest_def_break_amount': len(toughest_def_break_monsters_ids),
+    }
+
+    return context
+
+@shared_task
+def get_decks_task(request_get):
+    decks = Deck.objects.all().order_by('-team_runes_eff')
+    is_filter = False
+    filters = list()
+
+    if request_get:
+        is_filter = True
+
+    if 'family' in request_get.keys() and request_get['family']:
+        family = request_get['family'][0].replace('_', ' ')
+        filters.append('Family: ' + family)
+        decks = decks.filter(monsters__base_monster__family__name=family)
+
+    if 'palce' in request_get.keys() and request_get['place']:
+        place = request_get['place'][0].replace('_', ' ')
+        filters.append('Place: ' + place)
+        decks = decks.filter(place=Deck().get_place_id(place))
+    
+    decks = decks.prefetch_related('monsters', 'monsters__base_monster', 'monsters__base_monster__family', 'leader', 'leader__base_monster', 'leader__base_monster__family')
+    decks_by_family = get_deck_list_group_by_family(decks)
+    decks_by_place = get_deck_list_group_by_place(decks)
+    decks_eff = get_deck_list_avg_eff(decks)
+
+    # needs to be last, because it's for TOP table
+    amount = min(100, decks.count())
+    decks_ids = [deck.id for deck in decks.order_by('-team_runes_eff')[:amount]]
+
+    context = { 
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+        
+        # chart group by family members
+        'family_name': decks_by_family['name'],
+        'family_count': decks_by_family['quantity'],
+        'family_color': create_rgb_colors(decks_by_family['length']),
+
+        # chart group by place
+        'place_name': decks_by_place['name'],
+        'place_count': decks_by_place['quantity'],
+        'place_color': create_rgb_colors(decks_by_place['length']),
+
+        # chart best
+        'avg_eff_above_decks': decks_eff['above'],
+        'avg_eff_above_quantity': len(decks_eff['above']),
+        'avg_eff_below_decks': decks_eff['below'],
+        'avg_eff_below_quantity': len(decks_eff['below']),
+        'avg_eff': round(decks_eff['avg'], 2),
+
+        # Table TOP decks
+        'decks_ids': decks_ids,
+        'amount': amount,
+    }
+
+    return context
+
+@shared_task
+def get_dungeon_by_stage_task(request_get, name, stage):
+    is_filter = False
+    filters = list()
+    names = name.split('-')
+
+    for i in range(len(names)):
+        if names[i] != "of":
+            names[i] = names[i].capitalize()
+    name = ' '.join(names)
+
+    dungeon_runs = DungeonRun.objects.filter(dungeon=DungeonRun().get_dungeon_id(name), stage=stage).order_by('clear_time')
+
+    if request_get:
+        is_filter = True
+
+    if 'base' in request_get.keys() and request_get['base']:
+        base = request_get['base'][0].replace('_', ' ')
+        filters.append('Base Monster: ' + base)
+        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
+        
+    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
+
+    runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
+    avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
+
+    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
+
+    comps = list()
+    for run in dungeon_runs:        
+        monsters = list()
+        for monster in run.monsters.all():
+            monsters.append(monster)
+        if monsters not in comps and monsters:
+            comps.append(monsters)
+
+    try:
+        fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
+    except AttributeError:
+        fastest_run = None
+
+    records_personal = [
+        {
+            'comp': [monster.id for monster in record['comp']],
+            'average_time': str(record['average_time']),
+            'wins': record['wins'],
+            'loses': record['loses'],
+            'success_rate': record['success_rate'],
+        } for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
+    ]
+    records_base = [
+        {
+            'comp': [monster.id for monster in record['comp']],
+            'average_time': str(record['average_time']),
+            'wins': record['wins'],
+            'loses': record['loses'],
+            'success_rate': record['success_rate'],
+        } for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
+    ]
+
+    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs_clear)
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # all
+        'name': name,
+        'stage': stage,
+        'avg_time': str(avg_time),
+        
+        # chart distribution
+        'runs_distribution': runs_distribution['distribution'],
+        'runs_means': runs_distribution['scope'],
+        'runs_colors': create_rgb_colors(runs_distribution['interval']),
+
+        # chart base
+        'base_names': base_names,
+        'base_quantity': base_quantities,
+        'base_colors': create_rgb_colors(len(base_names)),
+
+        # personal table
+        'records_personal': records_personal,
+        'records_base': records_base,
+    }
+
+    return context
+
+@shared_task
+def get_rift_dungeon_by_stage_task(request_get, name):
+    is_filter = False
+    filters = list()
+    names = name.split('-')
+
+    for i in range(len(names)):
+        if names[i] != "of":
+            names[i] = names[i].capitalize()
+    name = ' '.join(names)
+
+    dungeon_runs = RiftDungeonRun.objects.filter(dungeon=RiftDungeonRun().get_dungeon_id(name)).exclude(clear_rating=None)
+    if request_get:
+        is_filter = True
+
+    if 'base' in request_get.keys() and request_get['base']:
+        base = request_get['base'][0].replace('_', ' ')
+        filters.append('Base Monster: ' + base)
+        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
+
+
+    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
+    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
+
+    damage_distribution = get_rift_dungeon_damage_distribution(dungeon_runs, 20)
+    avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
+
+
+    comps = list()
+    for run in dungeon_runs:
+        monsters = list()
+        for monster in run.monsters.all():
+            monsters.append(monster)
+        if monsters not in comps and monsters:
+            comps.append(monsters)
+
+    try:
+        highest_damage = dungeon_runs.order_by('-dmg_total').first().dmg_total
+    except AttributeError:
+        highest_damage = None
+
+    records_personal = [
+        {
+            'comp': [monster.id for monster in record['comp']],
+            'average_time': str(record['average_time']),
+            'most_freq_rating': record['most_freq_rating'],
+            'wins': record['wins'],
+            'loses': record['loses'],
+            'success_rate': record['success_rate'],
+            'dmg_best': record['dmg_best'],
+            'dmg_avg': record['dmg_avg'],
+        } for record in sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
+    ]
+    records_base = [
+        {
+            'comp': [monster.id for monster in record['comp']],
+            'average_time': str(record['average_time']),
+            'most_freq_rating': record['most_freq_rating'],
+            'wins': record['wins'],
+            'loses': record['loses'],
+            'success_rate': record['success_rate'],
+            'dmg_best': record['dmg_best'],
+            'dmg_avg': record['dmg_avg'],
+        } for record in sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, True), key=itemgetter('sorting_val'), reverse = True)
+    ]
+
+    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+    
+        # all
+        'name': name,
+        'stage': 1,
+        'avg_time': str(avg_time),
+        
+        # chart distribution
+        'damage_distribution': damage_distribution['distribution'],
+        'damage_means': damage_distribution['scope'],
+        'damage_colors': create_rgb_colors(damage_distribution['interval']),
+    
+        # chart base
+        'base_names': base_names,
+        'base_quantity': base_quantities,
+        'base_colors': create_rgb_colors(len(base_names)),
+    
+        # personal table
+        'records_personal': records_personal,
+        'records_base': records_base,
+    }
+
+    return context
+
+@shared_task
+def get_dimension_hole_task(request_get):
+    is_filter = False
+    filters = list()
+    records_ok = False
+
+    dungeon_runs = DimensionHoleRun.objects.all().order_by('clear_time')
+
+    if request_get:
+        is_filter = True
+
+    if 'base' in request_get.keys() and request_get['base']:
+        base = request_get['base'][0].replace('_', ' ')
+        filters.append('Base Monster: ' + base)
+        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
+
+    if 'dungeon' in request_get.keys() and request_get['dungeon']:
+        dungeon = request_get['dungeon'][0].replace('_', ' ')
+        filters.append('Dungeon: ' + dungeon)
+        dungeon_runs = dungeon_runs.filter(dungeon=DimensionHoleRun().get_dungeon_id_by_name(dungeon))
+
+    if 'practive' in request_get.keys() and request_get['practice']:
+        filters.append('Practice Mode: ' + request_get['practice'][0])
+        dungeon_runs = dungeon_runs.filter(practice=request_get['practice'][0])
+
+    if 'stage' in request_get.keys() and request_get['stage']:
+        filters.append('Stage: ' + request_get['stage'][0])
+        dungeon_runs = dungeon_runs.filter(stage=int(request_get['stage'][0]))
+
+    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
+    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
+
+    runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
+    avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
+
+    comps = list()
+    for run in dungeon_runs:
+        monsters = list()
+        for monster in run.monsters.all():
+            monsters.append(monster)
+        if monsters not in comps and monsters:
+            comps.append(monsters)
+
+    try:
+        fastest_run = dungeon_runs_clear.first().clear_time.total_seconds()
+    except AttributeError:
+        fastest_run = None
+    
+    if 'stage' in request_get.keys() and request_get['stage'] and 'dungeon' in request_get.keys() and request_get['dungeon']:
+        records_ok = True
+        records_personal = [
+            {
+                'comp': [monster.id for monster in record['comp']],
+                'dungeon': record['dungeon'],
+                'stage': record['stage'],
+                'average_time': str(record['average_time']),
+                'wins': record['wins'],
+                'loses': record['loses'],
+                'success_rate': record['success_rate'],
+            } for record in sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
+        ]
+        records_base = [
+            {
+                'comp': [monster.id for monster in record['comp']],
+                'dungeon': record['dungeon'],
+                'stage': record['stage'],
+                'average_time': str(record['average_time']),
+                'wins': record['wins'],
+                'loses': record['loses'],
+                'success_rate': record['success_rate'],
+            } for record in sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
+        ]
+    else:
+        records_personal = "Pick dungeon & stage to see recorded comps."
+        records_base = "Pick dungeon & stage to see recorded base monsters in comps."
+
+    dungeon_runs = dungeon_runs_clear # exclude failed runs
+    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
+    runs_per_dungeon = get_dimhole_runs_per_dungeon(dungeon_runs)
+    runs_per_practice = get_dimhole_runs_per_practice(dungeon_runs)
+    runs_per_stage = get_dimhole_runs_per_stage(dungeon_runs)
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # all
+        'avg_time': str(avg_time),
+        
+        # chart distribution
+        'runs_distribution': runs_distribution['distribution'],
+        'runs_means': runs_distribution['scope'],
+        'runs_colors': create_rgb_colors(runs_distribution['interval']),
+
+        # chart base
+        'base_names': base_names,
+        'base_quantity': base_quantities,
+        'base_colors': create_rgb_colors(len(base_names)),
+
+        # chart dungeon
+        'dungeon_names': runs_per_dungeon['name'],
+        'dungeon_quantity': runs_per_dungeon['quantity'],
+        'dungeon_colors': create_rgb_colors(runs_per_dungeon['length']),
+
+        # chart practice mode
+        'practice_names': runs_per_practice['name'],
+        'practice_quantity': runs_per_practice['quantity'],
+        'practice_colors': create_rgb_colors(runs_per_practice['length']),
+
+        # chart stage
+        'stage_names': runs_per_stage['name'],
+        'stage_quantity': runs_per_stage['quantity'],
+        'stage_colors': create_rgb_colors(runs_per_stage['length']),
+
+        # personal table
+        'records_ok': records_ok,
+        'records_personal': records_personal,
+        'records_base': records_base,
     }
 
     return context

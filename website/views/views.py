@@ -68,6 +68,26 @@ def get_monsters_ajax(request, task_id):
 
     return HttpResponse('')
 
+def get_decks(request):
+    task = get_decks_task.delay(dict(request.GET))
+
+    return render( request, 'website/decks/deck_index.html', {'task_id': task.id})
+
+def get_decks_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_decks_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['decks'] = Deck.objects.filter(id__in=context['decks_ids']).prefetch_related('monsters', 'monsters__base_monster', 'monsters__base_monster__family', 'leader', 'leader__base_monster', 'leader__base_monster__family').order_by('-team_runes_eff')
+
+
+            html = render_to_string('website/decks/deck_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
 def get_siege_records(request):
     task = get_siege_records_task.delay(dict(request.GET))
 
@@ -85,3 +105,140 @@ def get_siege_records_ajax(request, task_id):
             return HttpResponse(html)
 
     return HttpResponse('')
+
+def get_dungeons(request):
+    dungeons = DungeonRun.objects.values('dungeon', 'stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('id')).order_by('dungeon', '-stage', '-win')
+    rift_dungeons = RiftDungeonRun.objects.values('dungeon', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('dungeon')).order_by('dungeon', '-win')
+    dungeons_base = DungeonRun().get_all_dungeons()
+    rift_dungeons_base = RiftDungeonRun.get_all_dungeons()
+
+    records = dict()
+    for dungeon_base in dungeons_base:
+        stages = dict()
+        max_stage = 10
+        if dungeon_base == 'Rift of Worlds': max_stage = 5
+        for i in range(max_stage, 0, -1):
+            stages["B" + str(i)] = {
+                'avg_time': None,
+                'quantity': None,
+                'wins': None,
+                'loses': None,
+            }
+        records[dungeon_base] = stages
+
+    for rift_dungeon_base in rift_dungeons_base:
+        stages = dict()
+        stages["B1"] = {
+            'avg_time': None,
+            'quantity': None,
+            'wins': None,
+            'loses': None,
+        }
+        records[rift_dungeon_base] = stages
+
+    for dungeon in dungeons:
+        dungeon_name = DungeonRun().get_dungeon_name(dungeon['dungeon'])
+        dungeon_stage = "B" + str(dungeon['stage'])
+        dungeon_quantity = dungeon['quantity']
+
+        records[dungeon_name][dungeon_stage] = {
+            'avg_time': str(dungeon['avg_time']) if dungeon['avg_time'] else records[dungeon_name][dungeon_stage]['avg_time'],
+            'quantity': dungeon_quantity if not records[dungeon_name][dungeon_stage]['quantity'] else records[dungeon_name][dungeon_stage]['quantity'] + dungeon_quantity,
+            'wins': dungeon_quantity if dungeon['win'] else records[dungeon_name][dungeon_stage]['wins'],
+            'loses': dungeon_quantity if not dungeon['win'] else records[dungeon_name][dungeon_stage]['loses'],
+        }
+
+    for rift_dungeon in rift_dungeons:
+        dungeon_name = RiftDungeonRun().get_dungeon_name(rift_dungeon['dungeon'])
+        dungeon_stage = "B1"
+        dungeon_quantity = rift_dungeon['quantity']
+
+        records[dungeon_name][dungeon_stage] = {
+            'avg_time': str(rift_dungeon['avg_time']) if rift_dungeon['avg_time'] else records[dungeon_name][dungeon_stage]['avg_time'],
+            'quantity': dungeon_quantity if not records[dungeon_name][dungeon_stage]['quantity'] else records[dungeon_name][dungeon_stage]['quantity'] + dungeon_quantity,
+            'wins': dungeon_quantity if rift_dungeon['win'] else records[dungeon_name][dungeon_stage]['wins'],
+            'loses': dungeon_quantity if not rift_dungeon['win'] else records[dungeon_name][dungeon_stage]['loses'],
+        }
+
+    context = {
+        'dungeons': records
+    }
+    
+    return render( request, 'website/dungeons/dungeon_index.html', context)
+
+def get_dungeon_by_stage(request, name, stage):
+    task = get_dungeon_by_stage_task.delay(dict(request.GET), name, stage)
+    
+    return render( request, 'website/dungeons/dungeon_by_stage.html', {'task_id': task.id, 'name': name.capitalize().replace('_', ' ').replace('-', ' '), 'stage': stage})
+
+def get_dungeon_by_stage_ajax(request, task_id, name, stage):
+    if request.is_ajax():
+        data = get_dungeon_by_stage_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+            
+            for record in context['records_personal']:
+                record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+            for record in context['records_base']:
+                record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
+
+            html = render_to_string('website/dungeons/dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_rift_dungeon_by_stage(request, name):
+    task = get_rift_dungeon_by_stage_task.delay(dict(request.GET), name)
+    
+    return render( request, 'website/dungeons/rift_dungeon_by_stage.html', {'task_id': task.id, 'name': name.capitalize().replace('_', ' ').replace('-', ' ')})
+
+def get_rift_dungeon_by_stage_ajax(request, task_id, name):
+    if request.is_ajax():
+        data = get_rift_dungeon_by_stage_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+            
+            for record in context['records_personal']:
+                record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+            for record in context['records_base']:
+                record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
+
+            html = render_to_string('website/dungeons/rift_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_dimension_hole(request):
+    task = get_dimension_hole_task.delay(dict(request.GET))
+
+    return render( request, 'website/dimhole/dimhole_index.html', {'task_id': task.id})
+
+def get_dimension_hole_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_dimension_hole_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+            
+            if context['records_ok']:
+                for record in context['records_personal']:
+                    record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+                for record in context['records_base']:
+                    record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
+
+            html = render_to_string('website/dimhole/dimhole_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+
+
+
+
+
+
+
+
+

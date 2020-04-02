@@ -1,0 +1,13 @@
+{% if avg_time %}<h3>Average Time: {{ avg_time }}</h3>{% endif %}
+{% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %} 
+
+<p>
+	The position of comp on the list is calculated by using the following formula, where \(0 < win\_rate < 1\), \(12 = SSS\) and \(wins = min(wins, 1000)\)
+	$$points =  {\sqrt[3]{wins} * win\_rate \over exp({dmg\_avg * rating \over -({highest\_damage * 12})})}$$
+</p>
+{% include "website/dungeons/charts/rift_dungeon_chart_distribution.html" with means=damage_means distribution=damage_distribution color=damage_colors %}
+
+{% include "website/dungeons/charts/dungeon_chart_group_by_base.html" with name=base_names color=base_colors count=base_quantity %}
+{% include "website/dungeons/rift_dungeon_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" base=False %}
+
+{% include "website/dungeons/rift_dungeon_records_table.html" with records=records_base collapse_id="records_base" text="Comps per Base Monster" collapsed="collapse" base=True %}

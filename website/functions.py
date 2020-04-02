@@ -8,6 +8,7 @@ import logging
 import matplotlib.cm as cm
 import numpy as np
 import pandas as pd
+from datetime import timedelta
 
 ########################################################## UPLOAD #########################################################
 # region RUNES
@@ -704,6 +705,61 @@ def get_monster_list_group_by_fusion(monsters):
     return { 'value': fusion_values, 'quantity': fusion_quantity, 'length': len(fusion_values) }
 # endregion
 
+# region DECKS - should be async and in tasks to speed things up even more
+def get_deck_list_group_by_family(decks):
+    """Return name, amount of families and quantity of monsters for every family in given decks list."""
+    family_monsters = dict()
+    
+    for deck in decks:
+        for monster in deck.monsters.all():
+            if monster.base_monster.family.name not in family_monsters.keys():
+                family_monsters[monster.base_monster.family.name] = 0
+            family_monsters[monster.base_monster.family.name] += 1
+
+    family_monsters = {k: family_monsters[k] for k in sorted(family_monsters, key=family_monsters.get, reverse=True)}
+    return { 'name': list(family_monsters.keys()), 'quantity': list(family_monsters.values()), 'length': len(family_monsters.keys()) }
+
+def get_deck_list_group_by_place(decks):
+    """Return names, amount of places and quantity of decks for every place in given decks list."""
+    group_by_place = decks.values('place').annotate(total=Count('place')).order_by('-total')
+
+    place_name = list()
+    place_count = list()
+
+    for group in group_by_place:
+        place_name.append(Deck(place=group['place']).get_place_display())
+        place_count.append(group['total'])
+
+    return { 'name': place_name, 'quantity': place_count, 'length': len(place_name) }
+
+def get_deck_list_avg_eff(decks):
+    """Return the avg efficiency of given deck, incl. decks splitted into two sets (above & equal, below)."""
+    if not decks.count():
+        return { 'above': [], 'below': [], 'avg': 0 }
+
+    avg_eff = decks.aggregate(Avg('team_runes_eff'))['team_runes_eff__avg']
+    avg_eff_above_decks = list()
+    avg_eff_below_decks = list()
+
+    for deck in decks:
+        if deck.team_runes_eff >= avg_eff:
+            avg_eff_above_decks.append({
+                'x': deck.id,
+                'y': deck.team_runes_eff
+            })
+        else:
+            avg_eff_below_decks.append({
+                'x': deck.id,
+                'y': deck.team_runes_eff
+            })
+
+    return { 'above': avg_eff_above_decks, 'below': avg_eff_below_decks, 'avg': avg_eff }
+
+def get_deck_similar(deck, decks):
+    return [temp_deck for temp_deck in decks if temp_deck.place == deck.place and temp_deck.id != deck.id and deck.team_runes_eff - 10 < temp_deck.team_runes_eff and deck.team_runes_eff + 10 > temp_deck.team_runes_eff]
+
+#endregion
+
 # region SIEGE - should be async and in tasks to speed things up even more
 def get_siege_records_group_by_family(records):
     """Return name, amount of families and quantity of monsters for every family in given siege records."""
@@ -732,6 +788,277 @@ def get_siege_records_group_by_ranking(records):
         ranking_count.append(group['total'])
 
     return { 'ids': ranking_id, 'name': ranking_name, 'quantity': ranking_count, 'length': len(ranking_id) }
+# endregion
+
+# region DUNGEONS - should be async and in tasks to speed things up even more
+def get_unique_comps(comps):
+    new_comps = list()
+    for comp in comps:
+        exists = False
+        for new_comp in new_comps:
+            if set(comp) == set(new_comp):
+                exists = True
+        if not exists:
+            new_comps.append(comp)
+    return new_comps
+
+def get_dungeon_runs_distribution(runs, parts):
+    """Return sets of clear times in specific number of parts, to make Distribution chart."""
+    if not runs.exists():
+        return { 'distribution': [], 'scope': [], 'interval': parts }
+
+    min_max = runs.aggregate(fastest=Min('clear_time'), slowest=Max('clear_time'))
+    fastest = min_max['fastest'].total_seconds()
+    slowest = min_max['slowest'].total_seconds()
+
+    delta = (slowest - fastest) / parts
+    points = [(fastest + (delta / 2) + i * delta) for i in range(parts)]
+    distribution = [0 for _ in range(parts)]
+
+    i = 0
+    right = points[i] + delta / 2
+    for run in runs:
+        clear_time = run.clear_time.total_seconds()
+        while clear_time > right and i < parts - 1:
+            i += 1
+            right += delta
+        distribution[i] += 1
+
+    points = [str(timedelta(seconds=round(point))) for point in points]
+
+    return { 'distribution': distribution, 'scope': points, 'interval': parts }
+
+def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
+    records = list()
+
+    for comp in get_unique_comps(comps):
+        runs = dungeon_runs
+        for monster_comp in comp:
+            if not base:
+                runs = runs.filter(monsters=monster_comp)
+            else:
+                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+        
+        runs = runs.distinct()
+        runs_comp = runs.count()
+        wins_comp = runs.filter(win=True).count()
+
+        if not base:
+            monsters_in_comp = comp
+        else:
+            monsters_in_comp = [mon.base_monster for mon in comp]
+
+        record = {
+            'comp': monsters_in_comp,
+            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
+            'wins': wins_comp,
+            'loses': runs_comp - wins_comp,
+            'success_rate': round(wins_comp * 100 / runs_comp, 2),
+        }
+
+        # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # 60 - seconds in one minute;
+        # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
+        if record['average_time'] is not None:
+            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+            if not base:
+                records.append(record)
+            else:
+                exists = False
+                for temp_record_base in records:
+                    if record['comp'] == temp_record_base['comp']:
+                        exists = True
+                        break
+                if not exists:
+                    records.append(record)
+
+    return records
+
+def get_dungeon_runs_by_base_class(dungeon_runs):
+    base_monsters = dict()
+    for record in dungeon_runs:
+        for monster in record.monsters.all():
+            if monster.base_monster.name not in base_monsters.keys():
+                base_monsters[monster.base_monster.name] = 0
+            base_monsters[monster.base_monster.name] += 1
+
+    base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
+    return (list(base_monsters.keys()), list(base_monsters.values()))
+
+def get_rift_dungeon_damage_distribution(runs, parts):
+    """Return sets of damages in specific number of parts, to make Distribution chart."""
+    if not runs.exists():
+        return { 'distribution': [], 'scope': [], 'interval': parts }
+
+    runs = runs.order_by('dmg_total')
+
+    min_max = runs.aggregate(lowest=Min('dmg_total'), highest=Max('dmg_total'))
+    lowest = min_max['lowest']
+    highest = min_max['highest']
+
+    delta = (highest - lowest) / parts
+    points = [(lowest + (delta / 2) + i * delta) for i in range(parts)]
+    distribution = [0 for _ in range(parts)]
+
+    i = 0
+    right = int(points[i] + delta / 2)
+    for run in runs:
+        dmg_total = run.dmg_total
+        while dmg_total > right and i < parts - 1:
+            i += 1
+            right += delta
+        distribution[i] += 1
+
+    points = [str(round(point)) for point in points]
+
+    return { 'distribution': distribution, 'scope': points, 'interval': parts }
+
+def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=False):
+    records = list()
+
+
+    for comp in get_unique_comps(comps):
+        runs = dungeon_runs
+        for monster_comp in comp:
+            if not base:
+                runs = runs.filter(monsters=monster_comp)
+            else:
+                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+
+        runs = runs.distinct()
+        runs_comp = runs.count()
+        wins_comp = runs.filter(win=True).count()
+
+        if not base:
+            monsters_in_comp = comp
+        else:
+            monsters_in_comp = [mon.base_monster for mon in comp]
+
+        most_freq_rating = runs.values('win', 'clear_rating').annotate(wins=Count('clear_rating')).order_by('-wins').first()['clear_rating']
+
+        record = {
+            'comp': monsters_in_comp,
+            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
+            'most_freq_rating': RiftDungeonRun().get_rating_name(most_freq_rating),
+            'wins': wins_comp,
+            'loses': runs_comp - wins_comp,
+            'success_rate': round(wins_comp * 100 / runs_comp, 2),
+            'dmg_best': round(runs.aggregate(max_dmg=Max('dmg_total'))['max_dmg']),
+            'dmg_avg': round(runs.aggregate(avg_dmg=Avg('dmg_total'))['avg_dmg']),
+        }
+
+        # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # 60 - seconds in one minute;
+        # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
+        if record['average_time'] is not None:
+            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
+            if not base:
+                records.append(record)
+            else:
+                exists = False
+                for temp_record_base in records:
+                    if record['comp'] == temp_record_base['comp']:
+                        exists = True
+                        break
+                if not exists:
+                    records.append(record)
+
+    return records
+# endregion
+
+# region DIMENSION HOLE DUNGEONS - should be async and in tasks to speed things up even more
+def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
+    records = list()
+    for comp in get_unique_comps(comps):
+        runs = dungeon_runs
+        
+        for monster_comp in comp:
+            if not base:
+                runs = runs.filter(monsters=monster_comp)
+            else:
+                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+        
+        runs = runs.distinct()
+        runs_comp = runs.count()
+        wins_comp = runs.filter(win=True).count()
+
+        if not base:
+            monsters_in_comp = comp
+        else:
+            monsters_in_comp = [mon.base_monster for mon in comp]
+
+        first = runs.first()
+
+        record = {
+            'dungeon': DimensionHoleRun().get_dungeon_name(first.dungeon),
+            'stage': first.stage,
+            'comp': monsters_in_comp,
+            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
+            'wins': wins_comp,
+            'loses': runs_comp - wins_comp,
+            'success_rate': round(wins_comp * 100 / runs_comp, 2),
+        }
+
+        # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # 60 - seconds in one minute;
+        # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
+        if record['average_time'] is not None:
+            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+            if not base:
+                records.append(record)
+            else:
+                exists = False
+                for temp_record_base in records:
+                    if record['comp'] == temp_record_base['comp']:
+                        exists = True
+                        break
+                if not exists:
+                    records.append(record)
+
+    return records
+
+def get_dimhole_runs_per_dungeon(dungeon_runs):
+    """Return names, amount of dim hole dungeon types and runs quantity per dungeon."""
+    group_by_dungeon = dungeon_runs.values('dungeon').annotate(total=Count('dungeon')).order_by('-total')
+
+    dungeon_name = list()
+    dungeon_count = list()
+
+    for group in group_by_dungeon:
+        dungeon_name.append(DimensionHoleRun().get_dungeon_name(group['dungeon']))
+        dungeon_count.append(group['total'])
+
+    return { 'name': dungeon_name, 'quantity': dungeon_count, 'length': len(dungeon_name) }
+
+def get_dimhole_runs_per_practice(dungeon_runs):
+    """Return names, amount of dim hole dungeon types and runs quantity per practice mode."""
+    group_by_practice = dungeon_runs.values('practice').annotate(total=Count('practice')).order_by('-total')
+
+    dungeon_name = list()
+    dungeon_count = list()
+
+    for group in group_by_practice:
+        dungeon_name.append(group['practice'])
+        dungeon_count.append(group['total'])
+
+    return { 'name': dungeon_name, 'quantity': dungeon_count, 'length': len(dungeon_name) }
+
+def get_dimhole_runs_per_stage(dungeon_runs):
+    """Return names, amount of dim hole dungeon types and runs quantity per stage (difficulty, B1-B5)."""
+    group_by_stage = dungeon_runs.values('stage').annotate(total=Count('stage')).order_by('-total')
+
+    dungeon_name = list()
+    dungeon_count = list()
+
+    for group in group_by_stage:
+        dungeon_name.append(group['stage'])
+        dungeon_count.append(group['total'])
+
+    return { 'name': dungeon_name, 'quantity': dungeon_count, 'length': len(dungeon_name) }
+
 # endregion
 
 # region OTHER
