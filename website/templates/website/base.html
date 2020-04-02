@@ -140,9 +140,9 @@
                     <h1 class="h2">{% block content_title %}Introduction{% endblock %}</h1>
                 </div>
 
-                {% block content %}{% endblock %}
-                
-                {% block table %}{% endblock %}
+                <div id="content-ajax-container">
+                    <h2>Please wait, loading data... <span id='secs'>0</span> seconds</h2>
+                </div>
             </main>
         </div>
     </div>

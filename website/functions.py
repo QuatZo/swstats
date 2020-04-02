@@ -7,6 +7,7 @@ import datetime
 import logging
 import matplotlib.cm as cm
 import numpy as np
+import pandas as pd
 
 ########################################################## UPLOAD #########################################################
 # region RUNES
@@ -530,6 +531,177 @@ def get_rune_list_grouped_by_stars(runes):
         stars_count.append(val)
 
     return { 'number': stars_number, 'quantity': stars_count, 'length': len(stars_number) }
+# endregion
+
+# region MONSTERS - most of them should be async and in tasks to speed things up even more
+def get_monster_list_over_time(monsters):
+    """Return amount of monsters acquired over time."""
+    LENGTH = 200
+    temp_monsters = monsters.order_by('created')
+    start = pd.Timestamp(temp_monsters.first().created)
+    end = pd.Timestamp(temp_monsters.last().created)
+    TIMESTAMPS = list(pd.to_datetime(np.linspace(start.value, end.value, LENGTH)))
+    i = 0
+    time_values = list()
+    time_quantity = [1]
+
+    for monster in temp_monsters:
+        while monster.created > TIMESTAMPS[i] and i <= LENGTH:
+            i += 1
+        
+        time_str = TIMESTAMPS[i].strftime("%Y-%m-%d")
+        if time_str not in time_values:
+            time_values.append(TIMESTAMPS[i].strftime("%Y-%m-%d"))
+            time_quantity.append(time_quantity[len(time_quantity) - 1])
+
+        time_quantity[len(time_quantity) - 1] += 1
+
+    return { 'time': time_values, 'quantity': time_quantity }
+
+def get_monster_list_group_by_family(monsters):
+    """Return name, amount of families and quantity of monsters for every family in given monsters list."""
+    to_exclude = [ 142, 143, 182, 151 ] # Angelmon, Rainbowmon, King Angelmon, Devilmon
+    group_by_family = monsters.exclude(base_monster__family__in=to_exclude).values('base_monster__family__name').annotate(total=Count('base_monster__family__name')).order_by('-total')
+
+    family_name = list()
+    family_count = list()
+
+    for group in group_by_family:
+        family_name.append(group['base_monster__family__name'])
+        family_count.append(group['total'])
+
+    return { 'name': family_name, 'quantity': family_count, 'length': len(family_name) }
+
+def get_monster_list_best(monsters, x, count):
+    """Return TopX (or all, if there is no X elements in list) efficient monsters."""
+    return monsters[:min(x, count)]
+
+def get_monster_list_fastest(monsters, x, count):
+    """Return TopX (or all, if there is no X elements in list) fastest monsters."""
+    fastest_monsters = monsters.order_by(F('speed').desc(nulls_last=True))
+    fastest_monsters = fastest_monsters[:min(x, count)]
+
+    return fastest_monsters
+
+def get_monster_list_toughest(monsters, x, count):
+    """Return TopX (or all, if there is no X elements in list) toughest (Effective HP) monsters."""
+    toughest_monsters = monsters.order_by(F('eff_hp').desc(nulls_last=True))
+    toughest_monsters = toughest_monsters[:min(x, count)]
+
+    return toughest_monsters
+
+def get_monster_list_toughest_def_break(monsters, x, count):
+    """Return TopX (or all, if there is no X elements in list) toughest (Effective HP while Defense Broken) monsters."""
+    toughest_def_break_monsters = monsters.order_by(F('eff_hp_def_break').desc(nulls_last=True))
+    toughest_def_break_monsters = toughest_def_break_monsters[:min(x, count)]
+
+    return toughest_def_break_monsters
+
+def get_monster_list_group_by_attribute(monsters):
+    """Return names, amount of attributes and quantity of monsters for every attribute in given monsters list."""
+    group_by_attribute = monsters.values('base_monster__attribute').annotate(total=Count('base_monster__attribute')).order_by('-total')
+
+    attribute_name = list()
+    attribute_count = list()
+
+    for group in group_by_attribute:
+        attribute_name.append(MonsterBase(attribute=group['base_monster__attribute']).get_attribute_display())
+        attribute_count.append(group['total'])
+
+    return { 'name': attribute_name, 'quantity': attribute_count, 'length': len(attribute_name) }
+
+def get_monster_list_group_by_type(monsters):
+    """Return names, amount of types and quantity of monsters for every type in given monsters list."""
+    group_by_type = monsters.values('base_monster__archetype').annotate(total=Count('base_monster__archetype')).order_by('-total')
+
+    type_name = list()
+    type_count = list()
+
+    for group in group_by_type:
+        type_name.append(MonsterBase(archetype=group['base_monster__archetype']).get_archetype_display())
+        type_count.append(group['total'])
+
+    return { 'name': type_name, 'quantity': type_count, 'length': len(type_name) }
+
+def get_monster_list_group_by_base_class(monsters):
+    """Return number, amount of base class and quantity of monsters for every base class in given monsters list."""
+    group_by_base_class = monsters.values('base_monster__base_class').annotate(total=Count('base_monster__base_class')).order_by('base_monster__base_class')
+
+    base_class_number = list()
+    base_class_count = list()
+
+    for group in group_by_base_class:
+        base_class_number.append(group['base_monster__base_class'])
+        base_class_count.append(group['total'])
+
+    return { 'number': base_class_number, 'quantity': base_class_count, 'length': len(base_class_number) }
+
+def get_monster_list_group_by_storage(monsters):
+    """Return amount of monsters in/out of storage monsters list."""
+    group_by_storage = monsters.values('storage').annotate(total=Count('storage')).order_by('-total')
+
+    storage_value = list()
+    storage_count = list()
+
+    for group in group_by_storage:
+        storage_value.append(str(group['storage']))
+        storage_count.append(group['total'])
+
+    return { 'value': storage_value, 'quantity': storage_count, 'length': len(storage_value) }
+
+def get_monsters_hoh():
+    monsters_hoh = [ record['monster'] for record in MonsterHoh.objects.all().values('monster') ]
+    base_monsters_hoh = [ record['id'] for record in MonsterBase.objects.filter(id__in=monsters_hoh).values('id') ]
+    base_monsters_hoh += [ record + 10 for record in base_monsters_hoh ]
+
+    return base_monsters_hoh
+
+def get_monsters_fusion():
+    monster_fusion = [ record['monster'] for record in MonsterFusion.objects.all().values('monster') ]
+    base_monsters_fusion = [ record['id'] for record in MonsterBase.objects.filter(id__in=monster_fusion).values('id') ]
+    base_monsters_fusion += [ record + 10 for record in base_monsters_fusion ]
+
+    return base_monsters_fusion
+
+def get_monster_list_group_by_hoh(monsters):
+    """Return amount of monsters which have been & and not in Hall of Heroes."""
+
+    base_monsters_hoh = get_monsters_hoh()
+    monsters_hoh = monsters.filter(base_monster__in=base_monsters_hoh).count()
+    monsters_hoh_exclude = monsters.exclude(base_monster__in=base_monsters_hoh).count()
+
+    hoh_values = list()
+    hoh_quantity = list()
+
+    if monsters_hoh > 0:
+        hoh_values.append(True)
+        hoh_quantity.append(monsters_hoh)
+
+    if monsters_hoh_exclude > 0:
+        hoh_values.append(False)
+        hoh_quantity.append(monsters_hoh_exclude)
+
+    return { 'value': hoh_values, 'quantity': hoh_quantity, 'length': len(hoh_values) }
+
+def get_monster_list_group_by_fusion(monsters):
+    """Return amount of monsters which have been & and not in Fusion."""
+    base_monsters_fusion = get_monsters_fusion()
+
+    monsters_fusion = monsters.filter(base_monster__in=base_monsters_fusion).count()
+    monsters_fusion_exclude = monsters.exclude(base_monster__in=base_monsters_fusion).count()
+
+    fusion_values = list()
+    fusion_quantity = list()
+
+    if monsters_fusion > 0:
+        fusion_values.append(True)
+        fusion_quantity.append(monsters_fusion)
+
+    if monsters_fusion_exclude > 0:
+        fusion_values.append(False)
+        fusion_quantity.append(monsters_fusion_exclude)
+
+    return { 'value': fusion_values, 'quantity': fusion_quantity, 'length': len(fusion_values) }
 # endregion
 
 # region SIEGE - should be async and in tasks to speed things up even more

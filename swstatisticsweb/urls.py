@@ -46,6 +46,7 @@ urlpatterns = [
     path('runes/id/<int:arg_id>/', views.get_rune_by_id, name='rune_by_id'),
 
     path('monsters/', views.get_monsters, name='monsters'),
+    path('monsters/<str:task_id>/', views.get_monsters_ajax, name='monsters_ajax'),
     path('monsters/id/<int:arg_id>/', views.get_monster_by_id, name='monster_by_id'),
 
     path('decks/', views.get_decks, name='decks'),

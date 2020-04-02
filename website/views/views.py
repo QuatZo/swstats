@@ -16,7 +16,7 @@ def get_runes(request):
 
 def get_runes_ajax(request, task_id):
     if request.is_ajax():
-        data = get_siege_records_task.AsyncResult(task_id) 
+        data = get_runes_task.AsyncResult(task_id) 
 
         if data.ready():
             context = data.get()
@@ -25,6 +25,28 @@ def get_runes_ajax(request, task_id):
             context['fastest_runes'] = Rune.objects.filter(id__in=context['fastest_runes_ids']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster').order_by('-sub_speed')
 
             html = render_to_string('website/runes/rune_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_monsters(request):
+    task = get_monsters_task.delay(dict(request.GET))
+
+    return render( request, 'website/monsters/monster_index.html', {'task_id': task.id})
+
+def get_monsters_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_monsters_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['best_monsters'] = Monster.objects.filter(id__in=context['best_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-avg_eff')
+            context['fastest_monsters'] = Monster.objects.filter(id__in=context['fastest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-speed')
+            context['toughest_monsters'] = Monster.objects.filter(id__in=context['toughest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp')
+            context['toughest_def_break_monsters'] = Monster.objects.filter(id__in=context['toughest_def_break_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp_def_break')
+            
+            html = render_to_string('website/monsters/monster_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 
     return HttpResponse('')

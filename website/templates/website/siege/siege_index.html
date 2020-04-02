@@ -10,12 +10,6 @@
     Siege Defenses
 {% endblock %}
 
-{% block content %} 
-    <div id="content-ajax-container">
-        <h2>Please wait, loading data... <span id='secs'>0</span> seconds</h2>
-    </div>
-{% endblock %}
-
 {% block jquery %}
     <script>
         function fetchData(){
@@ -32,7 +26,8 @@
                     }
                 },
                 error: function(xhr) {
-                    $('#content-ajax-container').html("<h2>There was an error while connecting. Retrying every second.</h2>");
+                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.</h2>");
+                    clearInterval(fetchDataInterval);
                 }
             });
         }
@@ -40,4 +35,3 @@
         var fetchDataInterval = setInterval(fetchData, 1000);
     </script>
 {% endblock %}
-                        

@@ -2,52 +2,30 @@
 {% load add_str %}
 
 {% block content_title %}
-    Monsters {% if is_filter %} {{ filters }} {% endif %} 
+    Monsters
 {% endblock %}
 
-{% block content %} 
-    {% include "website/monsters/charts/monster_chart_over_time.html" with timeline=time_timeline count=time_count %}
-    {% include "website/monsters/charts/monster_chart_group_by_family.html" with name=family_name count=family_count color=family_color %}
-
-    <div class='chart'>
-        <!-- Monsters Grouped By Attribute -->
-        {% include "website/monsters/charts/monster_chart_group_by_attribute.html" with name=attribute_name color=attribute_color count=attribute_count class='chart-2' %}
-
-        <!-- Monsters Grouped By Type -->
-        {% include "website/monsters/charts/monster_chart_group_by_type.html" with name=type_name color=type_color count=type_count class='chart-2 right' %}
-    </div>
-
-    <div class='chart'>
-        <!-- Monsters Grouped By Base Class -->
-        {% include "website/monsters/charts/monster_chart_group_by_base_class.html" with number=base_class_number color=base_class_color count=base_class_count class='chart-2' %}
-
-        <!-- Monsters Grouped By Storage -->
-        {% include "website/monsters/charts/monster_chart_group_by_storage.html" with value=storage_value color=storage_color count=storage_count class='chart-2 right' %}
-    </div>
-
-    <div class='chart'>
-        <!-- Monsters Grouped By Hall of Heroes -->
-        {% include "website/monsters/charts/monster_chart_group_by_hoh.html" with value=hoh_value color=hoh_color count=hoh_count class='chart-2' %}
-
-        <!-- Monsters Grouped By Fusion -->
-        {% include "website/monsters/charts/monster_chart_group_by_fusion.html" with value=fusion_value color=fusion_color count=fusion_count class='chart-2 right' %}
-    </div>
-{% endblock %}
-
-{% block table %}
-    {% with "Top "|add_str:best_amount|add_str:" monsters" as text %}
-        {% include "website/monsters/monster_table.html" with monsters=best_monsters collapse_id="top_monsters" text=text collapsed="collapse" %}
-    {% endwith %}
-
-    {% with "Fastest "|add_str:fastest_amount|add_str:" monsters" as text %}
-        {% include "website/monsters/monster_table.html" with monsters=fastest_monsters collapse_id="fastest_monsters" text=text collapsed="collapse" %}
-    {% endwith %}
-
-    {% with "Toughest "|add_str:toughest_amount|add_str:" monsters" as text %}
-        {% include "website/monsters/monster_table.html" with monsters=toughest_monsters collapse_id="toughest_monsters" text=text collapsed="collapse" %}
-    {% endwith %}
-
-    {% with "Toughest Defense Broken "|add_str:toughest_amount|add_str:" monsters" as text %}
-        {% include "website/monsters/monster_table.html" with monsters=toughest_def_break_monsters collapse_id="toughest_def_break_monsters" text=text collapsed="collapse" %}
-    {% endwith %}
+{% block jquery %}
+    <script>
+        function fetchData(){
+            $.ajax({
+                url: "{% url 'monsters_ajax' task_id=task_id %}",
+                type: "GET",
+                success: function(response) {
+                    seconds += 1;
+                    $('#secs').text(seconds);
+                    if(response){
+                        $('#content-ajax-container').html(response);
+                        clearInterval(fetchDataInterval);
+                    }
+                },
+                error: function(xhr) {
+                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.</h2>");
+                    clearInterval(fetchDataInterval);
+                }
+            });
+        }
+        var seconds = 0;
+        var fetchDataInterval = setInterval(fetchData, 1000);
+    </script>
 {% endblock %}

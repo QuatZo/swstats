@@ -9,12 +9,6 @@ from website.tasks import *
 import matplotlib.cm as cm
 import numpy as np
 
-from django.conf import settings
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
-from django.views.decorators.cache import cache_page
-
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
-
 # deck list w/ filters
 def get_deck_list_group_by_family(decks):
     """Return name, amount of families and quantity of monsters for every family in given decks list."""
@@ -103,9 +97,7 @@ def get_homunculus_skill_description(homunculuses):
             unique_skills.append(build.depth_5)
     return unique_skills
 
-
 # Create your views here.
-@cache_page(CACHE_TTL)
 def get_homepage(request):
     """Return the homepage with carousel messages & introduction."""
     runes = Rune.objects.all()
@@ -187,7 +179,6 @@ def get_homepage(request):
 
     return render( request, 'website/index.html', context )
  
-@cache_page(CACHE_TTL)
 def get_decks(request):
     decks = Deck.objects.all().order_by('-team_runes_eff')
     is_filter = False
@@ -243,7 +234,6 @@ def get_decks(request):
     }
     return render( request, 'website/decks/deck_index.html', context)
 
-@cache_page(CACHE_TTL)
 def get_deck_by_id(request, arg_id):
     deck = get_object_or_404(Deck.objects.prefetch_related('monsters', 'monsters__base_monster', 'monsters__runes__rune_set', 'monsters__runes__equipped_runes', 'monsters__runes__equipped_runes__base_monster', 'monsters__base_monster__family'), id=arg_id)
     decks = Deck.objects.all().order_by('place').prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
@@ -255,7 +245,6 @@ def get_deck_by_id(request, arg_id):
 
     return render( request, 'website/decks/deck_by_id.html', context)
 
-@cache_page(CACHE_TTL)
 def get_homunculus(request):
     homunculuses_base = MonsterBase.objects.filter(name__contains='Homunculus', awaken=True)
     homunculuses = WizardHomunculus.objects.all()
@@ -277,7 +266,6 @@ def get_homunculus(request):
 
     return render( request, 'website/homunculus/homunculus_index.html', context)
 
-@cache_page(CACHE_TTL)
 def get_homunculus_base(request, base):
     is_filter = False
     filters = list()
@@ -310,10 +298,8 @@ def get_homunculus_base(request, base):
 
     return render( request, 'website/homunculus/homunculus_base.html', context)
 
-@cache_page(CACHE_TTL)
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')
 
-@cache_page(CACHE_TTL)
 def get_credits(request):
     return render( request, 'website/credits.html')

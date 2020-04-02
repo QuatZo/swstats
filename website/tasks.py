@@ -8,6 +8,7 @@ import requests
 import logging
 import datetime
 import pickle
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -513,6 +514,134 @@ def get_runes_task(request_get):
         # table best by speed
         'fastest_runes_ids': fastest_runes_ids,
         'fastest_amount': len(fastest_runes),
+    }
+
+    return context
+
+@shared_task
+def get_monsters_task(request_get):
+    monsters = Monster.objects.order_by('-avg_eff')   
+    is_filter = False 
+    filters = list()
+
+    if request_get:
+        is_filter = True
+
+    if 'family' in request_get.keys() and request_get['family']:
+        family = request_get['family'][0].replace('_', ' ')
+        filters.append('Family: ' + family)
+        monsters = monsters.filter(base_monster__family__name=family)
+
+    if 'attribute' in request_get.keys() and request_get['attribute']:
+        filters.append('Attribute: ' + request_get['attribute'][0])
+        monsters = monsters.filter(base_monster__attribute=MonsterBase().get_attribute_id(request_get['attribute'][0]))
+
+    if 'type' in request_get.keys() and request_get['type']:
+        filters.append('Type: ' + request_get['type'][0])
+        monsters = monsters.filter(base_monster__archetype=MonsterBase().get_archetype_id(request_get['type'][0]))
+    
+    if 'base-class' in request_get.keys() and request_get['base-class']:
+        filters.append('Base Class: ' + request_get['base-class'][0])
+        monsters = monsters.filter(base_monster__base_class=request_get['base-class'][0])
+    
+    if 'storage' in request_get.keys() and request_get['storage']:
+        filters.append('Storage: ' + request_get['storage'][0])
+        monsters = monsters.filter(storage=request_get['storage'][0])
+
+    if 'hoh' in request_get.keys() and request_get['hoh']:
+        filters.append('HoH: ' + request_get['hoh'][0])
+        if request_get['hoh'][0] == "True":
+            monsters = monsters.filter(base_monster__in=get_monsters_hoh())
+        else:
+            monsters = monsters.exclude(base_monster__in=get_monsters_hoh())
+    
+    if 'fusion' in request_get.keys() and request_get['fusion']:
+        filters.append('Fusion: ' + request_get['fusion'][0])
+        if request_get['fusion'][0] == "True":
+            monsters = monsters.filter(base_monster__in=get_monsters_fusion())
+        else:
+            monsters = monsters.exclude(base_monster__in=get_monsters_fusion())
+
+    monsters_count = monsters.count()
+
+    monsters_over_time = get_monster_list_over_time(monsters)
+    monsters_by_family = get_monster_list_group_by_family(monsters)
+    monsters_by_attribute = get_monster_list_group_by_attribute(monsters)
+    monsters_by_type = get_monster_list_group_by_type(monsters)
+    monsters_by_base_class = get_monster_list_group_by_base_class(monsters)
+    monsters_by_storage = get_monster_list_group_by_storage(monsters)
+    monsters_by_hoh = get_monster_list_group_by_hoh(monsters)
+    monsters_by_fusion = get_monster_list_group_by_fusion(monsters)
+    
+    best_monsters_ids = [monster.id for monster in get_monster_list_best(monsters, 100, monsters_count)]
+    fastest_monsters_ids = [monster.id for monster in get_monster_list_fastest(monsters, 100, monsters_count)]
+    toughest_monsters_ids = [monster.id for monster in get_monster_list_toughest(monsters, 100, monsters_count)]
+    toughest_def_break_monsters_ids = [monster.id for monster in get_monster_list_toughest_def_break(monsters, 100, monsters_count)]
+
+    # best_monsters = best_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
+    # fastest_monsters = fastest_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
+    # toughest_monsters = toughest_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
+    # toughest_def_break_monsters = toughest_def_break_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # chart monster by acquiration date
+        'time_timeline': monsters_over_time['time'],
+        'time_count': monsters_over_time['quantity'],
+
+        # chart monster by family
+        'family_name': monsters_by_family['name'],
+        'family_count': monsters_by_family['quantity'],
+        'family_color': create_rgb_colors(monsters_by_family['length']),
+
+        # chart monster by attribute
+        'attribute_name': monsters_by_attribute['name'],
+        'attribute_count': monsters_by_attribute['quantity'],
+        'attribute_color': create_rgb_colors(monsters_by_attribute['length']),
+
+        # chart monster by type (archetype)
+        'type_name': monsters_by_type['name'],
+        'type_count': monsters_by_type['quantity'],
+        'type_color': create_rgb_colors(monsters_by_type['length']),
+
+        # chart monster by base class
+        'base_class_number': monsters_by_base_class['number'],
+        'base_class_count': monsters_by_base_class['quantity'],
+        'base_class_color': create_rgb_colors(monsters_by_base_class['length']),
+
+        # chart monster by storage
+        'storage_value': monsters_by_storage['value'],
+        'storage_count': monsters_by_storage['quantity'],
+        'storage_color': create_rgb_colors(monsters_by_storage['length']),
+
+        # chart monster by hoh
+        'hoh_value': monsters_by_hoh['value'],
+        'hoh_count': monsters_by_hoh['quantity'],
+        'hoh_color': create_rgb_colors(monsters_by_hoh['length']),
+
+        # chart monster by fusion
+        'fusion_value': monsters_by_fusion['value'],
+        'fusion_count': monsters_by_fusion['quantity'],
+        'fusion_color': create_rgb_colors(monsters_by_fusion['length']),
+
+        # table best by efficiency
+        'best_monsters_ids': best_monsters_ids,
+        'best_amount': len(best_monsters_ids),
+
+        # table best by speed
+        'fastest_monsters_ids': fastest_monsters_ids,
+        'fastest_amount': len(fastest_monsters_ids),
+
+        # table best by Effective HP
+        'toughest_monsters_ids': toughest_monsters_ids,
+        'toughest_amount': len(toughest_monsters_ids),
+
+        # table best by Effective HP while Defense Broken
+        'toughest_def_break_monsters_ids': toughest_def_break_monsters_ids,
+        'toughest_def_break_amount': len(toughest_def_break_monsters_ids),
     }
 
     return context
