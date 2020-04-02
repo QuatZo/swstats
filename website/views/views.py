@@ -9,6 +9,23 @@ from website.tasks import *
 import matplotlib.cm as cm
 import numpy as np
 
+def get_homepage(request):
+    task = get_homepage_task.delay()
+
+    return render( request, 'website/index.html', {'task_id': task.id})
+ 
+def get_homepage_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_homepage_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            html = render_to_string('website/index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
 def get_runes(request):
     task = get_runes_task.delay(dict(request.GET))
 

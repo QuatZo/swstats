@@ -400,6 +400,88 @@ def handle_dimension_hole_run_upload_task(data_resp, data_req):
 
 ########################### WEB ###########################
 @shared_task
+def get_homepage_task():
+    """Return the homepage with carousel messages & introduction."""
+    runes = Rune.objects.all()
+    rune_best = runes.order_by('-efficiency').first()
+    rune_equipped = Rune.objects.filter(equipped=True).count()
+
+    monsters = Monster.objects.all()
+    monster_best = monsters.order_by('-avg_eff').first()
+    monster_cdmg = monsters.order_by('-crit_dmg').first()
+    monster_speed = monsters.order_by('-speed').first()
+    
+    giants_fastest = DungeonRun.objects.filter(dungeon=8001, stage=10).order_by('clear_time').first()
+    dragons_fastest = DungeonRun.objects.filter(dungeon=9001, stage=10).order_by('clear_time').first()
+    necropolis_fastest = DungeonRun.objects.filter(dungeon=6001, stage=10).order_by('clear_time').first()
+
+    MESSAGES = [
+        {
+            'id': 1,
+            'title': 'Highest rune efficiency',
+            'text': f'The most efficient rune stored in database has {rune_best.efficiency if rune_best else 0}% efficiency.',
+            'type': 'rune',
+            'arg': rune_best.id if rune_best else 0,
+        },
+        {
+            'id': 2,
+            'title': 'Database',
+            'text': f'Our datbase contains {runes.count()} runes and {monsters.count()} monsters.',
+        },
+        {
+            'id': 3,
+            'title': 'Highest average efficiency',
+            'text': f'{str(monster_best)} has the highest average efficiency, amounting to {monster_best.avg_eff if monster_best else 0}%',
+            'type': 'monster',
+            'arg': monster_best.id if monster_best else 0,
+        },
+        {
+            'id': 4,
+            'title': 'Highest critical damage value',
+            'text': f'Highest Critical Damage value has {str(monster_cdmg)} with an amazing {monster_cdmg.crit_dmg if monster_cdmg else 0}%',
+            'type': 'monster',
+            'arg': monster_cdmg.id if monster_best else 0,
+        },
+        {
+            'id': 5,
+            'title': 'Fastest monster',
+            'text': f'Can something be faster than Flash? Yes! Such a monster is {str(monster_speed)} with an amazing {monster_speed.speed if monster_speed else 0} SPD',
+            'type': 'monster',
+            'arg': monster_speed.id if monster_speed else 0,
+        },
+        {
+            'id': 6,
+            'title': 'Fastest Giant\'s Keep B10 Run',
+            'text': f'You don\'t believe it! Someone beat Giant\'s Keep B10 in {int(giants_fastest.clear_time.total_seconds())} seconds!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(giants_fastest.dungeon), 'stage': 10},
+        },
+        {
+            'id': 7,
+            'title': 'Fastest Dragon\'s Lair B10 Run',
+            'text': f'Wait, what!? Someone set up Dragon B10 on fire in just {int(dragons_fastest.clear_time.total_seconds())} seconds. Incredible!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(dragons_fastest.dungeon), 'stage': 10},
+        },
+        {
+            'id': 8,
+            'title': 'Fastest Necropolis B10 Run',
+            'text': f'The Ancient Lich King was alive only for {int(necropolis_fastest.clear_time.total_seconds())} seconds after resurrection!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(necropolis_fastest.dungeon), 'stage': 10},
+        },
+    ]
+
+    ids = [el['id'] for el in MESSAGES]
+
+    context = {
+        'messages': MESSAGES,
+        'ids': ids,
+    }
+
+    return context
+
+@shared_task
 def get_runes_task(request_get):
     runes = Rune.objects.order_by('-efficiency')   
     is_filter = False 

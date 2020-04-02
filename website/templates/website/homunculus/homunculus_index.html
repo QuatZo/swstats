@@ -5,7 +5,7 @@
     Homunculus 
 {% endblock %}
 
-{% block content %}
+{% block ajax_container %}
     <div class="row">
         {% for card in cards %}
             {% include "website/homunculus/homunculus_card.html" with card=card %}

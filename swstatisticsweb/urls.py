@@ -40,6 +40,7 @@ if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabl
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^$', views.get_homepage, name='home'),
+    path('homepage/<str:task_id>/', views.get_homepage_ajax, name='homepage_ajax'),
 
     path('runes/', views.get_runes, name='runes'),
     path('runes/<str:task_id>/', views.get_runes_ajax, name='runes_ajax'),
