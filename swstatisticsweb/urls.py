@@ -45,6 +45,7 @@ urlpatterns = [
     path('runes/', views.get_runes, name='runes'),
     path('runes/<str:task_id>/', views.get_runes_ajax, name='runes_ajax'),
     path('runes/id/<int:arg_id>/', views.get_rune_by_id, name='rune_by_id'),
+    path('runes/id/<int:arg_id>/<str:task_id>/', views.get_rune_by_id_ajax, name='rune_by_id_ajax'),
 
     path('monsters/', views.get_monsters, name='monsters'),
     path('monsters/<str:task_id>/', views.get_monsters_ajax, name='monsters_ajax'),
@@ -53,6 +54,7 @@ urlpatterns = [
     path('decks/', views.get_decks, name='decks'),
     path('decks/<str:task_id>/', views.get_decks_ajax, name='decks_ajax'),
     path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
+    path('decks/id/<int:arg_id>/<str:task_id>/', views.get_deck_by_id_ajax, name='deck_by_id_ajax'),
     
     path('dungeons/', views.get_dungeons, name='dungeons'),
     path('dungeons/<str:name>/', views.get_rift_dungeon_by_stage, name='rift_dungeon_by_stage'),
@@ -62,6 +64,7 @@ urlpatterns = [
 
     path('homunculus/', views.get_homunculus, name='homunculus'),
     path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
+    path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'),
 
     path('dimhole/', views.get_dimension_hole, name='dimhole'),
     path('dimhole/<str:task_id>/', views.get_dimension_hole_ajax, name='dimhole_ajax'),

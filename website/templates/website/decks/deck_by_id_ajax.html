@@ -1,0 +1,38 @@
+{% load add_str %}
+{% load add_reverse_str %}
+{% load to_list %}
+{% load get_runes %}
+
+{% include "website/decks/deck_table.html" with decks=deck|to_list text="Deck's Info" collapse_id="deck-"|add_str:deck.id collapsed="collapse"%}
+
+<div class="title-container">
+	<h2 class="title">
+		Deck's Monsters
+	</h2>
+	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#deck-monster-row" aria-expanded="true" aria-controls="#deck-monster-row"> 
+		Show/Hide 
+	</button>
+</div>
+<div class="row collapse" id="deck-monster-row">
+	{% for monster in deck.monsters.all %}
+		{% include "website/monsters/monster_card_compressed.html" with name=monster|add_str:" (Normal Build)" monster=monster %}
+	{% endfor %}
+</div>
+
+{% include "website/runes/rune_table.html" with runes=deck.monsters.all|get_runes text="Deck's Runes" collapse_id="deck-"|add_str:deck.id|add_str:"-runes" collapsed="collapse"%}
+
+{% if similar %}
+	<div class="title-container">
+		<h2 class="title">
+			Other {{ deck.get_place_display }} Decks
+		</h2>
+		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#deck-other-row" aria-expanded="true" aria-controls="#deck-other-row"> 
+			Show/Hide 
+		</button>
+	</div>
+	<div class="row collapse" id="deck-other-row">
+		{% for deck in similar %}
+			{% include "website/decks/deck_card_compressed.html" with name=deck deck=deck %}
+		{% endfor %}
+	</div>
+{% endif %}

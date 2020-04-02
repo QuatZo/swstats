@@ -532,6 +532,50 @@ def get_rune_list_grouped_by_stars(runes):
         stars_count.append(val)
 
     return { 'number': stars_number, 'quantity': stars_count, 'length': len(stars_number) }
+
+def get_rune_rank_eff(runes, rune):
+    """Return place of rune based on efficiency."""
+    return runes.filter(efficiency__gte=rune.efficiency).count()
+
+def get_rune_rank_substat(runes, rune, substat, filters=None):
+    """Return place of rune based on given substat."""
+    substats = {
+        'sub_hp_flat': rune.sub_hp_flat,
+        'sub_hp': rune.sub_hp,
+        'sub_atk_flat': rune.sub_atk_flat,
+        'sub_atk': rune.sub_atk,
+        'sub_def_flat': rune.sub_def_flat,
+        'sub_def': rune.sub_def,
+        'sub_speed': rune.sub_speed,
+        'sub_crit_rate': rune.sub_crit_rate,
+        'sub_crit_dmg': rune.sub_crit_dmg,
+        'sub_res': rune.sub_res,
+        'sub_acc': rune.sub_acc,
+    }
+
+    if substats[substat] is None:
+        return None
+
+    remaining_filters = ""
+    if filters:
+        if 'slot' in filters:
+            remaining_filters += "AND slot=" + str(rune.slot)
+        if 'set' in filters:
+            remaining_filters += "AND rune_set_id=" + str(rune.rune_set.id)
+
+    rank = 1
+    value = sum(substats[substat])
+
+    for temp_rune in runes.raw(f'SELECT id, {substat} FROM website_rune WHERE {substat} IS NOT NULL {remaining_filters}'):
+        temp_rune = temp_rune.__dict__
+        if temp_rune[substat] is not None and sum(temp_rune[substat]) > value:
+            rank += 1
+
+    return rank
+
+def get_rune_similar(runes, rune):
+    """Return runes similar to the given one."""
+    return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary, efficiency__range=[rune.efficiency - 15, rune.efficiency + 15]).exclude(id=rune.id)
 # endregion
 
 # region MONSTERS - most of them should be async and in tasks to speed things up even more
@@ -1061,65 +1105,46 @@ def get_dimhole_runs_per_stage(dungeon_runs):
 
 # endregion
 
+# region HOMUNCULUS - should be async and in tasks to speed things up even more
+def get_homunculus_builds(homies):
+    """Return names, amount of builds and quantity of homunculuses using specific build."""
+    group_by_build = homies.values('build').annotate(total=Count('build')).order_by('build')
+
+    build_name = list()
+    build_identifier = list()
+    build_count = list()
+
+    for group in group_by_build:
+        build_name.append(WizardHomunculus.get_build_display(group['build']))
+        build_identifier.append(group['build'])
+        build_count.append(group['total'])
+
+    return { 'name': build_name, 'quantity': build_count, 'length': len(build_name), 'identifier': build_identifier }
+
+def get_homunculus_skill_description(homunculuses):
+    """Return skills & theirs description for specific homie."""
+    builds = homunculuses.prefetch_related('build', 'build__depth_1', 'build__depth_2', 'build__depth_3', 'build__depth_4', 'build__depth_5', 'build__homunculus')
+    unique_skills = list()
+
+    for homie in builds:
+        build = homie.build
+
+        if build.depth_1 not in unique_skills:
+            unique_skills.append(build.depth_1.id)
+        if build.depth_2 not in unique_skills:
+            unique_skills.append(build.depth_2.id)
+        if build.depth_3 not in unique_skills:
+            unique_skills.append(build.depth_3.id)
+        if build.depth_4 not in unique_skills:
+            unique_skills.append(build.depth_4.id)
+        if build.depth_5 not in unique_skills:
+            unique_skills.append(build.depth_5.id)
+            
+    return unique_skills
+# endregion
+
 # region OTHER
 def create_rgb_colors(length):
     """Return the array of 'length', which contains 'rgba(r, g, b, a)' strings for Chart.js."""
     return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
 # endregion
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

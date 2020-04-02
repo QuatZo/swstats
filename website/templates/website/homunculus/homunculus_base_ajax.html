@@ -1,0 +1,7 @@
+{% load add_str %}
+
+{% include "website/homunculus/charts/homunculus_chart_builds.html" with name=builds_name color=builds_color count=builds_quantity identifier=builds_identifier %}
+
+{% include "website/homunculus/homunculus_table_builds.html" with records=records collapse_id="homunculuses" text=base|add_str:" Builds List" collapsed="collapse" %}
+
+{% include "website/homunculus/homunculus_table_skills.html" with records=skills collapse_id="homunculus_skills" text=base|add_str:" Used Skills Description" collapsed="collapse" %}

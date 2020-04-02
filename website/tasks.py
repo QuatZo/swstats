@@ -1,5 +1,6 @@
 from celery import shared_task 
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 
 from .models import *
 from .functions import *
@@ -602,6 +603,58 @@ def get_runes_task(request_get):
     return context
 
 @shared_task
+def get_rune_by_id_task(request_get, arg_id):
+    rune = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
+    runes = Rune.objects.all()
+
+    try:
+        rta_monster_id = RuneRTA.objects.filter(rune=rune.id).prefetch_related('monster', 'monster__base_monster', 'rune', 'rune__rune_set').first().monster.id
+    except AttributeError:
+        rta_monster_id = None
+
+    runes_category_slot = runes.filter(slot=rune.slot)
+    runes_category_set = runes.filter(rune_set=rune.rune_set)
+    runes_category_both = runes.filter(slot=rune.slot, rune_set=rune.rune_set)
+
+    runes_count = runes.count()
+
+    similar_ids = [sim_rune.id for sim_rune in get_rune_similar(runes, rune)]
+
+    ranks = {
+        'normal': {
+            'efficiency': get_rune_rank_eff(runes, rune),
+            'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat'),
+            'hp': get_rune_rank_substat(runes, rune, 'sub_hp'),
+            'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat'),
+            'atk': get_rune_rank_substat(runes, rune, 'sub_atk'),
+            'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat'),
+            'def': get_rune_rank_substat(runes, rune, 'sub_def'),
+            'speed': get_rune_rank_substat(runes, rune, 'sub_speed'),
+            'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate'),
+            'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg'),
+            'res': get_rune_rank_substat(runes, rune, 'sub_res'),
+            'acc': get_rune_rank_substat(runes, rune, 'sub_acc'),
+        },
+        'categorized': {
+            'efficiency_slot': get_rune_rank_eff(runes_category_slot, rune),
+            'efficiency_set': get_rune_rank_eff(runes_category_set, rune),
+            'efficiency_both': get_rune_rank_eff(runes_category_both, rune),
+            'speed_slot': get_rune_rank_substat(runes_category_slot, rune, 'sub_speed', ['slot']),
+            'speed_set': get_rune_rank_substat(runes_category_set, rune, 'sub_speed', ['set']),
+            'speed_both': get_rune_rank_substat(runes_category_both, rune, 'sub_speed', ['slot', 'set']),
+        }
+    }
+
+    context = {
+        'rta_monster_id': rta_monster_id,
+        'ranks': ranks,
+        'similar_ids': similar_ids,
+        'arg_id': arg_id,
+    }
+
+    return context
+
+@shared_task
 def get_monsters_task(request_get):
     monsters = Monster.objects.order_by('-avg_eff')   
     is_filter = False 
@@ -785,6 +838,10 @@ def get_decks_task(request_get):
     }
 
     return context
+
+@shared_task
+def get_deck_by_id_task(request_get):
+    return
 
 @shared_task
 def get_dungeon_by_stage_task(request_get, name, stage):
@@ -1144,6 +1201,37 @@ def get_siege_records_task(request_get):
         'ranking_name': records_by_ranking['name'],
         'ranking_count': records_by_ranking['quantity'],
         'ranking_color': create_rgb_colors(records_by_ranking['length']),
+    }
+
+    return context
+
+@shared_task
+def get_homunculus_base_task(request_get, base):
+    is_filter = False
+    filters = list()
+    homunculuses = WizardHomunculus.objects.filter(homunculus__base_monster__id=base).order_by('-homunculus__avg_eff').prefetch_related('build', 'build__depth_1', 'build__depth_2', 'build__depth_3', 'build__depth_4', 'build__depth_5')
+    
+    if request_get:
+        is_filter = True
+
+    if 'build' in request_get.keys() and request_get['build']:
+        homunculuses = homunculuses.filter(build=request_get['build'][0])
+
+    homies_ids = [homie.id for homie in homunculuses]
+    homunculus_skills_ids = get_homunculus_skill_description(homunculuses)
+    homunculus_chart_builds = get_homunculus_builds(homunculuses)
+
+    context = {
+        'records_ids': homies_ids,
+
+        # chart builds
+        'builds_name': homunculus_chart_builds['name'],
+        'builds_quantity': homunculus_chart_builds['quantity'],
+        'builds_color': create_rgb_colors(homunculus_chart_builds['length']),
+        'builds_identifier': homunculus_chart_builds['identifier'],
+
+        # table skills
+        'skills_ids': homunculus_skills_ids,
     }
 
     return context
