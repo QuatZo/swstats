@@ -747,6 +747,53 @@ def get_monster_list_group_by_fusion(monsters):
         fusion_quantity.append(monsters_fusion_exclude)
 
     return { 'value': fusion_values, 'quantity': fusion_quantity, 'length': len(fusion_values) }
+
+
+def get_monster_rank_avg_eff(monsters, monster):
+    return monsters.filter(avg_eff__gte=monster.avg_eff).count()
+
+def get_monster_rank_stats(monsters, monster, stat, count):
+    """Return place of monster based on given stat."""
+    stats = {
+        'hp': monster.hp,
+        'attack': monster.attack,
+        'defense': monster.defense,
+        'speed': monster.speed,
+        'res': monster.res,
+        'acc': monster.acc,
+        'crit_rate': monster.crit_rate,
+        'crit_dmg': monster.crit_dmg,
+        'eff_hp': monster.eff_hp,
+        'eff_hp_def_break': monster.eff_hp_def_break,
+    }
+
+    if stats[stat] is None:
+        return count
+
+    rank = 1
+    value = stats[stat]
+
+    for temp_monster in monsters.raw(f'SELECT id, {stat} FROM website_monster WHERE {stat} IS NOT NULL'):
+        temp_monster = temp_monster.__dict__
+        if temp_monster[stat] is not None and temp_monster[stat] > value:
+            rank += 1
+
+    return rank
+
+def get_monster_records(monster):
+    siege = monster.siege_defense_monsters.all()
+    dungeons = monster.dungeon_monsters.all().distinct('dungeon')
+    rifts = monster.rift_dungeon_monsters.all().distinct('dungeon')
+    has_records = False
+    if siege.exists()  or dungeons.exists() or rifts.exists():
+        has_records = True
+    return {
+        'siege': siege,
+        'dungeons': dungeons,
+        'rifts': rifts,
+        'has': has_records,
+    }
+
 # endregion
 
 # region DECKS - should be async and in tasks to speed things up even more

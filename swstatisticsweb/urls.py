@@ -50,6 +50,7 @@ urlpatterns = [
     path('monsters/', views.get_monsters, name='monsters'),
     path('monsters/<str:task_id>/', views.get_monsters_ajax, name='monsters_ajax'),
     path('monsters/id/<int:arg_id>/', views.get_monster_by_id, name='monster_by_id'),
+    path('monsters/id/<int:arg_id>/<str:task_id>', views.get_monster_by_id_ajax, name='monster_by_id_ajax'),
 
     path('decks/', views.get_decks, name='decks'),
     path('decks/<str:task_id>/', views.get_decks_ajax, name='decks_ajax'),

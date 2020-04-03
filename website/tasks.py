@@ -783,6 +783,78 @@ def get_monsters_task(request_get):
     return context
 
 @shared_task
+def get_monster_by_id_task(request_get, arg_id):
+    monsters = Monster.objects.all().order_by('-avg_eff')
+    monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
+    
+    rta_monsters = RuneRTA.objects.filter(monster=arg_id).prefetch_related('rune', 'rune__rune_set', 'monster', 'monster__base_monster')
+    rta_build = list()
+
+    for rta_monster in rta_monsters:
+        rta_build.append(rta_monster.rune)
+
+    try:
+        rta_eff = round(sum([ rune.efficiency for rune in rta_build ]) / len(rta_build), 2)
+    except ZeroDivisionError:
+        rta_eff = None
+
+    monsters_category_base = monsters.filter(base_monster=monster.base_monster)
+    monsters_category_family = monsters.filter(base_monster__family=monster.base_monster.family)
+    monsters_category_attribute = monsters.filter(base_monster__attribute=monster.base_monster.attribute)
+    monsters_category_type = monsters.filter(base_monster__archetype=monster.base_monster.archetype)
+    monsters_category_attr_type = monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__archetype=monster.base_monster.archetype)
+    monsters_category_base_class = monsters.filter(base_monster__base_class=monster.base_monster.base_class)
+    monsters_category_all = monsters_category_attr_type.filter(base_monster__base_class=monster.base_monster.base_class)
+
+    rta_similar_builds = dict()
+    for rta_similar in RuneRTA.objects.filter(monster__base_monster__family=monster.base_monster.family, monster__base_monster__attribute=monster.base_monster.attribute).exclude(monster=monster.id):
+        if rta_similar.monster.id not in rta_similar_builds.keys():
+            rta_similar_builds[rta_similar.monster.id] = list()
+        rta_similar_builds[rta_similar.monster.id].append(rta_similar.rune.id)
+
+    monsters_count = monsters.count()
+
+    ranks = {
+        'normal': {
+            'avg_eff': get_monster_rank_avg_eff(monsters, monster),
+            'hp': get_monster_rank_stats(monsters, monster, 'hp', monsters_count),
+            'attack': get_monster_rank_stats(monsters, monster, 'attack', monsters_count),
+            'defense': get_monster_rank_stats(monsters, monster, 'defense', monsters_count),
+            'speed': get_monster_rank_stats(monsters, monster, 'speed', monsters_count),
+            'res': get_monster_rank_stats(monsters, monster, 'res', monsters_count),
+            'acc': get_monster_rank_stats(monsters, monster, 'acc', monsters_count),
+            'crit_rate': get_monster_rank_stats(monsters, monster, 'crit_rate', monsters_count),
+            'crit_dmg': get_monster_rank_stats(monsters, monster, 'crit_dmg', monsters_count),
+            'eff_hp': get_monster_rank_stats(monsters, monster, 'eff_hp', monsters_count),
+            'eff_hp_def_break': get_monster_rank_stats(monsters, monster, 'eff_hp_def_break', monsters_count),
+        },
+        'categorized': {
+            'avg_eff_base': get_monster_rank_avg_eff(monsters_category_base, monster),
+            'avg_eff_family': get_monster_rank_avg_eff(monsters_category_family, monster),
+            'avg_eff_attribute': get_monster_rank_avg_eff(monsters_category_attribute, monster),
+            'avg_eff_type': get_monster_rank_avg_eff(monsters_category_type, monster),
+            'avg_eff_attr_type': get_monster_rank_avg_eff(monsters_category_attr_type, monster),
+            'avg_eff_base_class': get_monster_rank_avg_eff(monsters_category_base_class, monster),
+            'avg_eff_all': get_monster_rank_avg_eff(monsters_category_all, monster),
+        }
+    }
+
+    rta = {
+        'build_ids': [rune.id for rune in rta_build],
+        'eff': rta_eff,
+    }
+
+    context = {
+        'ranks': ranks,
+        'rta': rta,
+        'similar_ids': [sim_mon.id for sim_mon in monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family, avg_eff__range=[monster.avg_eff - 20, monster.avg_eff + 20]).exclude(id=monster.id)],
+        'rta_similar_ids': rta_similar_builds,
+        'decks_ids': [deck.id for deck in Deck.objects.all().filter(monsters__id=monster.id)],
+    }
+
+    return context
+
+@shared_task
 def get_decks_task(request_get):
     decks = Deck.objects.all().order_by('-team_runes_eff')
     is_filter = False

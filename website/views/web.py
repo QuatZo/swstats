@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 
 from website.models import *
 from website.tasks import *
+from website.functions import *
 
 import matplotlib.cm as cm
 import numpy as np
@@ -91,6 +92,33 @@ def get_monsters_ajax(request, task_id):
             context['toughest_def_break_monsters'] = Monster.objects.filter(id__in=context['toughest_def_break_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp_def_break')
             
             html = render_to_string('website/monsters/monster_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_monster_by_id(request, arg_id):
+    task = get_monster_by_id_task.delay(dict(request.GET), arg_id)
+    monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
+    
+    return render( request, 'website/monsters/monster_by_id.html', {'task_id': task.id, 'monster': monster, 'arg_id': arg_id})
+
+def get_monster_by_id_ajax(request, task_id, arg_id):
+    if request.is_ajax():
+        data = get_monster_by_id_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['monster'] = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
+            context['rta']['build'] = Rune.objects.filter(id__in=context['rta']['build_ids'])
+            context['similar'] = Monster.objects.filter(id__in=context['similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
+            context['rta_similar'] = dict()
+            for rta_sim_mon_id, rta_sim_rune_id in context['rta_similar_ids'].items():
+                context['rta_similar'][Monster.objects.get(id=rta_sim_mon_id)] = Rune.objects.filter(id__in=rta_sim_rune_id)
+            context['decks'] = Deck.objects.filter(id__in=context['decks_ids']).prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
+            context['records'] = get_monster_records(context['monster'])
+
+            html = render_to_string('website/monsters/monster_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 
     return HttpResponse('')
