@@ -5,7 +5,7 @@
     [Desktop App] Profile Upload
 {% endblock %}
 
-{% block content %} 
+{% block ajax_container %} 
     <form method="POST" id="profile-upload">
         {% csrf_token %}
         <label for="profile-json" class="btn btn-light profile-json-upload-button">
