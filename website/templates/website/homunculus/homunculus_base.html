@@ -5,13 +5,27 @@
     {{ base.name|default:"Unknown" }}
 {% endblock %}
 
-{% block content %}
-    {% include "website/homunculus/charts/homunculus_chart_builds.html" with name=builds_name color=builds_color count=builds_quantity identifier=builds_identifier %}
-
-{% endblock %}
-
-{% block table %}
-    {% include "website/homunculus/homunculus_table_builds.html" with records=records collapse_id="homunculuses" text=base|add_str:" Builds List" collapsed="collapse" %}
-
-    {% include "website/homunculus/homunculus_table_skills.html" with records=skills collapse_id="homunculus_skills" text=base|add_str:" Used Skills Description" collapsed="collapse" %}
+{% block jquery %}
+    <script>
+        function fetchData(){
+            $.ajax({
+                url: "{% url 'homunculus_by_base_ajax' task_id=task_id base=base.id %}",
+                type: "GET",
+                success: function(response) {
+                    seconds += 1;
+                    $('#secs').text(seconds);
+                    if(response){
+                        $('#content-ajax-container').html(response);
+                        clearInterval(fetchDataInterval);
+                    }
+                },
+                error: function(xhr) {
+                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.</h2>");
+                    clearInterval(fetchDataInterval);
+                }
+            });
+        }
+        var seconds = 0;
+        var fetchDataInterval = setInterval(fetchData, 1000);
+    </script>
 {% endblock %}

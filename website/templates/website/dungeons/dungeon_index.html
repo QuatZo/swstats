@@ -5,7 +5,7 @@
     Dungeons
 {% endblock %}
 
-{% block content %} 
+{% block ajax_container %} 
     <div class="row">
         {% for dungeon, info in dungeons.items %}
             {% include 'website/dungeons/dungeon_card.html' with dungeon=dungeon info=info %}

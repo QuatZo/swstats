@@ -1,0 +1,13 @@
+{% load add_str %}
+
+{% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %}
+<p>
+    The position of comp on the list is calculated by using the following formula, where \(0 < win\_ratio < 1\)
+    $$points =  {(wins + 250) * win\_ratio}$$
+</p>
+{% include "website/siege/charts/siege_chart_group_by_family.html" with name=family_name count=family_count color=family_color %}
+{% include "website/siege/charts/siege_chart_group_by_ranking.html" with ids=ranking_id name=ranking_name count=ranking_count color=ranking_color %}
+
+{% with "Top "|add_str:best_amount|add_str:" Siege Defenses" as text%}
+    {% include "website/siege/siege_table.html" with records=best_records collapse_id="top_records" text=text collapsed="collapse" %}
+{% endwith %}

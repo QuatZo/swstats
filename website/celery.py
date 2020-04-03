@@ -7,7 +7,7 @@ from celery import Celery
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'swstatisticsweb.settings')
 
-app = Celery('swstatisticsweb', backend='redis://localhost', broker='redis://localhost', result_expires=1800) # 1800 secs = 30 minutes
+app = Celery('swstatisticsweb', backend='redis://localhost', broker='redis://localhost')
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
 # - namespace='CELERY' means all celery-related configuration keys
@@ -15,14 +15,8 @@ app = Celery('swstatisticsweb', backend='redis://localhost', broker='redis://loc
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.update(
-    result_expires=3600,
+    result_expires=1800, # 1800 secs = 30 minutes
 )
-
-from celery import signals
-@signals.setup_logging.connect
-def setup_celery_logging(**kwargs):
-    pass
-app.log.setup()
 
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()

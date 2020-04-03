@@ -7,20 +7,31 @@
 {% endblock %}
 
 {% block content_title %}
-    Siege Defenses {% if is_filter %} {{ filters }} {% endif %} 
+    Siege Defenses
 {% endblock %}
 
-{% block content %} 
-    <p>
-		The position of comp on the list is calculated by using the following formula, where \(0 < win\_ratio < 1\)
-		$$points =  {(wins + 250) * win\_ratio}$$
-	</p>
-    {% include "website/siege/charts/siege_chart_group_by_family.html" with name=family_name count=family_count color=family_color %}
-    {% include "website/siege/charts/siege_chart_group_by_ranking.html" with ids=ranking_id name=ranking_name count=ranking_count color=ranking_color %}
-{% endblock %}
-
-{% block table %}
-    {% with "Top "|add_str:best_amount|add_str:" Siege Defenses" as text%}
-        {% include "website/siege/siege_table.html" with records=best_records collapse_id="top_records" text=text collapsed="collapse" %}
-    {% endwith %}
+{% block jquery %}
+    <script>
+        function fetchData(){
+            $.ajax({
+                url: "{% url 'siege_ajax' task_id=task_id %}",
+                type: "GET",
+                success: function(response) {
+                    seconds += 1;
+                    $('#secs').text(seconds);
+                    if(response){
+                        $('#content-ajax-container').html(response);
+                        MathJax.typesetPromise();
+                        clearInterval(fetchDataInterval);
+                    }
+                },
+                error: function(xhr) {
+                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.</h2>");
+                    clearInterval(fetchDataInterval);
+                }
+            });
+        }
+        var seconds = 0;
+        var fetchDataInterval = setInterval(fetchData, 1000);
+    </script>
 {% endblock %}

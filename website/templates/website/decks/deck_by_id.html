@@ -8,42 +8,27 @@
 	{{ deck }} (ID: {{ deck.id }}) <br />
 {% endblock %}
 
-{% block table %}
-	{% if deck %}
-		{% include "website/decks/deck_table.html" with decks=deck|to_list text="Deck's Info" collapse_id="deck-"|add_str:deck.id collapsed="collapse"%}
-
-		<div class="title-container">
-			<h2 class="title">
-				Deck's Monsters
-			</h2>
-			<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#deck-monster-row" aria-expanded="true" aria-controls="#deck-monster-row"> 
-				Show/Hide 
-			</button>
-		</div>
-		<div class="row collapse" id="deck-monster-row">
-			{% for monster in deck.monsters.all %}
-				{% include "website/monsters/monster_card_compressed.html" with name=monster|add_str:" (Normal Build)" monster=monster %}
-			{% endfor %}
-		</div>
-
-		{% include "website/runes/rune_table.html" with runes=deck.monsters.all|get_runes text="Deck's Runes" collapse_id="deck-"|add_str:deck.id|add_str:"-runes" collapsed="collapse"%}
-
-		{% if similar %}
-			<div class="title-container">
-				<h2 class="title">
-					Other {{ deck.get_place_display }} Decks
-				</h2>
-				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#deck-other-row" aria-expanded="true" aria-controls="#deck-other-row"> 
-					Show/Hide 
-				</button>
-			</div>
-			<div class="row collapse" id="deck-other-row">
-				{% for deck in similar %}
-					{% include "website/decks/deck_card_compressed.html" with name=deck deck=deck %}
-				{% endfor %}
-			</div>
-		{% endif %}
-	{% else %}
-		<p>There will be 404 Error or something because no deck like this.</p>
-	{% endif %}
+{% block jquery %}
+    <script>
+        function fetchData(){
+            $.ajax({
+                url: "{% url 'deck_by_id_ajax' task_id=task_id arg_id=arg_id %}",
+                type: "GET",
+                success: function(response) {
+                    seconds += 1;
+                    $('#secs').text(seconds);
+                    if(response){
+                        $('#content-ajax-container').html(response);
+                        clearInterval(fetchDataInterval);
+                    }
+                },
+                error: function(xhr) {
+                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.</h2>");
+                    clearInterval(fetchDataInterval);
+                }
+            });
+        }
+        var seconds = 0;
+        var fetchDataInterval = setInterval(fetchData, 1000);
+    </script>
 {% endblock %}

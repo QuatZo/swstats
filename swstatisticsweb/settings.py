@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import dj_database_url
 import dotenv
-from celery.schedules import crontab  
+# from celery.schedules import crontab  
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'website',
-    'cachalot',
+    # 'cachalot', # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 ]
 
 MIDDLEWARE = [
@@ -177,22 +177,22 @@ LOGGING = {
     }
 }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        },
-        "KEY_PREFIX": "website"
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/1",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient"
+#         },
+#         "KEY_PREFIX": "website"
+#     }
+# }
 
-CACHE_TTL = 60 * 30 # 30 minutes cache
+# CACHE_TTL = 60 * 30 # 30 minutes cache # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 
-CELERY_BEAT_SCHEDULE = {
- 'generate-cache-every-hour': {
-       'task': 'website.tasks.generate_cache',
-       'schedule': crontab(minute='*/30'),
-    }, 
-}
+# CELERY_BEAT_SCHEDULE = {
+#  'generate-cache-every-hour': {
+#        'task': 'website.tasks.generate_cache',
+#        'schedule': crontab(minute='*/30'),
+#     }, 
+# }

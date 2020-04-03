@@ -94,16 +94,19 @@ def get_report(request):
     return render( request, 'website/report/report_index.html', context)
 
 def get_old_reports(request):
-    image_list = list()
+    images = dict()
 
     app_static_dir = os.path.join(settings.BASE_DIR, 'website', 'static', 'website', 'reports')
 
     for filename in os.listdir(app_static_dir):
         if filename.endswith(".png"):
-            image_list.append(filename)
+            images[filename] = os.path.getmtime(app_static_dir + '/' + filename)
+
+
+    images = sorted(images.keys(), reverse=True) # reverse=True -> descending
 
     context = {
-        'images': image_list, 
+        'images': images, 
     }
 
     return render( request, 'website/report/report_old.html', context)

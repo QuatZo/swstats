@@ -1,291 +1,318 @@
 from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponse
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField
+from django.template.loader import render_to_string
 
 from website.models import *
+from website.tasks import *
+from website.functions import *
 
 import matplotlib.cm as cm
 import numpy as np
 
-from django.conf import settings
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
-from django.views.decorators.cache import cache_page
-
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
-
-# bar chart colors
-def create_rgb_colors(length):
-    """Return the array of 'length', which contains 'rgba(r, g, b, a)' strings for Chart.js."""
-    return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
-
-# deck list w/ filters
-def get_deck_list_group_by_family(decks):
-    """Return name, amount of families and quantity of monsters for every family in given decks list."""
-    family_monsters = dict()
-    
-    for deck in decks:
-        for monster in deck.monsters.all():
-            if monster.base_monster.family.name not in family_monsters.keys():
-                family_monsters[monster.base_monster.family.name] = 0
-            family_monsters[monster.base_monster.family.name] += 1
-
-    family_monsters = {k: family_monsters[k] for k in sorted(family_monsters, key=family_monsters.get, reverse=True)}
-    return { 'name': list(family_monsters.keys()), 'quantity': list(family_monsters.values()), 'length': len(family_monsters.keys()) }
-
-def get_deck_list_group_by_place(decks):
-    """Return names, amount of places and quantity of decks for every place in given decks list."""
-    group_by_place = decks.values('place').annotate(total=Count('place')).order_by('-total')
-
-    place_name = list()
-    place_count = list()
-
-    for group in group_by_place:
-        place_name.append(Deck(place=group['place']).get_place_display())
-        place_count.append(group['total'])
-
-    return { 'name': place_name, 'quantity': place_count, 'length': len(place_name) }
-
-def get_deck_list_avg_eff(decks):
-    """Return the avg efficiency of given deck, incl. decks splitted into two sets (above & equal, below)."""
-    if not decks.count():
-        return { 'above': [], 'below': [], 'avg': 0 }
-
-    avg_eff = decks.aggregate(Avg('team_runes_eff'))['team_runes_eff__avg']
-    avg_eff_above_decks = list()
-    avg_eff_below_decks = list()
-
-    for deck in decks:
-        if deck.team_runes_eff >= avg_eff:
-            avg_eff_above_decks.append({
-                'x': deck.id,
-                'y': deck.team_runes_eff
-            })
-        else:
-            avg_eff_below_decks.append({
-                'x': deck.id,
-                'y': deck.team_runes_eff
-            })
-
-    return { 'above': avg_eff_above_decks, 'below': avg_eff_below_decks, 'avg': avg_eff }
-
-def get_deck_similar(deck, decks):
-    return [temp_deck for temp_deck in decks if temp_deck.place == deck.place and temp_deck.id != deck.id and deck.team_runes_eff - 10 < temp_deck.team_runes_eff and deck.team_runes_eff + 10 > temp_deck.team_runes_eff]
-
-# homunculus
-def get_homunculus_builds(homies):
-    """Return names, amount of builds and quantity of homunculuses using specific build."""
-    group_by_build = homies.values('build').annotate(total=Count('build')).order_by('build')
-
-    build_name = list()
-    build_identifier = list()
-    build_count = list()
-
-    for group in group_by_build:
-        build_name.append(WizardHomunculus.get_build_display(group['build']))
-        build_identifier.append(group['build'])
-        build_count.append(group['total'])
-
-    return { 'name': build_name, 'quantity': build_count, 'length': len(build_name), 'identifier': build_identifier }
-
-def get_homunculus_skill_description(homunculuses):
-    """Return skills & theirs description for specific homie."""
-    builds = homunculuses.prefetch_related('build', 'build__depth_1', 'build__depth_2', 'build__depth_3', 'build__depth_4', 'build__depth_5', 'build__homunculus')
-    unique_skills = list()
-
-    for homie in builds:
-        build = homie.build
-        if build.depth_1 not in unique_skills:
-            unique_skills.append(build.depth_1)
-        if build.depth_2 not in unique_skills:
-            unique_skills.append(build.depth_2)
-        if build.depth_3 not in unique_skills:
-            unique_skills.append(build.depth_3)
-        if build.depth_4 not in unique_skills:
-            unique_skills.append(build.depth_4)
-        if build.depth_5 not in unique_skills:
-            unique_skills.append(build.depth_5)
-    return unique_skills
-
-# siege
-def get_siege_records_group_by_family(records):
-    """Return name, amount of families and quantity of monsters for every family in given siege records."""
-    family_monsters = dict()
-    
-    for record in records:
-        for monster in record.monsters.all():
-            if monster.base_monster.family.name not in family_monsters.keys():
-                family_monsters[monster.base_monster.family.name] = 0
-            family_monsters[monster.base_monster.family.name] += 1
-
-    family_monsters = {k: family_monsters[k] for k in sorted(family_monsters, key=family_monsters.get, reverse=True)}
-    return { 'name': list(family_monsters.keys()), 'quantity': list(family_monsters.values()), 'length': len(family_monsters.keys()) }
-
-def get_siege_records_group_by_ranking(records):
-    """Return ranking, amount of records and quantity of records for every ranking in given siege records."""
-    group_by_rank = records.values('wizard__guild__siege_ranking').annotate(total=Count('wizard__guild__siege_ranking')).order_by('-total')
-
-    ranking_id = list()
-    ranking_name = list()
-    ranking_count = list()
-
-    for group in group_by_rank:
-        ranking_id.append(group['wizard__guild__siege_ranking'])
-        ranking_name.append(Guild().get_siege_ranking_name(group['wizard__guild__siege_ranking']))
-        ranking_count.append(group['total'])
-
-    return { 'ids': ranking_id, 'name': ranking_name, 'quantity': ranking_count, 'length': len(ranking_id) }
-
 # Create your views here.
-# @cache_page(CACHE_TTL)
 def get_homepage(request):
-    """Return the homepage with carousel messages & introduction."""
-    runes = Rune.objects.all()
-    rune_best = runes.order_by('-efficiency').first()
-    rune_equipped = Rune.objects.filter(equipped=True).count()
+    task = get_homepage_task.delay()
 
-    monsters = Monster.objects.all()
-    monster_best = monsters.order_by('-avg_eff').first()
-    monster_cdmg = monsters.order_by('-crit_dmg').first()
-    monster_speed = monsters.order_by('-speed').first()
+    return render( request, 'website/index.html', {'task_id': task.id})
+ 
+def get_homepage_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_homepage_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            html = render_to_string('website/index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_runes(request):
+    task = get_runes_task.delay(dict(request.GET))
+
+    return render( request, 'website/runes/rune_index.html', {'task_id': task.id})
+
+def get_runes_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_runes_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['best_runes'] = Rune.objects.filter(id__in=context['best_runes_ids']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster').order_by('-efficiency')
+            context['fastest_runes'] = Rune.objects.filter(id__in=context['fastest_runes_ids']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster').order_by('-sub_speed')
+
+            html = render_to_string('website/runes/rune_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_rune_by_id(request, arg_id):
+    task = get_rune_by_id_task.delay(dict(request.GET), arg_id)
+    rune = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
     
-    giants_fastest = DungeonRun.objects.filter(dungeon=8001, stage=10).order_by('clear_time').first()
-    dragons_fastest = DungeonRun.objects.filter(dungeon=9001, stage=10).order_by('clear_time').first()
-    necropolis_fastest = DungeonRun.objects.filter(dungeon=6001, stage=10).order_by('clear_time').first()
+    return render( request, 'website/runes/rune_by_id.html', {'task_id': task.id, 'rune': rune, 'arg_id': arg_id})
 
-    MESSAGES = [
-        {
-            'id': 1,
-            'title': 'Highest rune efficiency',
-            'text': f'The most efficient rune stored in database has {rune_best.efficiency if rune_best else 0}% efficiency.',
-            'type': 'rune',
-            'arg': rune_best.id if rune_best else 0,
-        },
-        {
-            'id': 2,
-            'title': 'Database',
-            'text': f'Our datbase contains {runes.count()} runes and {monsters.count()} monsters.',
-        },
-        {
-            'id': 3,
-            'title': 'Highest average efficiency',
-            'text': f'{str(monster_best)} has the highest average efficiency, amounting to {monster_best.avg_eff if monster_best else 0}%',
-            'type': 'monster',
-            'arg': monster_best.id if monster_best else 0,
-        },
-        {
-            'id': 4,
-            'title': 'Highest critical damage value',
-            'text': f'Highest Critical Damage value has {str(monster_cdmg)} with an amazing {monster_cdmg.crit_dmg if monster_cdmg else 0}%',
-            'type': 'monster',
-            'arg': monster_cdmg.id if monster_best else 0,
-        },
-        {
-            'id': 5,
-            'title': 'Fastest monster',
-            'text': f'Can something be faster than Flash? Yes! Such a monster is {str(monster_speed)} with an amazing {monster_speed.speed if monster_speed else 0} SPD',
-            'type': 'monster',
-            'arg': monster_speed.id if monster_speed else 0,
-        },
-        {
-            'id': 6,
-            'title': 'Fastest Giant\'s Keep B10 Run',
-            'text': f'You don\'t believe it! Someone beat Giant\'s Keep B10 in {int(giants_fastest.clear_time.total_seconds())} seconds!',
-            'type': 'dungeon',
-            'arg': {'dungeon': DungeonRun.get_dungeon_name(giants_fastest.dungeon), 'stage': 10},
-        },
-        {
-            'id': 7,
-            'title': 'Fastest Dragon\'s Lair B10 Run',
-            'text': f'Wait, what!? Someone set up Dragon B10 on fire in just {int(dragons_fastest.clear_time.total_seconds())} seconds. Incredible!',
-            'type': 'dungeon',
-            'arg': {'dungeon': DungeonRun.get_dungeon_name(dragons_fastest.dungeon), 'stage': 10},
-        },
-        {
-            'id': 8,
-            'title': 'Fastest Necropolis B10 Run',
-            'text': f'The Ancient Lich King was alive only for {int(necropolis_fastest.clear_time.total_seconds())} seconds after resurrection!',
-            'type': 'dungeon',
-            'arg': {'dungeon': DungeonRun.get_dungeon_name(necropolis_fastest.dungeon), 'stage': 10},
-        },
-    ]
+def get_rune_by_id_ajax(request, task_id, arg_id):
+    if request.is_ajax():
+        data = get_rune_by_id_task.AsyncResult(task_id) 
 
-    ids = [el['id'] for el in MESSAGES]
+        if data.ready():
+            context = data.get()
+
+            context['rune'] = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
+            if context['rta_monster_id']:
+                context['rta_monster'] = RuneRTA.objects.get(id=context['rta_monster_id']).prefetch_related('monster', 'monster__base_monster', 'rune', 'rune__rune_set')
+            else:
+                context['rta_monster'] = None
+            
+            context['similar_runes'] = Rune.objects.filter(id__in=context['similar_ids']).order_by('-efficiency').prefetch_related('equipped_runes', 'equipped_runes__base_monster', 'rune_set')
+
+            html = render_to_string('website/runes/rune_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_monsters(request):
+    task = get_monsters_task.delay(dict(request.GET))
+
+    return render( request, 'website/monsters/monster_index.html', {'task_id': task.id})
+
+def get_monsters_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_monsters_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['best_monsters'] = Monster.objects.filter(id__in=context['best_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-avg_eff')
+            context['fastest_monsters'] = Monster.objects.filter(id__in=context['fastest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-speed')
+            context['toughest_monsters'] = Monster.objects.filter(id__in=context['toughest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp')
+            context['toughest_def_break_monsters'] = Monster.objects.filter(id__in=context['toughest_def_break_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp_def_break')
+            
+            html = render_to_string('website/monsters/monster_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_monster_by_id(request, arg_id):
+    task = get_monster_by_id_task.delay(dict(request.GET), arg_id)
+    monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
+    
+    return render( request, 'website/monsters/monster_by_id.html', {'task_id': task.id, 'monster': monster, 'arg_id': arg_id})
+
+def get_monster_by_id_ajax(request, task_id, arg_id):
+    if request.is_ajax():
+        data = get_monster_by_id_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['monster'] = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
+            context['rta']['build'] = Rune.objects.filter(id__in=context['rta']['build_ids'])
+            context['similar'] = Monster.objects.filter(id__in=context['similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
+            context['rta_similar'] = dict()
+            for rta_sim_mon_id, rta_sim_rune_id in context['rta_similar_ids'].items():
+                context['rta_similar'][Monster.objects.get(id=rta_sim_mon_id)] = Rune.objects.filter(id__in=rta_sim_rune_id)
+            context['decks'] = Deck.objects.filter(id__in=context['decks_ids']).prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
+            context['records'] = get_monster_records(context['monster'])
+
+            html = render_to_string('website/monsters/monster_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_decks(request):
+    task = get_decks_task.delay(dict(request.GET))
+
+    return render( request, 'website/decks/deck_index.html', {'task_id': task.id})
+
+def get_decks_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_decks_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['decks'] = Deck.objects.filter(id__in=context['decks_ids']).prefetch_related('monsters', 'monsters__base_monster', 'monsters__base_monster__family', 'leader', 'leader__base_monster', 'leader__base_monster__family').order_by('-team_runes_eff')
+
+
+            html = render_to_string('website/decks/deck_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_deck_by_id(request, arg_id):
+    task = get_deck_by_id_task.delay(dict(request.GET))
+    deck = get_object_or_404(Deck.objects.prefetch_related('monsters', 'monsters__base_monster', 'monsters__runes__rune_set', 'monsters__runes__equipped_runes', 'monsters__runes__equipped_runes__base_monster', 'monsters__base_monster__family'), id=arg_id)
+            
+    return render( request, 'website/decks/deck_by_id.html', {'task_id': task.id, 'deck': deck, 'arg_id': arg_id})
+
+def get_deck_by_id_ajax(request, task_id, arg_id):
+    if request.is_ajax():
+        data = get_deck_by_id_task.AsyncResult(task_id) 
+
+        if data.ready():
+            deck = get_object_or_404(Deck.objects.prefetch_related('monsters', 'monsters__base_monster', 'monsters__runes__rune_set', 'monsters__runes__equipped_runes', 'monsters__runes__equipped_runes__base_monster', 'monsters__base_monster__family'), id=arg_id)
+            decks = Deck.objects.all().order_by('place').prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
+
+            context = { 
+                'deck': deck,
+                'similar': get_deck_similar(deck, decks),
+                'arg_id': arg_id,
+            }
+
+            html = render_to_string('website/decks/deck_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_siege_records(request):
+    task = get_siege_records_task.delay(dict(request.GET))
+
+    return render( request, 'website/siege/siege_index.html', {'task_id': task.id})
+
+def get_siege_records_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_siege_records_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+            context['best_records'] = SiegeRecord.objects.filter(id__in=context['records_ids']).prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster', 'monsters__base_monster__family').annotate(sorting_val=Sum((F('win') + 250) * F('ratio'), output_field=FloatField())).order_by('-sorting_val')[:context['best_amount']]
+
+            html = render_to_string('website/siege/siege_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_dungeons(request):
+    dungeons = DungeonRun.objects.values('dungeon', 'stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('id')).order_by('dungeon', '-stage', '-win')
+    rift_dungeons = RiftDungeonRun.objects.values('dungeon', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('dungeon')).order_by('dungeon', '-win')
+    dungeons_base = DungeonRun().get_all_dungeons()
+    rift_dungeons_base = RiftDungeonRun.get_all_dungeons()
+
+    records = dict()
+    for dungeon_base in dungeons_base:
+        stages = dict()
+        max_stage = 10
+        if dungeon_base == 'Rift of Worlds': max_stage = 5
+        for i in range(max_stage, 0, -1):
+            stages["B" + str(i)] = {
+                'avg_time': None,
+                'quantity': None,
+                'wins': None,
+                'loses': None,
+            }
+        records[dungeon_base] = stages
+
+    for rift_dungeon_base in rift_dungeons_base:
+        stages = dict()
+        stages["B1"] = {
+            'avg_time': None,
+            'quantity': None,
+            'wins': None,
+            'loses': None,
+        }
+        records[rift_dungeon_base] = stages
+
+    for dungeon in dungeons:
+        dungeon_name = DungeonRun().get_dungeon_name(dungeon['dungeon'])
+        dungeon_stage = "B" + str(dungeon['stage'])
+        dungeon_quantity = dungeon['quantity']
+
+        records[dungeon_name][dungeon_stage] = {
+            'avg_time': str(dungeon['avg_time']) if dungeon['avg_time'] else records[dungeon_name][dungeon_stage]['avg_time'],
+            'quantity': dungeon_quantity if not records[dungeon_name][dungeon_stage]['quantity'] else records[dungeon_name][dungeon_stage]['quantity'] + dungeon_quantity,
+            'wins': dungeon_quantity if dungeon['win'] else records[dungeon_name][dungeon_stage]['wins'],
+            'loses': dungeon_quantity if not dungeon['win'] else records[dungeon_name][dungeon_stage]['loses'],
+        }
+
+    for rift_dungeon in rift_dungeons:
+        dungeon_name = RiftDungeonRun().get_dungeon_name(rift_dungeon['dungeon'])
+        dungeon_stage = "B1"
+        dungeon_quantity = rift_dungeon['quantity']
+
+        records[dungeon_name][dungeon_stage] = {
+            'avg_time': str(rift_dungeon['avg_time']) if rift_dungeon['avg_time'] else records[dungeon_name][dungeon_stage]['avg_time'],
+            'quantity': dungeon_quantity if not records[dungeon_name][dungeon_stage]['quantity'] else records[dungeon_name][dungeon_stage]['quantity'] + dungeon_quantity,
+            'wins': dungeon_quantity if rift_dungeon['win'] else records[dungeon_name][dungeon_stage]['wins'],
+            'loses': dungeon_quantity if not rift_dungeon['win'] else records[dungeon_name][dungeon_stage]['loses'],
+        }
 
     context = {
-        'messages': MESSAGES,
-        'ids': ids,
+        'dungeons': records
     }
-
-    return render( request, 'website/index.html', context )
- 
-@cache_page(CACHE_TTL)
-def get_decks(request):
-    decks = Deck.objects.all().order_by('-team_runes_eff')
-    is_filter = False
-    filters = list()
-
-    if request.GET:
-        is_filter = True
-
-    if request.GET.get('family'):
-        family = request.GET.get('family').replace('_', ' ')
-        filters.append('Family: ' + family)
-        decks = decks.filter(monsters__base_monster__family__name=family)
-
-    if request.GET.get('place'):
-        place = request.GET.get('place').replace('_', ' ')
-        filters.append('Place: ' + place)
-        decks = decks.filter(place=Deck().get_place_id(place))
     
-    decks = decks.prefetch_related('monsters', 'monsters__base_monster', 'monsters__base_monster__family', 'leader', 'leader__base_monster', 'leader__base_monster__family')
-    decks_by_family = get_deck_list_group_by_family(decks)
-    decks_by_place = get_deck_list_group_by_place(decks)
-    decks_eff = get_deck_list_avg_eff(decks)
+    return render( request, 'website/dungeons/dungeon_index.html', context)
 
-    # needs to be last, because it's for TOP table
-    amount = min(100, decks.count())
-    decks = decks.order_by('-team_runes_eff')[:amount]
+def get_dungeon_by_stage(request, name, stage):
+    task = get_dungeon_by_stage_task.delay(dict(request.GET), name, stage)
+    
+    return render( request, 'website/dungeons/dungeon_by_stage.html', {'task_id': task.id, 'name': name.capitalize().replace('_', ' ').replace('-', ' '), 'stage': stage})
 
-    context = { 
-        # filters
-        'is_filter': is_filter,
-        'filters': '[' + ', '.join(filters) + ']',
-        
-        # chart group by family members
-        'family_name': decks_by_family['name'],
-        'family_count': decks_by_family['quantity'],
-        'family_color': create_rgb_colors(decks_by_family['length']),
+def get_dungeon_by_stage_ajax(request, task_id, name, stage):
+    if request.is_ajax():
+        data = get_dungeon_by_stage_task.AsyncResult(task_id) 
 
-        # chart group by place
-        'place_name': decks_by_place['name'],
-        'place_count': decks_by_place['quantity'],
-        'place_color': create_rgb_colors(decks_by_place['length']),
+        if data.ready():
+            context = data.get()
+            
+            for record in context['records_personal']:
+                record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+            for record in context['records_base']:
+                record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
 
-        # chart best
-        'avg_eff_above_decks': decks_eff['above'],
-        'avg_eff_above_quantity': len(decks_eff['above']),
-        'avg_eff_below_decks': decks_eff['below'],
-        'avg_eff_below_quantity': len(decks_eff['below']),
-        'avg_eff': round(decks_eff['avg'], 2),
+            html = render_to_string('website/dungeons/dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
 
-        # Table TOP decks
-        'decks': decks,
-        'amount': amount,
-    }
-    return render( request, 'website/decks/deck_index.html', context)
+    return HttpResponse('')
 
-@cache_page(CACHE_TTL)
-def get_deck_by_id(request, arg_id):
-    deck = get_object_or_404(Deck.objects.prefetch_related('monsters', 'monsters__base_monster', 'monsters__runes__rune_set', 'monsters__runes__equipped_runes', 'monsters__runes__equipped_runes__base_monster', 'monsters__base_monster__family'), id=arg_id)
-    decks = Deck.objects.all().order_by('place').prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
+def get_rift_dungeon_by_stage(request, name):
+    task = get_rift_dungeon_by_stage_task.delay(dict(request.GET), name)
+    
+    return render( request, 'website/dungeons/rift_dungeon_by_stage.html', {'task_id': task.id, 'name': name.capitalize().replace('_', ' ').replace('-', ' ')})
 
-    context = { 
-        'deck': deck,
-        'similar': get_deck_similar(deck, decks),
-    }
+def get_rift_dungeon_by_stage_ajax(request, task_id, name):
+    if request.is_ajax():
+        data = get_rift_dungeon_by_stage_task.AsyncResult(task_id) 
 
-    return render( request, 'website/decks/deck_by_id.html', context)
+        if data.ready():
+            context = data.get()
+            
+            for record in context['records_personal']:
+                record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+            for record in context['records_base']:
+                record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
 
-@cache_page(CACHE_TTL)
+            html = render_to_string('website/dungeons/rift_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_dimension_hole(request):
+    task = get_dimension_hole_task.delay(dict(request.GET))
+
+    return render( request, 'website/dimhole/dimhole_index.html', {'task_id': task.id})
+
+def get_dimension_hole_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_dimension_hole_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+            
+            if context['records_ok']:
+                for record in context['records_personal']:
+                    record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+                for record in context['records_base']:
+                    record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
+
+            html = render_to_string('website/dimhole/dimhole_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
 def get_homunculus(request):
     homunculuses_base = MonsterBase.objects.filter(name__contains='Homunculus', awaken=True)
     homunculuses = WizardHomunculus.objects.all()
@@ -302,101 +329,33 @@ def get_homunculus(request):
 
     context = {
         'cards': cards,
-
     }
 
     return render( request, 'website/homunculus/homunculus_index.html', context)
 
-@cache_page(CACHE_TTL)
 def get_homunculus_base(request, base):
-    is_filter = False
-    filters = list()
-    homunculus_base = MonsterBase.objects.filter(id=base).first()
-    homunculuses = WizardHomunculus.objects.filter(homunculus__base_monster__id=base).order_by('-homunculus__base_monster__avg_eff').prefetch_related('build', 'build__depth_1', 'build__depth_2', 'build__depth_3', 'build__depth_4', 'build__depth_5')
-    
-    if request.GET:
-        is_filter = True
+    homunculus_base = MonsterBase.objects.get(id=base)
+    task = get_homunculus_base_task.delay(dict(request.GET), base)
 
-    if request.GET.get('build'):
-        homunculuses = homunculuses.filter(build=request.GET.get('build'))
+    return render( request, 'website/homunculus/homunculus_base.html', {'task_id': task.id, 'base': homunculus_base})
 
-    homunculus_skills = get_homunculus_skill_description(homunculuses)
+def get_homunculus_base_ajax(request, task_id, base):
+    if request.is_ajax():
+        data = get_homunculus_base_task.AsyncResult(task_id) 
 
-    homunculus_chart_builds = get_homunculus_builds(homunculuses)
+        if data.ready():
+            context = data.get()
 
-    context = {
-        'base': homunculus_base,
-        'records': homunculuses.prefetch_related('homunculus__base_monster'),
+            context['records'] = WizardHomunculus.objects.filter(id__in=context['records_ids']).prefetch_related('homunculus__base_monster').order_by('-homunculus__avg_eff')
+            context['skills'] = HomunculusSkill.objects.filter(id__in=context['skills_ids'])
 
-        # chart builds
-        'builds_name': homunculus_chart_builds['name'],
-        'builds_quantity': homunculus_chart_builds['quantity'],
-        'builds_color': create_rgb_colors(homunculus_chart_builds['length']),
-        'builds_identifier': homunculus_chart_builds['identifier'],
+            html = render_to_string('website/homunculus/homunculus_base_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
 
-        # table skills
-        'skills': homunculus_skills,
-    }
+    return HttpResponse('')
 
-    return render( request, 'website/homunculus/homunculus_base.html', context)
-
-@cache_page(CACHE_TTL)
-def get_siege_records(request):
-    is_filter = False
-    filters = list()
-    records = SiegeRecord.objects.filter(full=True)
-
-    if request.GET:
-        is_filter = True
-    
-    if request.GET.get('family'):
-        family = request.GET.get('family').replace('_', ' ')
-        filters.append('Family: ' + family)
-        records = records.filter(monsters__base_monster__family__name=family)
-
-    if request.GET.get('ranking'):
-        filters.append('Ranking: ' + request.GET.get('ranking'))
-        records = records.filter(wizard__guild__siege_ranking=request.GET.get('ranking'))
-
-    records = records.prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild')
-
-    records_by_family = get_siege_records_group_by_family(records)
-    records_by_ranking = get_siege_records_group_by_ranking(records)
-
-    records_count = records.count()
-    min_records_count = min(100, records_count)
-
-    best_records = records.order_by('-win')[:min_records_count].prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster')
-
-    best_records = records.prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster').annotate(sorting_val=Sum((F('win') + 250) * F('ratio'), output_field=FloatField())).order_by('-sorting_val')[:min_records_count]
-
-    context = {
-        # filters
-        'is_filter': is_filter,
-        'filters': '[' + ', '.join(filters) + ']',
-
-        # table top
-        'best_records': best_records,
-        'best_amount' : min_records_count,
-
-        # chart by monsters family
-        'family_name': records_by_family['name'],
-        'family_count': records_by_family['quantity'],
-        'family_color': create_rgb_colors(records_by_family['length']),
-
-        # chart by ranking
-        'ranking_id': records_by_ranking['ids'],
-        'ranking_name': records_by_ranking['name'],
-        'ranking_count': records_by_ranking['quantity'],
-        'ranking_color': create_rgb_colors(records_by_ranking['length']),
-    }
-
-    return render( request, 'website/siege/siege_index.html', context)
-
-@cache_page(CACHE_TTL)
 def get_contribute_info(request):
     return render( request, 'website/contribute.html')
 
-@cache_page(CACHE_TTL)
 def get_credits(request):
     return render( request, 'website/credits.html')
