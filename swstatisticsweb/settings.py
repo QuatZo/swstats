@@ -163,9 +163,8 @@ LOGGING = {
         },
         'file': {
             'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'class': 'FileHandler',
             'formatter': 'file',
-            'when': 'midnight',
             'filename': 'logs/debug.log'
         }
     },
