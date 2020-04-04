@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf.urls import url
 from website import views
 from rest_framework import routers, serializers, viewsets
+from django.views.generic.base import TemplateView
 
 router = routers.DefaultRouter()
 router.register(r'upload', views.UploadViewSet, 'upload')
@@ -39,6 +40,7 @@ if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabl
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
     url(r'^$', views.get_homepage, name='home'),
     path('homepage/<str:task_id>/', views.get_homepage_ajax, name='homepage_ajax'),
 
