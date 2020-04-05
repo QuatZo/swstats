@@ -8,6 +8,7 @@ import logging
 import matplotlib.cm as cm
 import numpy as np
 import pandas as pd
+import traceback
 from datetime import timedelta
 
 ########################################################## UPLOAD #########################################################
