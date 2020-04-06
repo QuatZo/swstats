@@ -453,6 +453,10 @@ h1.h2
     width: 100%;
 }
 
+.row.cards{
+    visibility: hidden;
+}
+
 @media (max-width: 768px) {
     .navbar.toggled .navbar-brand{
         max-width: 100%;

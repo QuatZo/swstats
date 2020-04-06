@@ -47,9 +47,8 @@ def handle_profile_upload_task(data):
             else:
                 logger.debug(f"Guild profile does NOT exists. Starting first-time guild profile upload for {data['guild']['guild_info']['guild_id']}")
 
-        if not guild_uptodate:
+        if profile_guild and not guild_uptodate:
             parse_guild(data['guild']['guild_info'], data['guildwar_ranking_stat']['best'], data['tvalue'])
-
 
         logger.debug(f"Checking if profile {data['wizard_info']['wizard_id']} exists...")
         wiz = Wizard.objects.filter(id=data['wizard_info']['wizard_id'])
