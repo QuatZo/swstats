@@ -577,7 +577,8 @@ class DungeonRun(models.Model):
         (7001, 'Hall of Light'),
         (8001, 'Giants Keep'),
         (9001, 'Dragons Lair'),
-        (999999999, 'Rift of Worlds') # couldn't find Dungeon ID for this, since it's not exactly a dungeon
+        (10095, 'Unknown Dungeon'),
+        (999999999, 'Rift of Worlds'), # couldn't find Dungeon ID for this, since it's not exactly a dungeon
     )
 
     id = models.BigAutoField(primary_key=True, unique=True, db_index=True)
