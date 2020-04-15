@@ -27,6 +27,10 @@
                         MathJax.typesetPromise();
                         clearInterval(fetchDataInterval);
                     }
+                    else if (seconds == 60){
+                        $('#content-ajax-container').html("<h2>Connection timed out.</h2>");
+                        clearInterval(fetchDataInterval);
+                    }
                 },
                 error: function(xhr) {
                     $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.</h2>");
