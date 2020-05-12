@@ -577,7 +577,6 @@ class DungeonRun(models.Model):
         (7001, 'Hall of Light'),
         (8001, 'Giants Keep'),
         (9001, 'Dragons Lair'),
-        (10095, 'Unknown Dungeon'),
         (999999999, 'Rift of Worlds'), # couldn't find Dungeon ID for this, since it's not exactly a dungeon
     )
 
@@ -598,13 +597,17 @@ class DungeonRun(models.Model):
 
     @classmethod
     def get_dungeon_name(cls, id):
-        return dict(cls.DUNGEON_TYPES)[id]
+        try:
+            return dict(cls.DUNGEON_TYPES)[id]
+        except KeyError:
+            return None
 
     @classmethod
     def get_dungeon_id(cls, name):
         for key, dungeon in dict(cls.DUNGEON_TYPES).items():
             if dungeon == name:
                 return key
+        return None
 
     @classmethod
     def get_all_dungeons(cls):

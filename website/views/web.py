@@ -218,6 +218,8 @@ def get_dungeons(request):
 
     for dungeon in dungeons:
         dungeon_name = DungeonRun().get_dungeon_name(dungeon['dungeon'])
+        if not dungeon_name:
+            continue
         dungeon_stage = "B" + str(dungeon['stage'])
         dungeon_quantity = dungeon['quantity']
 
@@ -230,6 +232,8 @@ def get_dungeons(request):
 
     for rift_dungeon in rift_dungeons:
         dungeon_name = RiftDungeonRun().get_dungeon_name(rift_dungeon['dungeon'])
+        if not dungeon_name:
+            continue
         dungeon_stage = "B1"
         dungeon_quantity = rift_dungeon['quantity']
 
