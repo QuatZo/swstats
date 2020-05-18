@@ -16,6 +16,7 @@
     </div>
     {% include 'website/desktopapp/runes_card.html' with runes=runes %}
 
+    {% if guild %}
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Guild ({{ guild.name }}) </h1>
     </div>
@@ -25,6 +26,7 @@
         <h1 class="h2">Guild Members </h1>
     </div>
     {% include 'website/desktopapp/guild_members_table.html' with members=guild.members %}
+    {% endif %}
 
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
         <h1 class="h2">Friends </h1>

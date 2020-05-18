@@ -400,7 +400,7 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                         'monsters': self.parse_monsters(data['unit_list'], data['unit_lock_list'], data['world_arena_rune_equip_list']),
                         'runes': self.parse_runes(data['runes'], runes_equipped, data['rune_lock_list'], data['world_arena_rune_equip_list']),
                         # 'rta': self.parse_rta(request.data), # not sure if needed
-                        'guild': self.parse_guild(data['guild'], data['guildwar_ranking_stat'], data['guild_member_defense_list']),
+                        'guild': self.parse_guild(data['guild'], data['guildwar_ranking_stat'], data['guild_member_defense_list']) if 'guild' in data.keys() and 'guildwar_ranking_stat' in data.keys() and 'guild_member_defense_list' in data.keys() else None,
                         'friends': self.parse_friends(data['friend_list']),
                     }
                 except KeyError as e:
