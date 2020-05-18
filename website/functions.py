@@ -266,12 +266,18 @@ def parse_wizard_homunculus(homunculus):
     for homie in homies.values():
         if None in homie.values():
             continue
-        homie['build'] = HomunculusBuild.objects.get( depth_1=homie['depth_1'], depth_2=homie['depth_2'], depth_3=homie['depth_3'], depth_4=homie['depth_4'], depth_5=homie['depth_5'] )
-        obj, created = WizardHomunculus.objects.update_or_create( wizard=homie['wizard'], homunculus=homie['homunculus'], defaults={
-            'wizard': homie['wizard'],
-            'homunculus': homie['homunculus'],
-            'build': homie['build'],
-        }, )
+        if None in [homie['depth_1'], homie['depth_2'], homie['depth_3'], homie['depth_4'], homie['depth_5']]:
+            continue
+        try:
+            homie['build'] = HomunculusBuild.objects.get(depth_1=homie['depth_1'], depth_2=homie['depth_2'], depth_3=homie['depth_3'], depth_4=homie['depth_4'], depth_5=homie['depth_5'] )
+            obj, created = WizardHomunculus.objects.update_or_create( wizard=homie['wizard'], homunculus=homie['homunculus'], defaults={
+                'wizard': homie['wizard'],
+                'homunculus': homie['homunculus'],
+                'build': homie['build'],
+            }, )
+        except HomunculusBuild.DoesNotExist:
+            raise RecordDoesNotExist(f"Homunculus build is missing from Database.")
+
 # endregion
 
 # region GUILD
@@ -389,7 +395,7 @@ def log_exception(e, **kwargs):
     logger.error(f"Error parts:", len(kwargs))
     for key, val in kwargs.items():
         logger.error(key)
-        log_request_data(value)
+        log_request_data(val)
 # endregion
 
 ########################################################## VIEWS ##########################################################
