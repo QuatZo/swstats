@@ -592,7 +592,7 @@ class DungeonRun(models.Model):
     date = models.DateTimeField(db_index=True) # tvalue
 
     def __str__(self):
-        return self.get_dungeon_display() + ' B' + str(self.stage) + ' (' + str(self.clear_time) + ')'
+        return str(self.get_dungeon_display()) + ' B' + str(self.stage) + ' (' + str(self.clear_time) + ')'
     
     class Meta:
         ordering = ['dungeon', '-stage', '-clear_time', '-win']

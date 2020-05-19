@@ -33,7 +33,7 @@
                     }
                 },
                 error: function(xhr) {
-                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.</h2>");
+                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
                     clearInterval(fetchDataInterval);
                 }
             });

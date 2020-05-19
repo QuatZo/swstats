@@ -6,5 +6,5 @@ register = template.Library()
 def get_dungeon_avatar(path, dungeon):
     dungeon_name = dungeon
     if type(dungeon) is not str:
-        dungeon_name = dungeon.get_dungeon_display()
+        dungeon_name = str(dungeon.get_dungeon_display())
     return path + 'dungeon_' + dungeon_name.replace('\'', '').replace(' ', '_').lower() + '.png'
