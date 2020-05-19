@@ -68,7 +68,7 @@ class Guild(models.Model):
 
     @classmethod
     def get_siege_ranking_name(cls, ranking_id):
-        if ranking_id is None:
+        if ranking_id is None or not ranking_id:
             return "Unknown"
         return dict(cls.SIEGE_RANKS)[ranking_id]
 
@@ -78,6 +78,8 @@ class Guild(models.Model):
 
     @classmethod
     def get_guild_ranking_name(cls, ranking_id):
+        if ranking_id is None or not ranking_id:
+            return "Unknown"
         return dict(cls.GUILD_RANKS)[ranking_id]
 
 class Wizard(models.Model):
