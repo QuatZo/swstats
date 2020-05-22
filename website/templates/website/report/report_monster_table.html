@@ -8,7 +8,7 @@
 {% load get_set_names %}
 
 <div class="table-responsive">
-    <table class="table table-hover table-sm" id="monster-table">
+    <table class="table table-hover table-sm report" id="monster-table">
         <thead>
             <tr>
                 <th scope="col">ID</th>
@@ -96,4 +96,7 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if monsters|length > 100 %}
+        <center><h4>...Truncated, showing only 100 first results...</h4></center>
+    {% endif %}
 </div>

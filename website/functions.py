@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import traceback
 import json
+import random
 from datetime import timedelta
 
 ########################################################## UPLOAD #########################################################
@@ -583,7 +584,12 @@ def get_rune_rank_substat(runes, rune, substat, filters=None):
 
 def get_rune_similar(runes, rune):
     """Return runes similar to the given one."""
-    return runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary, efficiency__range=[rune.efficiency - 15, rune.efficiency + 15]).exclude(id=rune.id)
+    similar_runes = runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary).exclude(id=rune.id)
+    MAX_COUNT = 50
+    runes_count = similar_runes.count()
+    if runes_count <= MAX_COUNT:
+        MAX_COUNT = runes_count
+    return random.sample(list(similar_runes), MAX_COUNT)
 # endregion
 
 # region MONSTERS - most of them should be async and in tasks to speed things up even more

@@ -811,6 +811,15 @@ def get_monster_by_id_task(request_get, arg_id):
             rta_similar_builds[rta_similar.monster.id] = list()
         rta_similar_builds[rta_similar.monster.id].append(rta_similar.rune.id)
 
+    MAX_COUNT = 20
+
+    mon_similar_builds = [sim_mon.id for sim_mon in monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family).exclude(id=monster.id)]
+    mon_similar_builds = random.sample(mon_similar_builds, min(MAX_COUNT, len(mon_similar_builds)))
+    rta_final_similar_builds = dict()
+    for key in random.sample(rta_similar_builds.keys(), min(MAX_COUNT, len(rta_similar_builds))):
+        rta_final_similar_builds[key] = rta_similar_builds[key]
+    rta_similar_builds = rta_final_similar_builds
+
     monsters_count = monsters.count()
 
     ranks = {
@@ -846,7 +855,7 @@ def get_monster_by_id_task(request_get, arg_id):
     context = {
         'ranks': ranks,
         'rta': rta,
-        'similar_ids': [sim_mon.id for sim_mon in monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family, avg_eff__range=[monster.avg_eff - 20, monster.avg_eff + 20]).exclude(id=monster.id)],
+        'similar_ids': mon_similar_builds,
         'rta_similar_ids': rta_similar_builds,
         'decks_ids': [deck.id for deck in Deck.objects.all().filter(monsters__id=monster.id)],
     }
@@ -943,11 +952,15 @@ def get_dungeon_by_stage_task(request_get, name, stage):
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
 
     comps = list()
-    for run in dungeon_runs:        
+    for run in dungeon_runs: 
+        COMP_COUNT = 5
+        if run.id == 999999999:
+            COMP_COUNT = 6 # rift of worlds 
+
         monsters = list()
         for monster in run.monsters.all():
             monsters.append(monster)
-        if monsters not in comps and monsters:
+        if monsters and monsters not in comps and len(monsters) == COMP_COUNT:
             comps.append(monsters)
 
     try:
@@ -964,6 +977,10 @@ def get_dungeon_by_stage_task(request_get, name, stage):
             'success_rate': record['success_rate'],
         } for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     ]
+
+    for record in records_personal:
+        print(record['comp'])
+
     records_base = [
         {
             'comp': [monster.id for monster in record['comp']],
@@ -971,7 +988,7 @@ def get_dungeon_by_stage_task(request_get, name, stage):
             'wins': record['wins'],
             'loses': record['loses'],
             'success_rate': record['success_rate'],
-        } for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
+        }for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
     ]
 
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs_clear)
@@ -1033,10 +1050,12 @@ def get_rift_dungeon_by_stage_task(request_get, name):
 
     comps = list()
     for run in dungeon_runs:
+        COMP_COUNT = 6 
+
         monsters = list()
         for monster in run.monsters.all():
             monsters.append(monster)
-        if monsters not in comps and monsters:
+        if monsters and monsters not in comps and len(monsters) == COMP_COUNT:
             comps.append(monsters)
 
     try:

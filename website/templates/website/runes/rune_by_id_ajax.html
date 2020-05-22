@@ -65,4 +65,4 @@
 	</div>
 {% endif %}
 
-{% include "website/runes/rune_table.html" with runes=similar_runes text="Similar Runes" collapse_id="rune-"|add_str:rune.id|add_str:"-similar" collapsed="collapse"%}
+{% include "website/runes/rune_table.html" with runes=similar_runes text="Similar Runes (50 randomly chosen)" collapse_id="rune-"|add_str:rune.id|add_str:"-similar" collapsed="collapse"%}
