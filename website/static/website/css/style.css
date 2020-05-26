@@ -457,7 +457,7 @@ h1.h2
     visibility: hidden;
 }
 
-.table.report tbody tr:nth-child(1n+100){
+.table.report tbody tr:nth-child(1n+25){
     display: none;
 }
 

@@ -1,5 +1,5 @@
 {% load add_str %}
-<button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download {{ filename }}</button><br />
+<button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download Table ({{ filename }})</button><br />
 
 <div class="row">
     <div class="col-6 col-sm-2"><b>Monster</b></div>
@@ -11,15 +11,26 @@
     <div class="col-6 col-sm-2"><b>Attribute</b></div>
     <div class="col-6 col-sm-2"> {{ base_monster.get_attribute_display }} </div>
     <div class="col-6 col-sm-2"><b>Hoh</b></div>
-    <div class="col-6 col-sm-2"> {{ hoh }} </div>
     {% if hoh %}
+        <div class="col-6 col-sm-2"> Yes </div>
         <div class="col-6 col-sm-2"><b>HoH Date</b></div>
         <div class="col-6 col-sm-2"> {{ hoh_date }} </div>
+    {% else %}
+        <div class="col-6 col-sm-2"> No </div>
+        <div class="col-6 col-sm-2"><b>HoH Date</b></div>
+        <div class="col-6 col-sm-2"> - </div>
     {% endif %}
+    
     <div class="col-6 col-sm-2"><b>Fusion</b></div>
-    <div class="col-6 col-sm-2"> {{ fusion }} </div>
+    {% if fusion %}
+        <div class="col-6 col-sm-2">Yes</div>
+    {% else %}
+        <div class="col-6 col-sm-2">No</div>
+    {% endif %}
 </div>
 {% include "website/report/report_monster_table.html" with monsters=monsters hoh=hoh hoh_date=hoh_date fusion=fusion %}
+
+{% include "website/report/report_monster_plots.html" with plots=plots %}
 
 <script>
 $("#download-csv").click(function() {

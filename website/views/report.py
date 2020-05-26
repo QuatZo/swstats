@@ -10,6 +10,7 @@ import logging
 import time
 import os
 from operator import itemgetter
+from datetime import datetime
 
 from website.models import *
 from website.serializers import CommandSerializer
@@ -102,8 +103,9 @@ def get_old_reports(request):
         if filename.endswith(".png"):
             images[filename] = os.path.getmtime(app_static_dir + '/' + filename)
 
-
-    images = sorted(images.keys(), reverse=True) # reverse=True -> descending
+    images = {k: v for k, v in sorted(images.items(), key=lambda image: image[1], reverse=True)} # reverse=True -> descending
+    for key, val in images.items():
+        images[key] = datetime.strftime(datetime.fromtimestamp(val), "%Y-%m-%d")
 
     context = {
         'images': images, 
