@@ -18,25 +18,22 @@
         <table class="table table-hover table-sm report">
             <thead>
                 <tr>
-                    <th scope="col">ID</th>
                     <th scope="col">Level</th>
                     <th scope="col">Stars</th>
                     <th scope="col">HP</th>
                     <th scope="col">Attack</th>
                     <th scope="col">Defense</th>
                     <th scope="col">Speed</th>
-                    <th scope="col">Resistance</th>
-                    <th scope="col">Accuracy</th>
-                    <th scope="col">Crit Rate</th>
-                    <th scope="col">Crit Dmg</th>
+                    <th scope="col">Res</th>
+                    <th scope="col">Acc</th>
+                    <th scope="col">CRate</th>
+                    <th scope="col">CDmg</th>
                     <th scope="col">Avg Eff</th>
                     <th scope="col">Eff. HP</th>
                     <th scope="col">Eff. HP D-B</th>
                     <th scope="col">Sets</th>
                     <th scope="col">Skilled Up</th>
                     <th scope="col">Acquired</th>
-                    <th scope="col">Locked</th>
-                    <th scope="col">Transmogrified</th>
                     <th scope="col">Rune #1</th>
                     <th scope="col">Rune #2</th>
                     <th scope="col">Rune #3</th>
@@ -48,7 +45,6 @@
             <tbody>
                 {% for monster in monsters %}
                     <tr>
-                        <td>{{ monster.id }}</td>
                         <td>{{ monster.level }}</td>
                         <td>{{ monster.stars }}</td>
                         <td>{{ monster.hp }}</td>
@@ -80,18 +76,6 @@
                             {% endif %}
                         </td>
                         <td>{{ monster.created|international_date }}</td>
-                        <td> {% if monster.locked %}
-                                Yes
-                            {% else %}
-                                No
-                            {% endif %}
-                        </td>     
-                        <td> {% if monster.transmog %}
-                                Yes
-                            {% else %}
-                                No
-                            {% endif %}
-                        </td>    
                         {% for monster_runes in monsters_runes %}
                             {% if monster_runes.monster == monster %}
                                 {% for rune in monster_runes.runes %}
@@ -103,8 +87,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% if monsters|length > 25 %}
-            <center><h4>...Truncated, showing only 25 first results...</h4></center>
-        {% endif %}
+        <div id="paging-table"></div>
     </div>
 </div>

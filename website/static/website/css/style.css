@@ -457,10 +457,6 @@ h1.h2
     visibility: hidden;
 }
 
-.table.report tbody tr:nth-child(1n+25){
-    display: none;
-}
-
 @media (max-width: 768px) {
     .navbar.toggled .navbar-brand{
         max-width: 100%;

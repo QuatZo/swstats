@@ -12,13 +12,9 @@
     <div class="col-6 col-sm-2"> {{ base_monster.get_attribute_display }} </div>
     <div class="col-6 col-sm-2"><b>Hoh</b></div>
     {% if hoh %}
-        <div class="col-6 col-sm-2"> Yes </div>
-        <div class="col-6 col-sm-2"><b>HoH Date</b></div>
-        <div class="col-6 col-sm-2"> {{ hoh_date }} </div>
+        <div class="col-6 col-sm-2"> Yes ({{ hoh_date }}) </div>
     {% else %}
         <div class="col-6 col-sm-2"> No </div>
-        <div class="col-6 col-sm-2"><b>HoH Date</b></div>
-        <div class="col-6 col-sm-2"> - </div>
     {% endif %}
     
     <div class="col-6 col-sm-2"><b>Fusion</b></div>
@@ -41,4 +37,11 @@ $("#download-csv").click(function() {
         header_body_space: 0
     });
 })
+$('#monster-table table').datatable({
+    pageSize: 20,
+    sort: [true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, true, true, true, true, true, true, true],
+    filters: ['select', 'select', true, true, true, true, true, true, true, true, true, true, true, 'select', 'select', true, 'select', 'select',  'select', 'select', 'select', 'select'],
+    filterText: '',
+    pagingDivSelector: "#paging-table"
+});
 </script>

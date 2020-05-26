@@ -4,6 +4,10 @@
 
 {% block custom_script %}
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'website/css/datatable.min.css' %}" media="screen">
+    <link rel="stylesheet" type="text/css" href="{% static 'website/css/datatable-bootstrap.min.css' %}" media="screen">
+    <script type="text/javascript" src="{% static 'website/js/datatable.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'website/js/datatable.jquery.min.js' %}"></script>
 {% endblock %}
 
 {% block content_title %}
@@ -44,7 +48,7 @@
                 $('#report-generator').html(data);
             },
             error: function(){
-                $('#report-generator').html("<h2>Something went wrong. Check Server Logs.</h2>");
+                $('#report-generator').html("<h2>There was an error while connecting. Please, try again.<br>If error still exists, contact <a href='http://reddit.com/u/quatzo'>administrator</a>.");
             }
         });
     });

@@ -1205,7 +1205,9 @@ def get_homunculus_skill_description(homunculuses):
 # endregion
 
 # region OTHER
-def create_rgb_colors(length):
-    """Return the array of 'length', which contains 'rgba(r, g, b, a)' strings for Chart.js."""
+def create_rgb_colors(length, visible=False):
+    """Return the array of 'length', which contains 'rgba(r, g, b, a)' strings for Chart.js. and 'rgba(r, g, b) for Plotly """
+    if visible:
+        return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.8) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
     return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
 # endregion
