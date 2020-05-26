@@ -30,7 +30,9 @@
 </div>
 {% include "website/report/report_monster_table.html" with monsters=monsters hoh=hoh hoh_date=hoh_date fusion=fusion %}
 
-{% include "website/report/report_monster_plots.html" with plots=plots %}
+{% if plots %}
+    {% include "website/report/report_monster_plots.html" with plots=plots %}
+{% endif %}
 
 <script>
 $("#download-csv").click(function() {

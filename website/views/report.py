@@ -5,12 +5,16 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.db.models import Count, Q, Avg
 
-
 import logging
 import time
 import os
 from operator import itemgetter
 from datetime import datetime
+
+import pandas as pd
+import numpy as np
+import plotly
+import plotly.graph_objects as go
 
 from website.models import *
 from website.serializers import CommandSerializer
@@ -51,6 +55,33 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
 
         return monsters, hoh_exist, hoh_date, fusion.exists(), filename, runes
 
+
+    def generate_plots(self, monsters, monsters_runes):
+        plots = list()
+
+        df = pd.DataFrame.from_records(monsters.values(), index="id")
+        for result in monsters_runes:
+            for i, rune in enumerate(result['runes']):
+                df.loc[result['monster'].id, "rune #" + str(i + 1)] = rune
+
+        stars = df["stars"].value_counts()
+
+        fig = go.Figure()
+        fig.add_trace(go.Pie(labels=stars.index, values=stars))
+
+        fig.update_layout(
+            title=f"Stars Distribution",
+            font=dict(
+                family="Courier New, monospace",
+                size=15,
+                color="#7f7f7f"
+            ),
+        )
+
+        plots.append(plotly.io.to_html(fig, include_plotlyjs=False, full_html=False))
+
+        return plots
+
     def create(self, request):
         # upload by using ajax, focused on stuff that Desktop App had
         context = { }
@@ -61,6 +92,8 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
             
             monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes = self.get_monster_info(base_monster)
 
+            plots = self.generate_plots(monsters, monsters_runes)
+
             context = {
                 'base_monster': base_monster,
                 'monsters': monsters,
@@ -69,6 +102,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
                 'hoh_date': hoh_date,
                 'fusion': fusion_exist,
                 'filename': filename,
+                'plots': plots,
             }
 
             html = render_to_string('website/report/report_generate.html', context)

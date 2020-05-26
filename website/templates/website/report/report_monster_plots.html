@@ -7,7 +7,13 @@
 	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-plots" aria-expanded="true" aria-controls="#monster-plots"> 
 		Show/Hide 
 	</button>
-    <div id="monster-plots" class="show">
-        XD
+    <div id="monster-plots" class="show" style="overflow-x: hidden;">
+        <div class="row">
+            {% for plot in plots %}
+                <div class="col-12 col-sm-6">
+                    {{ plot|safe }}
+                </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
