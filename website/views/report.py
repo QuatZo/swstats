@@ -145,7 +145,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         df_full = df.copy()
         runes_cols = ["rune #" + str(i) for i in range(1 ,7)]
         df.dropna(subset=runes_cols, how='any', inplace=True) # delete without runes
-        plots.append(self.create_pie_plot(["Without Runes", "With Runes"], [df.shape[0], df_full.shape[1]], "Runes <br>(only 6*)", ['#ff7777', '#77ff77']))
+        plots.append(self.create_pie_plot(["With Runes", "Without Runes"], [df.shape[0], df_full.shape[0] - df.shape[0]], "Runes <br>(only 6*)", ['#ff7777', '#77ff77']))
         #################################################
 
         #################################################
