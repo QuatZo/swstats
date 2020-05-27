@@ -137,15 +137,22 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         plots.append(self.create_pie_plot(stars.index, stars, "Stars"))
         #################################################
 
+
         #################################################
         # EQUIPPED RUNES DISTRIBUTION
         # PICK ONLY 6* with runes with runes
         df = df[df['stars'] == 6]
+        if not df.shape[0]: # no 6* builds
+            return plots
+
         df_full = df.copy()
         runes_cols = ["rune #" + str(i) for i in range(1 ,7)]
         df.dropna(subset=runes_cols, how='any', inplace=True) # delete without runes
         plots.append(self.create_pie_plot(["With Runes", "Without Runes"], [df.shape[0], df_full.shape[0] - df.shape[0]], "Runes <br>(only 6*)", ['#77ff77', '#ff7777']))
         #################################################
+
+        if not df.shape[0]: # no builds with runes
+            return plots
 
         #################################################
         # SKILL-UPS DISTRIBUTION
@@ -202,7 +209,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         # SETS BAR
         counts = df["sets"].value_counts()
         counts = counts[(counts > 1) & (counts > round(counts[0] / 50))]
-        colors = create_rgb_colors(len(counts), True)
+        colors = create_rgb_colors(counts.shape[0], True)
         plots.append(self.create_bar_plot(counts.index, counts, "Sets Distribution <br>(only 6* with equipped runes)", colors))
         #################################################
 
@@ -226,7 +233,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         builds_count = df.groupby(["rune #2", "rune #4", "rune #6"]).size().reset_index(name='count').sort_values('count', ascending=False).reset_index(drop=True)
         builds_count = builds_count[(builds_count['count'] > 1) & (builds_count['count'] > round(builds_count['count'][0] / 50))].sort_values(["count"], ascending=False) # single builds to drop
         builds_count['build'] = builds_count['rune #2'] + ' / ' + builds_count['rune #4'] + ' / ' + builds_count['rune #6']
-
+        colors = create_rgb_colors(builds_count.shape[0], True)
         plots.append(self.create_bar_plot(builds_count['build'],  builds_count['count'], "Most Common Builds <br>(only 6* with equipped runes)", colors, 30))
         #################################################
 
@@ -239,8 +246,11 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         counts_slot6 = df["rune #6"].value_counts()
         counts_slot6 = counts_slot6[counts_slot6 > 1]
 
+        colors = create_rgb_colors(counts_slot2.shape[0], True)
         plots.append(self.create_bar_plot(counts_slot2.index, counts_slot2.values, "Most Common Slot 2<br>(only 6* with equipped runes)", colors, 30))
+        colors = create_rgb_colors(counts_slot4.shape[0], True)
         plots.append(self.create_bar_plot(counts_slot4.index, counts_slot4.values, "Most Common Slot 4<br>(only 6* with equipped runes)", colors, 30))
+        colors = create_rgb_colors(counts_slot6.shape[0], True)
         plots.append(self.create_bar_plot(counts_slot6.index, counts_slot6.values, "Most Common Slot 6<br>(only 6* with equipped runes)", colors, 30))
         #################################################
 
