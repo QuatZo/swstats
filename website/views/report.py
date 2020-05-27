@@ -273,6 +273,9 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
             html = render_to_string('website/report/report_generate.html', context)
             return HttpResponse(html)
 
+def get_report_menu(request):
+    return render( request, 'website/report/report_menu.html')
+
 def get_report(request):
     """Return the Report page."""
     monsters_base = MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).prefetch_related('monster_set') # archetype=5 -> Material Monsters, awaken=0 -> Unawakened

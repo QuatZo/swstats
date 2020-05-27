@@ -12,6 +12,7 @@
 
         gtag('config', 'UA-161013694-1');
     </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
 
     <link rel="icon" href="{% static 'website/images/icons/runes_favicon.svg' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'website/css/style.css' %}">
@@ -91,6 +92,12 @@
                             <a class="nav-link {% if request.resolver_match.url_name == "dimhole" %}active{% endif %}" href="{% url 'dimhole' %}" > <!-- placeholder -->
                             <img src={% static 'website/images/icons/dimhole.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
                                 <span class="text">Dimension Hole</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "reports" %}active{% endif %}" href="{% url 'reports' %}" >
+                                <img src={% static 'website/images/icons/reports.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Reports</span>
                             </a>
                         </li>
                         <li class="nav-item">

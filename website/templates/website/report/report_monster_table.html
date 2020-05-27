@@ -11,11 +11,11 @@
     <h2 class="title">
 		Monster's Table
 	</h2>
-	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-table" aria-expanded="true" aria-controls="#monster-table"> 
+	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-div" aria-expanded="true" aria-controls="#monster-div"> 
 		Show/Hide 
 	</button>
-    <div id="monster-table" class="collapse">
-        <table class="table table-hover table-sm report">
+    <div class="show" id="monster-div">
+        <table class="table table-hover table-sm report" id="monster-table">
             <thead>
                 <tr>
                     <th scope="col">Level</th>
@@ -28,18 +28,17 @@
                     <th scope="col">Acc</th>
                     <th scope="col">CRate</th>
                     <th scope="col">CDmg</th>
-                    <th scope="col">Avg Eff</th>
-                    <th scope="col">Eff. HP</th>
-                    <th scope="col">Eff. HP D-B</th>
+                    <th scope="col">Eff</th>
+                    <th scope="col">Eff.HP</th>
                     <th scope="col">Sets</th>
-                    <th scope="col">Skilled Up</th>
+                    <th scope="col">Skillups</th>
                     <th scope="col">Acquired</th>
-                    <th scope="col">Rune #1</th>
-                    <th scope="col">Rune #2</th>
-                    <th scope="col">Rune #3</th>
-                    <th scope="col">Rune #4</th>
-                    <th scope="col">Rune #5</th>
-                    <th scope="col">Rune #6</th>
+                    <th scope="col">Slot1</th>
+                    <th scope="col">Slot2</th>
+                    <th scope="col">Slot3</th>
+                    <th scope="col">Slot4</th>
+                    <th scope="col">Slot5</th>
+                    <th scope="col">Slot6</th>
                 </tr>
             </thead>
             <tbody>
@@ -57,7 +56,6 @@
                         <td>{{ monster.crit_dmg }}</td>
                         <td>{{ monster.avg_eff }}</td>
                         <td>{{ monster.eff_hp }}</td>
-                        <td>{{ monster.eff_hp_def_break }}</td>
                         <td>
                             {% if monster.runes.count > 0 %}
                                 {% with monster.runes.all|get_sets as sets %}
@@ -87,6 +85,5 @@
                 {% endfor %}
             </tbody>
         </table>
-        <div id="paging-table"></div>
     </div>
 </div>

@@ -5,4 +5,4 @@ register = template.Library()
 
 @register.filter
 def international_date(date):
-    return date.strftime("%Y-%m-%d %H:%M:%S")
+    return date.strftime("%Y-%m-%d")

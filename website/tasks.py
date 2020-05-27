@@ -14,15 +14,6 @@ from operator import itemgetter
 
 logger = logging.getLogger(__name__)
 
-########################## CACHE ##########################
-# @shared_task 
-# def generate_cache():
-#     print('Starting generating cache...')
-#     namespaces = ['home', 'runes', 'monsters', 'decks', 'dungeons', 'homunculus', 'dimhole', 'siege', 'contribute', 'credits']
-#     for namespace in namespaces:
-#         requests.get('https://swstats.info' + reverse(namespace))
-#     print('Ended generating cache...')
-
 
 ########################## UPLOAD #########################
 @shared_task
@@ -977,9 +968,6 @@ def get_dungeon_by_stage_task(request_get, name, stage):
             'success_rate': record['success_rate'],
         } for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     ]
-
-    for record in records_personal:
-        print(record['comp'])
 
     records_base = [
         {

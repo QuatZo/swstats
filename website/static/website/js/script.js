@@ -43,7 +43,6 @@ function addParam(url, param, value) {
             exists = true;
             existsText = match[2];
         }
-        console.log(match);
     }
         
     if(!exists || exists && existsText != encodeURIComponent(value)) str.push(param+(value?"="+ encodeURIComponent(value):""));

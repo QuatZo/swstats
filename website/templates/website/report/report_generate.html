@@ -1,6 +1,4 @@
 {% load add_str %}
-<button name="download-csv" id="download-csv" class="btn btn-secondary btn-block">Download Table ({{ filename }})</button><br />
-
 <div class="row">
     <div class="col-6 col-sm-2"><b>Monster</b></div>
     <div class="col-6 col-sm-2"> {{ base_monster }} </div>
@@ -31,17 +29,22 @@
 {% endif %}
 
 <script>
-$("#download-csv").click(function() {
-    $("#monster-table").table2csv({
-        file_name: "{{ filename }}",
-        header_body_space: 0
-    });
-})
-$('#monster-table table').datatable({
-    pageSize: 20,
-    sort: [true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, true, true, true, true, true, true, true],
-    filters: ['select', 'select', true, true, true, true, true, true, true, true, true, true, true, 'select', 'select', true, 'select', 'select',  'select', 'select', 'select', 'select'],
-    filterText: '',
-    pagingDivSelector: "#paging-table"
-});
+$('#monster-table').DataTable( {
+    dom: 'Bfrtip',
+    buttons: [
+        {
+            extend: 'csv',
+            className: 'btn btn-primary left'
+        },
+        {
+            extend: 'excel',
+            className: 'btn btn-primary left'
+        },
+        {
+            extend: 'print',
+            className: 'btn btn-primary left'
+        }
+    ]
+} );
+
 </script>
