@@ -10,6 +10,8 @@ import math
 def get_sets(runes):
     sets = dict()
     for rune in runes:
+        if rune is None:
+            continue
         if rune.rune_set not in sets.keys():
             sets[rune.rune_set] = {
                 'amount': 0,

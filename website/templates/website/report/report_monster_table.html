@@ -7,96 +7,83 @@
 {% load get_sets %}
 {% load get_set_names %}
 
-<div class="table-responsive">
-    <table class="table table-hover table-sm report" id="monster-table">
-        <thead>
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Level</th>
-                <th scope="col">Stars</th>
-                <th scope="col">HP</th>
-                <th scope="col">Attack</th>
-                <th scope="col">Defense</th>
-                <th scope="col">Speed</th>
-                <th scope="col">Resistance</th>
-                <th scope="col">Accuracy</th>
-                <th scope="col">Crit Rate</th>
-                <th scope="col">Crit Dmg</th>
-                <th scope="col">Avg Eff</th>
-                <th scope="col">Eff. HP</th>
-                <th scope="col">Eff. HP D-B</th>
-                <th scope="col">Sets</th>
-                <th scope="col">Skilled Up</th>
-                <th scope="col">Acquired</th>
-                <th scope="col">Locked</th>
-                <th scope="col">Transmogrified</th>
-                <th scope="col">Rune #1</th>
-                <th scope="col">Rune #2</th>
-                <th scope="col">Rune #3</th>
-                <th scope="col">Rune #4</th>
-                <th scope="col">Rune #5</th>
-                <th scope="col">Rune #6</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for monster in monsters %}
+<div class="table-responsive title-container">
+    <h2 class="title">
+		Monster's Table
+	</h2>
+	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-div" aria-expanded="true" aria-controls="#monster-div"> 
+		Show/Hide 
+	</button>
+    <div class="show" id="monster-div">
+        <table class="table table-hover table-sm report" id="monster-table">
+            <thead>
                 <tr>
-                    <td>{{ monster.id }}</td>
-                    <td>{{ monster.level }}</td>
-                    <td>{{ monster.stars }}</td>
-                    <td>{{ monster.hp }}</td>
-                    <td>{{ monster.attack }}</td>
-                    <td>{{ monster.defense }}</td>
-                    <td>{{ monster.speed }}</td>
-                    <td>{{ monster.res }}</td>
-                    <td>{{ monster.acc }}</td>
-                    <td>{{ monster.crit_rate }}</td>
-                    <td>{{ monster.crit_dmg }}</td>
-                    <td>{{ monster.avg_eff }}</td>
-                    <td>{{ monster.eff_hp }}</td>
-                    <td>{{ monster.eff_hp_def_break }}</td>
-                    <td>
-                        {% if monster.runes.count > 0 %}
-                            {% with monster.runes.all|get_sets as sets %}
-                                {% if sets %}
-                                    {{ monster.runes.all|get_set_names }}
-                                {% else %}
-                                    Broken
-                                {% endif %}
-                            {% endwith %}
-                        {% endif %}
-                    </td>
-                    <td>{% if monster|check_skillups %}
-                            Yes
-                        {% else %}
-                            No
-                        {% endif %}
-                    </td>
-                    <td>{{ monster.created|international_date }}</td>
-                    <td> {% if monster.locked %}
-                            Yes
-                        {% else %}
-                            No
-                        {% endif %}
-                    </td>     
-                    <td> {% if monster.transmog %}
-                            Yes
-                        {% else %}
-                            No
-                        {% endif %}
-                    </td>    
-                    {% for monster_runes in monsters_runes %}
-                        {% if monster_runes.monster == monster %}
-                            {% for rune in monster_runes.runes %}
-                                <td>{{ rune.get_primary_display }}</td>
-                            {% endfor %}
-                        {% endif %}
-                    {% endfor %}
+                    <th scope="col">Level</th>
+                    <th scope="col">Stars</th>
+                    <th scope="col">HP</th>
+                    <th scope="col">Attack</th>
+                    <th scope="col">Defense</th>
+                    <th scope="col">Speed</th>
+                    <th scope="col">Res</th>
+                    <th scope="col">Acc</th>
+                    <th scope="col">CRate</th>
+                    <th scope="col">CDmg</th>
+                    <th scope="col">Eff</th>
+                    <th scope="col">Eff.HP</th>
+                    <th scope="col">Sets</th>
+                    <th scope="col">Skillups</th>
+                    <th scope="col">Acquired</th>
+                    <th scope="col">Slot1</th>
+                    <th scope="col">Slot2</th>
+                    <th scope="col">Slot3</th>
+                    <th scope="col">Slot4</th>
+                    <th scope="col">Slot5</th>
+                    <th scope="col">Slot6</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% if monsters|length > 100 %}
-        <center><h4>...Truncated, showing only 100 first results...</h4></center>
-    {% endif %}
+            </thead>
+            <tbody>
+                {% for monster in monsters %}
+                    <tr>
+                        <td>{{ monster.level }}</td>
+                        <td>{{ monster.stars }}</td>
+                        <td>{{ monster.hp }}</td>
+                        <td>{{ monster.attack }}</td>
+                        <td>{{ monster.defense }}</td>
+                        <td>{{ monster.speed }}</td>
+                        <td>{{ monster.res }}</td>
+                        <td>{{ monster.acc }}</td>
+                        <td>{{ monster.crit_rate }}</td>
+                        <td>{{ monster.crit_dmg }}</td>
+                        <td>{{ monster.avg_eff }}</td>
+                        <td>{{ monster.eff_hp }}</td>
+                        <td>
+                            {% if monster.runes.count > 0 %}
+                                {% with monster.runes.all|get_sets as sets %}
+                                    {% if sets %}
+                                        {{ monster.runes.all|get_set_names }}
+                                    {% else %}
+                                        Broken
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                        <td>{% if monster|check_skillups %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                        <td>{{ monster.created|international_date }}</td>
+                        {% for monster_runes in monsters_runes %}
+                            {% if monster_runes.monster == monster %}
+                                {% for rune in monster_runes.runes %}
+                                    <td>{{ rune.get_primary_display }}</td>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>

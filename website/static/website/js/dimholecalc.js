@@ -9,7 +9,6 @@ $( document ).ready(function() {
         for(var index in monsters){
             let awakening_info = monsters[index].awakening_info
             if(!Array.isArray(awakening_info) ){ // no info -> empty array;  info -> object\
-                let calcs = {}
                 let axp_needed = awakening_info.max_exp - awakening_info.exp
                 let row_builder = '<tr>' +
                     '<td>' + base_monsters[awakening_info.unit_master_id] + '</td>' + 
@@ -23,11 +22,7 @@ $( document ).ready(function() {
                                     '<td>' + days + '</td>';
                 }
                 row_builder += '</tr>'
-                console.log(row_builder)
                 $('#dimholecalc tbody').append(row_builder);
-                
-
-                
             }
         }
     }

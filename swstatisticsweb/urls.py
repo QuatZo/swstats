@@ -19,7 +19,7 @@ from django.urls import path, include
 from django.conf.urls import url
 from website import views
 from rest_framework import routers, serializers, viewsets
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, RedirectView
 
 router = routers.DefaultRouter()
 router.register(r'upload', views.UploadViewSet, 'upload')
@@ -84,8 +84,10 @@ urlpatterns = [
 
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 
-    path('report/', views.get_report, name='report'),
-    path('oldreports/', views.get_old_reports, name='old_reports')
+    path('reports/', views.get_report_menu, name='reports'),
+    path('reports/generate/', views.get_report, name='reports_generate'),
+    path('oldreports/', RedirectView.as_view(url='/reports/old'), name='old_reports'), # old link, 
+    path('reports/old/', views.get_old_reports, name='reports_old')
 ]
 
 if settings.DEBUG:

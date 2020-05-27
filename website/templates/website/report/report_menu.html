@@ -1,0 +1,21 @@
+{% extends "website/base.html" %}
+{% load static %}
+
+{% block content_title %}
+    Choose option
+{% endblock %}
+
+{% block ajax_container %} 
+    <div class="row">
+        <div class="col-12 col-sm-6">
+            <a href="{% url 'reports_generate' %}">
+                <img src="{% static 'website/images/report/generate.png' %}" class="report-button">
+            </a>
+        </div>
+        <div class="col-12 col-sm-6">
+            <a href="{% url 'reports_old' %}">
+                <img src="{% static 'website/images/report/infographics.png' %}" class="report-button">
+            </a>
+        </div>
+    </div>
+{% endblock %}

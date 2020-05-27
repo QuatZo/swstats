@@ -12,6 +12,7 @@
 
         gtag('config', 'UA-161013694-1');
     </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
 
     <link rel="icon" href="{% static 'website/images/icons/runes_favicon.svg' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'website/css/style.css' %}">
@@ -94,6 +95,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "reports" %}active{% endif %}" href="{% url 'reports' %}" >
+                                <img src={% static 'website/images/icons/reports.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Reports</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == "contribute" %}active{% endif %}" href="{% url 'contribute' %}" >
                                 <img src={% static 'website/images/icons/contribute.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
                                 <span class="text">Contribute</span>
@@ -112,21 +119,18 @@
                     <ul class="nav flex-column mb-2">
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == "desktop" %}active{% endif %}" href="{% url 'desktop' %}">
-                            <!-- Temporarily Credits Icon -->
                             <img src="{% static 'website/images/icons/desktop.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
                                 <span class="text">Profile</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == "building" %}active{% endif %}" href="{% url 'building' %}">
-                            <!-- Temporarily Credits Icon -->
                             <img src="{% static 'website/images/icons/building.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
                                 <span class="text">Towers Calculator</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == "dimholecalc" %}active{% endif %}" href="{% url 'dimholecalc' %}">
-                            <!-- Temporarily Credits Icon -->
                             <img src="{% static 'website/images/icons/dimholecalc.svg'|is_active:request.resolver_match.url_name %}" class="menu-img" />
                                 <span class="text">Dim Hole Calculator</span>
                             </a>
