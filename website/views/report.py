@@ -59,7 +59,6 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
 
         return monsters, hoh_exist, hoh_date, fusion.exists(), filename, runes
 
-
     def create_pie_plot(self, labels, values, title, colors=None):
         fig = go.Figure()
         if colors:
@@ -115,7 +114,6 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         )
         return plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)
 
-
     def generate_plots(self, monsters, monsters_runes, base_monster):
         plots = list()
 
@@ -129,6 +127,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
                 else:
                     df.loc[result['monster'].id, "rune #" + str(i + 1)] = rune
             set_names = [str(set_name) for set_name in get_sets.get_sets(result['runes'])]
+            set_names.sort()
             df.loc[result['monster'].id, 'sets'] = ' + '.join(set_names)
         #################################################
 
