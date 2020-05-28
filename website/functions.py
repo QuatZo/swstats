@@ -403,29 +403,6 @@ def log_exception(e, **kwargs):
 
 ########################################################## VIEWS ##########################################################
 # region RUNES - should be async and in tasks to speed things up even more
-def get_rune_list_avg_eff(runes):
-    """Return the avg efficiency of given runes, incl. these runes splitted into two sets (above & equal, below)."""
-    if not runes.exists():
-        return { 'above': [], 'below': [], 'avg': 0 }
-
-    avg_eff = runes.aggregate(Avg('efficiency'))['efficiency__avg']
-    avg_eff_above_runes = list()
-    avg_eff_below_runes = list()
-
-    for rune in runes:
-        if rune.efficiency >= avg_eff:
-            avg_eff_above_runes.append({
-                'x': rune.id,
-                'y': rune.efficiency
-            })
-        else:
-            avg_eff_below_runes.append({
-                'x': rune.id,
-                'y': rune.efficiency
-            })
-
-    return { 'above': avg_eff_above_runes, 'below': avg_eff_below_runes, 'avg': avg_eff }
-
 def get_rune_list_normal_distribution(runes, parts, count):
     """Return sets of runes in specific number of parts, to make Normal Distribution chart."""
     if not count:
@@ -585,27 +562,22 @@ def get_rune_similar(runes, rune):
 # region MONSTERS - most of them should be async and in tasks to speed things up even more
 def get_monster_list_over_time(monsters):
     """Return amount of monsters acquired over time."""
-    LENGTH = 200
-    temp_monsters = monsters.order_by('created')
-    start = pd.Timestamp(temp_monsters.first().created)
-    end = pd.Timestamp(temp_monsters.last().created)
-    TIMESTAMPS = list(pd.to_datetime(np.linspace(start.value, end.value, LENGTH)))
-    i = 0
-    time_values = list()
-    time_quantity = [1]
+    LENGTH = 100
+    temp_monsters = list(monsters.values_list('created', flat=True))
+    temp_monsters.sort()
 
-    for monster in temp_monsters:
-        while monster.created > TIMESTAMPS[i] and i <= LENGTH:
-            i += 1
-        
-        time_str = TIMESTAMPS[i].strftime("%Y-%m-%d")
-        if time_str not in time_values:
-            time_values.append(TIMESTAMPS[i].strftime("%Y-%m-%d"))
-            time_quantity.append(time_quantity[len(time_quantity) - 1])
+    to_timestamp = np.vectorize(lambda x: x.timestamp())
+    time_stamps = to_timestamp(temp_monsters)
+    start = time_stamps[0]
+    end = time_stamps[-1]
+    delta = (end - start) / (LENGTH + 1)
+    time_values = np.arange(start, end + delta, delta)
 
-        time_quantity[len(time_quantity) - 1] += 1
+    distribution = np.histogram(time_stamps, bins=time_values)[0].tolist()
 
-    return { 'time': time_values, 'quantity': time_quantity }
+    time_values = [datetime.datetime.strftime(datetime.datetime.fromtimestamp(int((time_values[i] + time_values[i+1])/2)), "%Y-%m-%d") for i in range(len(time_values) - 1)]
+
+    return { 'time': time_values, 'quantity': [sum(distribution[:i+1]) for i in range(len(distribution))]}
 
 def get_monster_list_group_by_family(monsters):
     """Return name, amount of families and quantity of monsters for every family in given monsters list."""

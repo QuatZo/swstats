@@ -696,11 +696,6 @@ def get_monsters_task(request_get):
     toughest_monsters_ids = [monster.id for monster in get_monster_list_toughest(monsters, 100, monsters_count)]
     toughest_def_break_monsters_ids = [monster.id for monster in get_monster_list_toughest_def_break(monsters, 100, monsters_count)]
 
-    # best_monsters = best_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
-    # fastest_monsters = fastest_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
-    # toughest_monsters = toughest_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
-    # toughest_def_break_monsters = toughest_def_break_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
-
     context = {
         # filters
         'is_filter': is_filter,
