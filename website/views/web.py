@@ -138,7 +138,6 @@ def get_decks_ajax(request, task_id):
 
             context['decks'] = Deck.objects.filter(id__in=context['decks_ids']).prefetch_related('monsters', 'monsters__base_monster', 'monsters__base_monster__family', 'leader', 'leader__base_monster', 'leader__base_monster__family').order_by('-team_runes_eff')
 
-
             html = render_to_string('website/decks/deck_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 
@@ -267,6 +266,8 @@ def get_dungeon_by_stage_ajax(request, task_id, name, stage):
                 record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
             for record in context['records_base']:
                 record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
+
+            print(context['time'])
 
             html = render_to_string('website/dungeons/dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)

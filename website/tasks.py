@@ -904,6 +904,7 @@ def get_deck_by_id_task(request_get):
 
 @shared_task
 def get_dungeon_by_stage_task(request_get, name, stage):
+    times = dict()
     is_filter = False
     filters = list()
     names = name.split('-')
@@ -924,29 +925,29 @@ def get_dungeon_by_stage_task(request_get, name, stage):
         dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
         
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
-
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
-
+    
+    # 
+    start = time.time()
     comps = list()
-    for run in dungeon_runs: 
-        COMP_COUNT = 5
-        if run.id == 999999999:
-            COMP_COUNT = 6 # rift of worlds 
-
-        monsters = list()
-        for monster in run.monsters.all():
-            monsters.append(monster)
-        if monsters and monsters not in comps and len(monsters) == COMP_COUNT:
+    temp_runs = [{'id': dr.id, 'monsters': [monster for monster in dr.monsters.all()]} for dr in dungeon_runs.prefetch_related('monsters')]
+    
+    for run in temp_runs: 
+        monsters = run['monsters']
+        if monsters and monsters not in comps and len(monsters) == get_comp_count(run['id']):
             comps.append(monsters)
+    times['comps'] = round(time.time() - start, 4)
 
     try:
         fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
     except AttributeError:
         fastest_run = None
 
+    # 
+    start = time.time()
     records_personal = [
         {
             'comp': [monster.id for monster in record['comp']],
@@ -956,7 +957,10 @@ def get_dungeon_by_stage_task(request_get, name, stage):
             'success_rate': record['success_rate'],
         } for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     ]
+    times['personal'] = round(time.time() - start, 4)
 
+    # 
+    start = time.time()
     records_base = [
         {
             'comp': [monster.id for monster in record['comp']],
@@ -966,10 +970,13 @@ def get_dungeon_by_stage_task(request_get, name, stage):
             'success_rate': record['success_rate'],
         }for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
     ]
+    times['base'] = round(time.time() - start, 4)
 
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs_clear)
 
     context = {
+        'time': times,
+
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',

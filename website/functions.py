@@ -844,6 +844,11 @@ def get_siege_records_group_by_ranking(records):
 # endregion
 
 # region DUNGEONS - should be async and in tasks to speed things up even more
+def get_comp_count(id_dungeon):
+    if id_dungeon == 999999999: # rift of worlds 
+        return 6
+    return 5
+
 def get_unique_comps(comps):
     new_comps = list()
     for comp in comps:
@@ -860,24 +865,17 @@ def get_dungeon_runs_distribution(runs, parts):
     if not runs.exists():
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
-    min_max = runs.aggregate(fastest=Min('clear_time'), slowest=Max('clear_time'))
-    fastest = min_max['fastest'].total_seconds()
-    slowest = min_max['slowest'].total_seconds()
+    runs_seconds = [clear_time.total_seconds() for clear_time in list(runs.values_list('clear_time', flat=True))]
+    fastest = min(runs_seconds)
+    slowest = max(runs_seconds)
 
-    delta = (slowest - fastest) / parts
-    points = [(fastest + (delta / 2) + i * delta) for i in range(parts)]
-    distribution = [0 for _ in range(parts)]
+    delta = (slowest - fastest) / (parts + 1)
 
-    i = 0
-    right = points[i] + delta / 2
-    for run in runs:
-        clear_time = run.clear_time.total_seconds()
-        while clear_time > right and i < parts - 1:
-            i += 1
-            right += delta
-        distribution[i] += 1
+    points = np.arange(fastest, slowest + delta, delta)
 
-    points = [str(timedelta(seconds=round(point))) for point in points]
+    distribution = np.histogram(runs_seconds, bins=points)[0].tolist()
+
+    points = [str(timedelta(seconds=round((points[i] + points[i+1])/2, 2))) for i in range(len(points) - 1)]
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
@@ -918,11 +916,7 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
             if not base:
                 records.append(record)
             else:
-                exists = False
-                for temp_record_base in records:
-                    if record['comp'] == temp_record_base['comp']:
-                        exists = True
-                        break
+                exists = [True for rec in records if rec['comp'] == record['comp']]
                 if not exists:
                     records.append(record)
 
