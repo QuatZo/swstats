@@ -10,6 +10,7 @@ import logging
 import datetime
 import pickle
 import time
+import itertools
 from operator import itemgetter
 
 logger = logging.getLogger(__name__)
@@ -904,7 +905,6 @@ def get_deck_by_id_task(request_get):
 
 @shared_task
 def get_dungeon_by_stage_task(request_get, name, stage):
-    times = dict()
     is_filter = False
     filters = list()
     names = name.split('-')
@@ -930,53 +930,22 @@ def get_dungeon_by_stage_task(request_get, name, stage):
 
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
     
-    # 
-    start = time.time()
     comps = list()
-    temp_runs = [{'id': dr.id, 'monsters': [monster for monster in dr.monsters.all()]} for dr in dungeon_runs.prefetch_related('monsters')]
-    
-    for run in temp_runs: 
-        monsters = run['monsters']
-        if monsters and monsters not in comps and len(monsters) == get_comp_count(run['id']):
-            comps.append(monsters)
-    times['comps'] = round(time.time() - start, 4)
+    for dungeon_id, group in itertools.groupby(list(dungeon_runs.values('id', 'monsters__id')), lambda item: item["id"]):
+        mons = [mon_id['monsters__id'] for mon_id in group if mon_id]
+        mons.sort()
+        if mons and mons not in comps and len(mons) == get_comp_count(dungeon_id):
+            comps.append(mons)        
 
     try:
         fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
     except AttributeError:
         fastest_run = None
 
-    # 
-    start = time.time()
-    records_personal = [
-        {
-            'comp': [monster.id for monster in record['comp']],
-            'average_time': str(record['average_time']),
-            'wins': record['wins'],
-            'loses': record['loses'],
-            'success_rate': record['success_rate'],
-        } for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
-    ]
-    times['personal'] = round(time.time() - start, 4)
-
-    # 
-    start = time.time()
-    records_base = [
-        {
-            'comp': [monster.id for monster in record['comp']],
-            'average_time': str(record['average_time']),
-            'wins': record['wins'],
-            'loses': record['loses'],
-            'success_rate': record['success_rate'],
-        }for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
-    ]
-    times['base'] = round(time.time() - start, 4)
-
+    records_personal = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs_clear)
 
     context = {
-        'time': times,
-
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
@@ -998,7 +967,6 @@ def get_dungeon_by_stage_task(request_get, name, stage):
 
         # personal table
         'records_personal': records_personal,
-        'records_base': records_base,
     }
 
     return context

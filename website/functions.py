@@ -875,32 +875,27 @@ def get_dungeon_runs_distribution(runs, parts):
 
     distribution = np.histogram(runs_seconds, bins=points)[0].tolist()
 
-    points = [str(timedelta(seconds=round((points[i] + points[i+1])/2, 2))) for i in range(len(points) - 1)]
+    points = [str(timedelta(seconds=round((points[i] + points[i+1])/2))) for i in range(len(points) - 1)]
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
+def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run):
     records = list()
+    records_comps = list()
 
-    for comp in get_unique_comps(comps):
+    for comp in comps:
         runs = dungeon_runs
         for monster_comp in comp:
-            if not base:
-                runs = runs.filter(monsters=monster_comp)
-            else:
-                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+            runs = runs.filter(monsters__id=monster_comp)
         
-        runs = runs.distinct()
+        if not runs.exists():
+            continue
+
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
 
-        if not base:
-            monsters_in_comp = comp
-        else:
-            monsters_in_comp = [mon.base_monster for mon in comp]
-
         record = {
-            'comp': monsters_in_comp,
+            'comp': comp,
             'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
             'wins': wins_comp,
             'loses': runs_comp - wins_comp,
@@ -913,22 +908,17 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
             record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
-            if not base:
-                records.append(record)
-            else:
-                exists = [True for rec in records if rec['comp'] == record['comp']]
-                if not exists:
-                    records.append(record)
+            record['average_time'] = str(record['average_time'])
+            records.append(record)
 
     return records
 
 def get_dungeon_runs_by_base_class(dungeon_runs):
     base_monsters = dict()
-    for record in dungeon_runs:
-        for monster in record.monsters.all():
-            if monster.base_monster.name not in base_monsters.keys():
-                base_monsters[monster.base_monster.name] = 0
-            base_monsters[monster.base_monster.name] += 1
+    for record in dungeon_runs.values_list('monsters__base_monster__name', flat=True):
+        if record not in base_monsters.keys():
+            base_monsters[record] = 0
+        base_monsters[record] += 1
 
     base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
     return (list(base_monsters.keys()), list(base_monsters.values()))

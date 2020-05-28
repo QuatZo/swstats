@@ -20,7 +20,7 @@
                 url: "{% url 'dungeon_by_stage_ajax' task_id=task_id name=name stage=stage %}",
                 type: "GET",
                 success: function(response) {
-                    seconds += 1;
+                    seconds += .5;
                     $('#secs').text(seconds);
                     if(response){
                         $('#content-ajax-container').html(response);
@@ -33,12 +33,12 @@
                     }
                 },
                 error: function(xhr) {
-                                        $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
-                                        clearInterval(fetchDataInterval);
+                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
+                    clearInterval(fetchDataInterval);
                 }
             });
         }
         var seconds = 0;
-        var fetchDataInterval = setInterval(fetchData, 1000);
+        var fetchDataInterval = setInterval(fetchData, 500);
     </script>
 {% endblock %}
