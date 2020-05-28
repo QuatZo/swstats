@@ -600,9 +600,7 @@ def get_rune_by_id_task(request_get, arg_id):
     runes_category_set = runes.filter(rune_set=rune.rune_set)
     runes_category_both = runes.filter(slot=rune.slot, rune_set=rune.rune_set)
 
-    runes_count = runes.count()
-
-    similar_ids = [sim_rune.id for sim_rune in get_rune_similar(runes, rune)]
+    similar_ids = get_rune_similar(runes, rune)
 
     ranks = {
         'normal': {

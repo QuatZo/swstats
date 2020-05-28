@@ -540,45 +540,43 @@ def get_rune_rank_eff(runes, rune):
 
 def get_rune_rank_substat(runes, rune, substat, filters=None):
     """Return place of rune based on given substat."""
-    substats = {
-        'sub_hp_flat': rune.sub_hp_flat,
-        'sub_hp': rune.sub_hp,
-        'sub_atk_flat': rune.sub_atk_flat,
-        'sub_atk': rune.sub_atk,
-        'sub_def_flat': rune.sub_def_flat,
-        'sub_def': rune.sub_def,
-        'sub_speed': rune.sub_speed,
-        'sub_crit_rate': rune.sub_crit_rate,
-        'sub_crit_dmg': rune.sub_crit_dmg,
-        'sub_res': rune.sub_res,
-        'sub_acc': rune.sub_acc,
+    filters_sub = {
+        'sub_hp_flat': [runes.filter(sub_hp_flat__isnull=False), rune.sub_hp_flat],
+        'sub_hp': [runes.filter(sub_hp__isnull=False), rune.sub_hp],
+        'sub_atk_flat': [runes.filter(sub_atk_flat__isnull=False), rune.sub_atk_flat],
+        'sub_atk': [runes.filter(sub_atk__isnull=False), rune.sub_atk],
+        'sub_def_flat': [runes.filter(sub_def_flat__isnull=False), rune.sub_def_flat],
+        'sub_def': [runes.filter(sub_def__isnull=False), rune.sub_def],
+        'sub_speed': [runes.filter(sub_speed__isnull=False), rune.sub_speed],
+        'sub_crit_rate': [runes.filter(sub_crit_rate__isnull=False), rune.sub_crit_rate],
+        'sub_crit_dmg': [runes.filter(sub_crit_dmg__isnull=False), rune.sub_crit_dmg],
+        'sub_res': [runes.filter(sub_res__isnull=False), rune.sub_res],
+        'sub_acc': [runes.filter(sub_acc__isnull=False), rune.sub_acc],
     }
 
-    if substats[substat] is None:
+    if filters_sub[substat][1] is None:
         return None
 
-    remaining_filters = ""
+    runes = filters_sub[substat][0]
+
     if filters:
         if 'slot' in filters:
-            remaining_filters += "AND slot=" + str(rune.slot)
+            runes = runes.filter(slot=rune.slot)
         if 'set' in filters:
-            remaining_filters += "AND rune_set_id=" + str(rune.rune_set.id)
+            runes = runes.filter(slot=rune.rune_set.id)
 
-    rank = 1
-    value = sum(substats[substat])
+    value = sum(filters_sub[substat][1])
 
-    for temp_rune in runes.raw(f'SELECT id, {substat} FROM website_rune WHERE {substat} IS NOT NULL {remaining_filters}'):
-        temp_rune = temp_rune.__dict__
-        if temp_rune[substat] is not None and sum(temp_rune[substat]) > value:
-            rank += 1
+    ranks = np.array([1 if temp_substat is not None and sum(temp_substat) > value else None for temp_substat in runes.values_list(substat, flat=True)], dtype=np.float64)
+    ranks = ranks[~np.isnan(ranks)]
 
-    return rank
+    return len(ranks) + 1
 
 def get_rune_similar(runes, rune):
     """Return runes similar to the given one."""
-    similar_runes = runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary).exclude(id=rune.id)
+    similar_runes = runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary).exclude(id=rune.id).values_list('id', flat=True)
     MAX_COUNT = 50
-    runes_count = similar_runes.count()
+    runes_count = len(similar_runes)
     if runes_count <= MAX_COUNT:
         MAX_COUNT = runes_count
     return random.sample(list(similar_runes), MAX_COUNT)
