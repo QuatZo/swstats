@@ -765,8 +765,8 @@ def get_monster_by_id_task(request_get, arg_id):
     monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
     
     rta_monsters = RuneRTA.objects.filter(monster=arg_id).prefetch_related('rune', 'rune__rune_set', 'monster', 'monster__base_monster')
-    rta_build = list()
 
+    rta_build = list()
     for rta_monster in rta_monsters:
         rta_build.append(rta_monster.rune)
 
@@ -789,10 +789,11 @@ def get_monster_by_id_task(request_get, arg_id):
             rta_similar_builds[rta_similar.monster.id] = list()
         rta_similar_builds[rta_similar.monster.id].append(rta_similar.rune.id)
 
+    
     MAX_COUNT = 20
-
-    mon_similar_builds = [sim_mon.id for sim_mon in monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family).exclude(id=monster.id)]
+    mon_similar_builds = list(monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family).exclude(id=monster.id).values_list('id', flat=True))
     mon_similar_builds = random.sample(mon_similar_builds, min(MAX_COUNT, len(mon_similar_builds)))
+
     rta_final_similar_builds = dict()
     for key in random.sample(rta_similar_builds.keys(), min(MAX_COUNT, len(rta_similar_builds))):
         rta_final_similar_builds[key] = rta_similar_builds[key]
@@ -835,7 +836,7 @@ def get_monster_by_id_task(request_get, arg_id):
         'rta': rta,
         'similar_ids': mon_similar_builds,
         'rta_similar_ids': rta_similar_builds,
-        'decks_ids': [deck.id for deck in Deck.objects.all().filter(monsters__id=monster.id)],
+        'decks_ids': [deck.id for deck in Deck.objects.filter(monsters__id=monster.id)],
     }
 
     return context
