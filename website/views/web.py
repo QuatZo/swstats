@@ -9,6 +9,7 @@ from website.functions import *
 
 import matplotlib.cm as cm
 import numpy as np
+import time
 
 # Create your views here.
 def get_homepage(request):

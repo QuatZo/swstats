@@ -11,6 +11,7 @@ import pandas as pd
 import traceback
 import json
 import random
+import time
 from datetime import timedelta
 
 ########################################################## UPLOAD #########################################################
@@ -430,26 +431,17 @@ def get_rune_list_normal_distribution(runes, parts, count):
     if not count:
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
-    min_eff = runes.aggregate(Min('efficiency'))['efficiency__min']
-    max_eff = runes.aggregate(Max('efficiency'))['efficiency__max']
-    delta = (max_eff - min_eff) / parts
+    efficiencies = runes.values_list('efficiency', flat=True)
+    min_eff = min(efficiencies)
+    max_eff = max(efficiencies)
 
-    points = [round(min_eff + (delta / 2) + i * delta, 2) for i in range(parts)]
-    distribution = [0 for _ in range(parts)]
+    delta = (max_eff - min_eff) / (parts + 1)
+    points = np.arange(min_eff, max_eff + delta, delta)
 
-    for rune in runes:
-        for i in range(parts):
-            left = round(points[i] - delta / 2, 2)
-            right = round(points[i] + delta / 2, 2)
-            if i == parts - 1:
-                if rune.efficiency >= left and rune.efficiency <= right:
-                    distribution[i] += 1
-                    break
-            elif rune.efficiency >= left and rune.efficiency < right:
-                    distribution[i] += 1
-                    break
+    distribution = np.histogram(efficiencies, bins=points)
+    points = [round((points[i] + points[i+1])/2, 2) for i in range(len(points) - 1)]
 
-    return { 'distribution': distribution, 'scope': points, 'interval': parts }
+    return { 'distribution': distribution[0].tolist(), 'scope': points, 'interval': parts }
 
 def get_rune_list_best(runes, x, count):
     """Return TopX (or all, if there is no X elements in list) efficient runes."""

@@ -475,7 +475,8 @@ def get_homepage_task():
 
 @shared_task
 def get_runes_task(request_get):
-    runes = Rune.objects.order_by('-efficiency')   
+    runes = Rune.objects.order_by('-efficiency')
+
     is_filter = False 
     filters = list()
 
@@ -519,18 +520,18 @@ def get_runes_task(request_get):
         runes = runes.filter(Q(stars=stars) | Q(stars=stars + 10)) # since ancient runes have 11-16
 
     runes_count = runes.count()
-
-    avg_eff_runes = get_rune_list_avg_eff(runes)
+    
     normal_distribution_runes = get_rune_list_normal_distribution(runes, 40, runes_count)
+    
     runes_by_set = get_rune_list_grouped_by_set(runes)
     runes_by_slot = get_rune_list_grouped_by_slot(runes)
     runes_by_quality = get_rune_list_grouped_by_quality(runes)
     runes_by_quality_original = get_rune_list_grouped_by_quality_original(runes)
     runes_by_main_stat = get_rune_list_grouped_by_main_stat(runes)
     runes_by_stars = get_rune_list_grouped_by_stars(runes)
+
     best_runes = get_rune_list_best(runes, 100, runes_count)
     fastest_runes = get_rune_list_fastest(runes, 100, runes_count)
-
     best_runes_ids = [rune.id for rune in best_runes]
     fastest_runes_ids = [rune.id for rune in fastest_runes]
     
@@ -538,13 +539,6 @@ def get_runes_task(request_get):
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
-
-        # chart best
-        'avg_eff_above_runes': avg_eff_runes['above'],
-        'avg_eff_above_quantity': len(avg_eff_runes['above']),
-        'avg_eff_below_runes': avg_eff_runes['below'],
-        'avg_eff_below_quantity': len(avg_eff_runes['below']),
-        'avg_eff': round(avg_eff_runes['avg'], 2),
 
         # chart distribution
         'all_distribution': normal_distribution_runes['distribution'],
