@@ -928,11 +928,15 @@ def get_dungeon_by_stage_task(request_get, name, stage):
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
-    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
+    dungeon_runs = dungeon_runs.prefetch_related('monsters')
     
     comps = list()
-    for dungeon_id, group in itertools.groupby(list(dungeon_runs.values('id', 'monsters__id')), lambda item: item["id"]):
-        mons = [mon_id['monsters__id'] for mon_id in group if mon_id]
+    for _, group in itertools.groupby(list(dungeon_runs.values('id', 'dungeon', 'monsters__id')), lambda item: item["id"]):
+        results = np.array([[mon['monsters__id'], mon['dungeon']] for mon in group if mon['monsters__id']])
+        if not results.shape[0]:
+            continue
+        mons = results[:, 0].tolist()
+        dungeon_id = results[0, 1]
         mons.sort()
         if mons and mons not in comps and len(mons) == get_comp_count(dungeon_id):
             comps.append(mons)        
