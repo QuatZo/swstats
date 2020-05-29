@@ -10,6 +10,7 @@ import logging
 import datetime
 import pickle
 import time
+import itertools
 from operator import itemgetter
 
 logger = logging.getLogger(__name__)
@@ -396,7 +397,6 @@ def get_homepage_task():
     """Return the homepage with carousel messages & introduction."""
     runes = Rune.objects.all()
     rune_best = runes.order_by('-efficiency').first()
-    rune_equipped = Rune.objects.filter(equipped=True).count()
 
     monsters = Monster.objects.all()
     monster_best = monsters.order_by('-avg_eff').first()
@@ -475,7 +475,8 @@ def get_homepage_task():
 
 @shared_task
 def get_runes_task(request_get):
-    runes = Rune.objects.order_by('-efficiency')   
+    runes = Rune.objects.order_by('-efficiency')
+
     is_filter = False 
     filters = list()
 
@@ -519,18 +520,18 @@ def get_runes_task(request_get):
         runes = runes.filter(Q(stars=stars) | Q(stars=stars + 10)) # since ancient runes have 11-16
 
     runes_count = runes.count()
-
-    avg_eff_runes = get_rune_list_avg_eff(runes)
+    
     normal_distribution_runes = get_rune_list_normal_distribution(runes, 40, runes_count)
+    
     runes_by_set = get_rune_list_grouped_by_set(runes)
     runes_by_slot = get_rune_list_grouped_by_slot(runes)
     runes_by_quality = get_rune_list_grouped_by_quality(runes)
     runes_by_quality_original = get_rune_list_grouped_by_quality_original(runes)
     runes_by_main_stat = get_rune_list_grouped_by_main_stat(runes)
     runes_by_stars = get_rune_list_grouped_by_stars(runes)
+
     best_runes = get_rune_list_best(runes, 100, runes_count)
     fastest_runes = get_rune_list_fastest(runes, 100, runes_count)
-
     best_runes_ids = [rune.id for rune in best_runes]
     fastest_runes_ids = [rune.id for rune in fastest_runes]
     
@@ -538,13 +539,6 @@ def get_runes_task(request_get):
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
-
-        # chart best
-        'avg_eff_above_runes': avg_eff_runes['above'],
-        'avg_eff_above_quantity': len(avg_eff_runes['above']),
-        'avg_eff_below_runes': avg_eff_runes['below'],
-        'avg_eff_below_quantity': len(avg_eff_runes['below']),
-        'avg_eff': round(avg_eff_runes['avg'], 2),
 
         # chart distribution
         'all_distribution': normal_distribution_runes['distribution'],
@@ -606,9 +600,7 @@ def get_rune_by_id_task(request_get, arg_id):
     runes_category_set = runes.filter(rune_set=rune.rune_set)
     runes_category_both = runes.filter(slot=rune.slot, rune_set=rune.rune_set)
 
-    runes_count = runes.count()
-
-    similar_ids = [sim_rune.id for sim_rune in get_rune_similar(runes, rune)]
+    similar_ids = get_rune_similar(runes, rune)
 
     ranks = {
         'normal': {
@@ -704,11 +696,6 @@ def get_monsters_task(request_get):
     toughest_monsters_ids = [monster.id for monster in get_monster_list_toughest(monsters, 100, monsters_count)]
     toughest_def_break_monsters_ids = [monster.id for monster in get_monster_list_toughest_def_break(monsters, 100, monsters_count)]
 
-    # best_monsters = best_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
-    # fastest_monsters = fastest_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
-    # toughest_monsters = toughest_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
-    # toughest_def_break_monsters = toughest_def_break_monsters.prefetch_related('base_monster', 'runes', 'runes__rune_set')
-
     context = {
         # filters
         'is_filter': is_filter,
@@ -778,8 +765,8 @@ def get_monster_by_id_task(request_get, arg_id):
     monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
     
     rta_monsters = RuneRTA.objects.filter(monster=arg_id).prefetch_related('rune', 'rune__rune_set', 'monster', 'monster__base_monster')
-    rta_build = list()
 
+    rta_build = list()
     for rta_monster in rta_monsters:
         rta_build.append(rta_monster.rune)
 
@@ -802,10 +789,11 @@ def get_monster_by_id_task(request_get, arg_id):
             rta_similar_builds[rta_similar.monster.id] = list()
         rta_similar_builds[rta_similar.monster.id].append(rta_similar.rune.id)
 
+    
     MAX_COUNT = 20
-
-    mon_similar_builds = [sim_mon.id for sim_mon in monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family).exclude(id=monster.id)]
+    mon_similar_builds = list(monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family).exclude(id=monster.id).values_list('id', flat=True))
     mon_similar_builds = random.sample(mon_similar_builds, min(MAX_COUNT, len(mon_similar_builds)))
+
     rta_final_similar_builds = dict()
     for key in random.sample(rta_similar_builds.keys(), min(MAX_COUNT, len(rta_similar_builds))):
         rta_final_similar_builds[key] = rta_similar_builds[key]
@@ -848,7 +836,7 @@ def get_monster_by_id_task(request_get, arg_id):
         'rta': rta,
         'similar_ids': mon_similar_builds,
         'rta_similar_ids': rta_similar_builds,
-        'decks_ids': [deck.id for deck in Deck.objects.all().filter(monsters__id=monster.id)],
+        'decks_ids': [deck.id for deck in Deck.objects.filter(monsters__id=monster.id)],
     }
 
     return context
@@ -936,49 +924,28 @@ def get_dungeon_by_stage_task(request_get, name, stage):
         dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
         
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
-
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
-    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
-
+    dungeon_runs = dungeon_runs.prefetch_related('monsters')
+    
     comps = list()
-    for run in dungeon_runs: 
-        COMP_COUNT = 5
-        if run.id == 999999999:
-            COMP_COUNT = 6 # rift of worlds 
-
-        monsters = list()
-        for monster in run.monsters.all():
-            monsters.append(monster)
-        if monsters and monsters not in comps and len(monsters) == COMP_COUNT:
-            comps.append(monsters)
+    for _, group in itertools.groupby(list(dungeon_runs.values('id', 'dungeon', 'monsters__id')), lambda item: item["id"]):
+        results = np.array([[mon['monsters__id'], mon['dungeon']] for mon in group if mon['monsters__id']])
+        if not results.shape[0]:
+            continue
+        mons = results[:, 0].tolist()
+        dungeon_id = results[0, 1]
+        mons.sort()
+        if mons and mons not in comps and len(mons) == get_comp_count(dungeon_id):
+            comps.append(mons)        
 
     try:
         fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
     except AttributeError:
         fastest_run = None
 
-    records_personal = [
-        {
-            'comp': [monster.id for monster in record['comp']],
-            'average_time': str(record['average_time']),
-            'wins': record['wins'],
-            'loses': record['loses'],
-            'success_rate': record['success_rate'],
-        } for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
-    ]
-
-    records_base = [
-        {
-            'comp': [monster.id for monster in record['comp']],
-            'average_time': str(record['average_time']),
-            'wins': record['wins'],
-            'loses': record['loses'],
-            'success_rate': record['success_rate'],
-        }for record in sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
-    ]
-
+    records_personal = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs_clear)
 
     context = {
@@ -1003,7 +970,6 @@ def get_dungeon_by_stage_task(request_get, name, stage):
 
         # personal table
         'records_personal': records_personal,
-        'records_base': records_base,
     }
 
     return context
@@ -1029,53 +995,27 @@ def get_rift_dungeon_by_stage_task(request_get, name):
         dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
 
 
+    
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
-
+    
     damage_distribution = get_rift_dungeon_damage_distribution(dungeon_runs, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
 
     comps = list()
-    for run in dungeon_runs:
-        COMP_COUNT = 6 
-
-        monsters = list()
-        for monster in run.monsters.all():
-            monsters.append(monster)
-        if monsters and monsters not in comps and len(monsters) == COMP_COUNT:
-            comps.append(monsters)
+    for _, group in itertools.groupby(list(dungeon_runs.values('battle_key', 'monsters__id')), lambda item: item["battle_key"]):
+        mons = [mon['monsters__id'] for mon in group if mon['monsters__id']]
+        mons.sort()
+        if mons and mons not in comps and len(mons) == 6:
+            comps.append(mons)  
 
     try:
         highest_damage = dungeon_runs.order_by('-dmg_total').first().dmg_total
     except AttributeError:
         highest_damage = None
 
-    records_personal = [
-        {
-            'comp': [monster.id for monster in record['comp']],
-            'average_time': str(record['average_time']),
-            'most_freq_rating': record['most_freq_rating'],
-            'wins': record['wins'],
-            'loses': record['loses'],
-            'success_rate': record['success_rate'],
-            'dmg_best': record['dmg_best'],
-            'dmg_avg': record['dmg_avg'],
-        } for record in sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
-    ]
-    records_base = [
-        {
-            'comp': [monster.id for monster in record['comp']],
-            'average_time': str(record['average_time']),
-            'most_freq_rating': record['most_freq_rating'],
-            'wins': record['wins'],
-            'loses': record['loses'],
-            'success_rate': record['success_rate'],
-            'dmg_best': record['dmg_best'],
-            'dmg_avg': record['dmg_avg'],
-        } for record in sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, True), key=itemgetter('sorting_val'), reverse = True)
-    ]
-
+    records_personal = sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
 
     context = {
@@ -1100,7 +1040,6 @@ def get_rift_dungeon_by_stage_task(request_get, name):
     
         # personal table
         'records_personal': records_personal,
-        'records_base': records_base,
     }
 
     return context
@@ -1141,12 +1080,11 @@ def get_dimension_hole_task(request_get):
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
     comps = list()
-    for run in dungeon_runs:
-        monsters = list()
-        for monster in run.monsters.all():
-            monsters.append(monster)
-        if monsters not in comps and monsters:
-            comps.append(monsters)
+    for _, group in itertools.groupby(list(dungeon_runs.values('id', 'monsters__id')), lambda item: item["id"]):
+        mons = [mon['monsters__id'] for mon in group if mon['monsters__id']]
+        mons.sort()
+        if mons and mons not in comps and len(mons) == 4:
+            comps.append(mons)   
 
     try:
         fastest_run = dungeon_runs_clear.first().clear_time.total_seconds()
@@ -1155,33 +1093,12 @@ def get_dimension_hole_task(request_get):
     
     if 'stage' in request_get.keys() and request_get['stage'] and 'dungeon' in request_get.keys() and request_get['dungeon']:
         records_ok = True
-        records_personal = [
-            {
-                'comp': [monster.id for monster in record['comp']],
-                'dungeon': record['dungeon'],
-                'stage': record['stage'],
-                'average_time': str(record['average_time']),
-                'wins': record['wins'],
-                'loses': record['loses'],
-                'success_rate': record['success_rate'],
-            } for record in sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
-        ]
-        records_base = [
-            {
-                'comp': [monster.id for monster in record['comp']],
-                'dungeon': record['dungeon'],
-                'stage': record['stage'],
-                'average_time': str(record['average_time']),
-                'wins': record['wins'],
-                'loses': record['loses'],
-                'success_rate': record['success_rate'],
-            } for record in sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
-        ]
+        records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     else:
         records_personal = "Pick dungeon & stage to see recorded comps."
-        records_base = "Pick dungeon & stage to see recorded base monsters in comps."
 
     dungeon_runs = dungeon_runs_clear # exclude failed runs
+
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
     runs_per_dungeon = get_dimhole_runs_per_dungeon(dungeon_runs)
     runs_per_practice = get_dimhole_runs_per_practice(dungeon_runs)
@@ -1223,7 +1140,6 @@ def get_dimension_hole_task(request_get):
         # personal table
         'records_ok': records_ok,
         'records_personal': records_personal,
-        'records_base': records_base,
     }
 
     return context

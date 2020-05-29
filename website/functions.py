@@ -11,6 +11,7 @@ import pandas as pd
 import traceback
 import json
 import random
+import time
 from datetime import timedelta
 
 ########################################################## UPLOAD #########################################################
@@ -402,54 +403,22 @@ def log_exception(e, **kwargs):
 
 ########################################################## VIEWS ##########################################################
 # region RUNES - should be async and in tasks to speed things up even more
-def get_rune_list_avg_eff(runes):
-    """Return the avg efficiency of given runes, incl. these runes splitted into two sets (above & equal, below)."""
-    if not runes.exists():
-        return { 'above': [], 'below': [], 'avg': 0 }
-
-    avg_eff = runes.aggregate(Avg('efficiency'))['efficiency__avg']
-    avg_eff_above_runes = list()
-    avg_eff_below_runes = list()
-
-    for rune in runes:
-        if rune.efficiency >= avg_eff:
-            avg_eff_above_runes.append({
-                'x': rune.id,
-                'y': rune.efficiency
-            })
-        else:
-            avg_eff_below_runes.append({
-                'x': rune.id,
-                'y': rune.efficiency
-            })
-
-    return { 'above': avg_eff_above_runes, 'below': avg_eff_below_runes, 'avg': avg_eff }
-
 def get_rune_list_normal_distribution(runes, parts, count):
     """Return sets of runes in specific number of parts, to make Normal Distribution chart."""
     if not count:
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
-    min_eff = runes.aggregate(Min('efficiency'))['efficiency__min']
-    max_eff = runes.aggregate(Max('efficiency'))['efficiency__max']
-    delta = (max_eff - min_eff) / parts
+    efficiencies = runes.values_list('efficiency', flat=True)
+    min_eff = min(efficiencies)
+    max_eff = max(efficiencies)
 
-    points = [round(min_eff + (delta / 2) + i * delta, 2) for i in range(parts)]
-    distribution = [0 for _ in range(parts)]
+    delta = (max_eff - min_eff) / (parts + 1)
+    points = np.arange(min_eff, max_eff + delta, delta)
 
-    for rune in runes:
-        for i in range(parts):
-            left = round(points[i] - delta / 2, 2)
-            right = round(points[i] + delta / 2, 2)
-            if i == parts - 1:
-                if rune.efficiency >= left and rune.efficiency <= right:
-                    distribution[i] += 1
-                    break
-            elif rune.efficiency >= left and rune.efficiency < right:
-                    distribution[i] += 1
-                    break
+    distribution = np.histogram(efficiencies, bins=points)
+    points = [round((points[i] + points[i+1])/2, 2) for i in range(len(points) - 1)]
 
-    return { 'distribution': distribution, 'scope': points, 'interval': parts }
+    return { 'distribution': distribution[0].tolist(), 'scope': points, 'interval': parts }
 
 def get_rune_list_best(runes, x, count):
     """Return TopX (or all, if there is no X elements in list) efficient runes."""
@@ -548,45 +517,43 @@ def get_rune_rank_eff(runes, rune):
 
 def get_rune_rank_substat(runes, rune, substat, filters=None):
     """Return place of rune based on given substat."""
-    substats = {
-        'sub_hp_flat': rune.sub_hp_flat,
-        'sub_hp': rune.sub_hp,
-        'sub_atk_flat': rune.sub_atk_flat,
-        'sub_atk': rune.sub_atk,
-        'sub_def_flat': rune.sub_def_flat,
-        'sub_def': rune.sub_def,
-        'sub_speed': rune.sub_speed,
-        'sub_crit_rate': rune.sub_crit_rate,
-        'sub_crit_dmg': rune.sub_crit_dmg,
-        'sub_res': rune.sub_res,
-        'sub_acc': rune.sub_acc,
+    filters_sub = {
+        'sub_hp_flat': [runes.filter(sub_hp_flat__isnull=False), rune.sub_hp_flat],
+        'sub_hp': [runes.filter(sub_hp__isnull=False), rune.sub_hp],
+        'sub_atk_flat': [runes.filter(sub_atk_flat__isnull=False), rune.sub_atk_flat],
+        'sub_atk': [runes.filter(sub_atk__isnull=False), rune.sub_atk],
+        'sub_def_flat': [runes.filter(sub_def_flat__isnull=False), rune.sub_def_flat],
+        'sub_def': [runes.filter(sub_def__isnull=False), rune.sub_def],
+        'sub_speed': [runes.filter(sub_speed__isnull=False), rune.sub_speed],
+        'sub_crit_rate': [runes.filter(sub_crit_rate__isnull=False), rune.sub_crit_rate],
+        'sub_crit_dmg': [runes.filter(sub_crit_dmg__isnull=False), rune.sub_crit_dmg],
+        'sub_res': [runes.filter(sub_res__isnull=False), rune.sub_res],
+        'sub_acc': [runes.filter(sub_acc__isnull=False), rune.sub_acc],
     }
 
-    if substats[substat] is None:
+    if filters_sub[substat][1] is None:
         return None
 
-    remaining_filters = ""
+    runes = filters_sub[substat][0]
+
     if filters:
         if 'slot' in filters:
-            remaining_filters += "AND slot=" + str(rune.slot)
+            runes = runes.filter(slot=rune.slot)
         if 'set' in filters:
-            remaining_filters += "AND rune_set_id=" + str(rune.rune_set.id)
+            runes = runes.filter(slot=rune.rune_set.id)
 
-    rank = 1
-    value = sum(substats[substat])
+    value = sum(filters_sub[substat][1])
 
-    for temp_rune in runes.raw(f'SELECT id, {substat} FROM website_rune WHERE {substat} IS NOT NULL {remaining_filters}'):
-        temp_rune = temp_rune.__dict__
-        if temp_rune[substat] is not None and sum(temp_rune[substat]) > value:
-            rank += 1
+    ranks = np.array([1 if temp_substat is not None and sum(temp_substat) > value else None for temp_substat in runes.values_list(substat, flat=True)], dtype=np.float64)
+    ranks = ranks[~np.isnan(ranks)]
 
-    return rank
+    return len(ranks) + 1
 
 def get_rune_similar(runes, rune):
     """Return runes similar to the given one."""
-    similar_runes = runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary).exclude(id=rune.id)
+    similar_runes = runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary).exclude(id=rune.id).values_list('id', flat=True)
     MAX_COUNT = 50
-    runes_count = similar_runes.count()
+    runes_count = len(similar_runes)
     if runes_count <= MAX_COUNT:
         MAX_COUNT = runes_count
     return random.sample(list(similar_runes), MAX_COUNT)
@@ -595,27 +562,22 @@ def get_rune_similar(runes, rune):
 # region MONSTERS - most of them should be async and in tasks to speed things up even more
 def get_monster_list_over_time(monsters):
     """Return amount of monsters acquired over time."""
-    LENGTH = 200
-    temp_monsters = monsters.order_by('created')
-    start = pd.Timestamp(temp_monsters.first().created)
-    end = pd.Timestamp(temp_monsters.last().created)
-    TIMESTAMPS = list(pd.to_datetime(np.linspace(start.value, end.value, LENGTH)))
-    i = 0
-    time_values = list()
-    time_quantity = [1]
+    LENGTH = 100
+    temp_monsters = list(monsters.values_list('created', flat=True))
+    temp_monsters.sort()
 
-    for monster in temp_monsters:
-        while monster.created > TIMESTAMPS[i] and i <= LENGTH:
-            i += 1
-        
-        time_str = TIMESTAMPS[i].strftime("%Y-%m-%d")
-        if time_str not in time_values:
-            time_values.append(TIMESTAMPS[i].strftime("%Y-%m-%d"))
-            time_quantity.append(time_quantity[len(time_quantity) - 1])
+    to_timestamp = np.vectorize(lambda x: x.timestamp())
+    time_stamps = to_timestamp(temp_monsters)
+    start = time_stamps[0]
+    end = time_stamps[-1]
+    delta = (end - start) / (LENGTH + 1)
+    time_values = np.arange(start, end + delta, delta)
 
-        time_quantity[len(time_quantity) - 1] += 1
+    distribution = np.histogram(time_stamps, bins=time_values)[0].tolist()
 
-    return { 'time': time_values, 'quantity': time_quantity }
+    time_values = [datetime.datetime.strftime(datetime.datetime.fromtimestamp(int((time_values[i] + time_values[i+1])/2)), "%Y-%m-%d") for i in range(len(time_values) - 1)]
+
+    return { 'time': time_values, 'quantity': [sum(distribution[:i+1]) for i in range(len(distribution))]}
 
 def get_monster_list_group_by_family(monsters):
     """Return name, amount of families and quantity of monsters for every family in given monsters list."""
@@ -762,37 +724,25 @@ def get_monster_list_group_by_fusion(monsters):
 
     return { 'value': fusion_values, 'quantity': fusion_quantity, 'length': len(fusion_values) }
 
-
 def get_monster_rank_avg_eff(monsters, monster):
     return monsters.filter(avg_eff__gte=monster.avg_eff).count()
 
 def get_monster_rank_stats(monsters, monster, stat, count):
     """Return place of monster based on given stat."""
     stats = {
-        'hp': monster.hp,
-        'attack': monster.attack,
-        'defense': monster.defense,
-        'speed': monster.speed,
-        'res': monster.res,
-        'acc': monster.acc,
-        'crit_rate': monster.crit_rate,
-        'crit_dmg': monster.crit_dmg,
-        'eff_hp': monster.eff_hp,
-        'eff_hp_def_break': monster.eff_hp_def_break,
+        'hp': monsters.filter(hp__gte=monster.hp).count(),
+        'attack': monsters.filter(attack__gte=monster.attack).count(),
+        'defense': monsters.filter(defense__gte=monster.defense).count(),
+        'speed': monsters.filter(speed__gte=monster.speed).count(),
+        'res': monsters.filter(res__gte=monster.res).count(),
+        'acc': monsters.filter(acc__gte=monster.acc).count(),
+        'crit_rate': monsters.filter(crit_rate__gte=monster.crit_rate).count(),
+        'crit_dmg': monsters.filter(crit_dmg__gte=monster.crit_dmg).count(),
+        'eff_hp': monsters.filter(eff_hp__gte=monster.eff_hp).count(),
+        'eff_hp_def_break': monsters.filter(eff_hp_def_break__gte=monster.eff_hp_def_break).count(),
     }
 
-    if stats[stat] is None:
-        return count
-
-    rank = 1
-    value = stats[stat]
-
-    for temp_monster in monsters.raw(f'SELECT id, {stat} FROM website_monster WHERE {stat} IS NOT NULL'):
-        temp_monster = temp_monster.__dict__
-        if temp_monster[stat] is not None and temp_monster[stat] > value:
-            rank += 1
-
-    return rank
+    return stats[stat] + 1
 
 def get_monster_records(monster):
     siege = monster.siege_defense_monsters.all()
@@ -807,7 +757,6 @@ def get_monster_records(monster):
         'rifts': rifts,
         'has': has_records,
     }
-
 # endregion
 
 # region DECKS - should be async and in tasks to speed things up even more
@@ -862,7 +811,6 @@ def get_deck_list_avg_eff(decks):
 
 def get_deck_similar(deck, decks):
     return [temp_deck for temp_deck in decks if temp_deck.place == deck.place and temp_deck.id != deck.id and deck.team_runes_eff - 10 < temp_deck.team_runes_eff and deck.team_runes_eff + 10 > temp_deck.team_runes_eff]
-
 #endregion
 
 # region SIEGE - should be async and in tasks to speed things up even more
@@ -896,65 +844,46 @@ def get_siege_records_group_by_ranking(records):
 # endregion
 
 # region DUNGEONS - should be async and in tasks to speed things up even more
-def get_unique_comps(comps):
-    new_comps = list()
-    for comp in comps:
-        exists = False
-        for new_comp in new_comps:
-            if set(comp) == set(new_comp):
-                exists = True
-        if not exists:
-            new_comps.append(comp)
-    return new_comps
+def get_comp_count(id_dungeon):
+    if id_dungeon == 999999999: # rift of worlds 
+        return 6
+    return 5
 
 def get_dungeon_runs_distribution(runs, parts):
     """Return sets of clear times in specific number of parts, to make Distribution chart."""
     if not runs.exists():
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
-    min_max = runs.aggregate(fastest=Min('clear_time'), slowest=Max('clear_time'))
-    fastest = min_max['fastest'].total_seconds()
-    slowest = min_max['slowest'].total_seconds()
+    runs_seconds = [clear_time.total_seconds() for clear_time in list(runs.values_list('clear_time', flat=True))]
+    fastest = min(runs_seconds)
+    slowest = max(runs_seconds)
 
-    delta = (slowest - fastest) / parts
-    points = [(fastest + (delta / 2) + i * delta) for i in range(parts)]
-    distribution = [0 for _ in range(parts)]
+    delta = (slowest - fastest) / (parts + 1)
 
-    i = 0
-    right = points[i] + delta / 2
-    for run in runs:
-        clear_time = run.clear_time.total_seconds()
-        while clear_time > right and i < parts - 1:
-            i += 1
-            right += delta
-        distribution[i] += 1
+    points = np.arange(fastest, slowest + delta, delta)
 
-    points = [str(timedelta(seconds=round(point))) for point in points]
+    distribution = np.histogram(runs_seconds, bins=points)[0].tolist()
+
+    points = [str(timedelta(seconds=round((points[i] + points[i+1])/2))) for i in range(len(points) - 1)]
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
+def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run):
     records = list()
 
-    for comp in get_unique_comps(comps):
+    for comp in comps:
         runs = dungeon_runs
         for monster_comp in comp:
-            if not base:
-                runs = runs.filter(monsters=monster_comp)
-            else:
-                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+            runs = runs.filter(monsters__id=monster_comp)
         
-        runs = runs.distinct()
+        if not runs.exists():
+            continue
+
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
 
-        if not base:
-            monsters_in_comp = comp
-        else:
-            monsters_in_comp = [mon.base_monster for mon in comp]
-
         record = {
-            'comp': monsters_in_comp,
+            'comp': comp,
             'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
             'wins': wins_comp,
             'loses': runs_comp - wins_comp,
@@ -967,26 +896,17 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
             record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
-            if not base:
-                records.append(record)
-            else:
-                exists = False
-                for temp_record_base in records:
-                    if record['comp'] == temp_record_base['comp']:
-                        exists = True
-                        break
-                if not exists:
-                    records.append(record)
+            record['average_time'] = str(record['average_time'])
+            records.append(record)
 
     return records
 
 def get_dungeon_runs_by_base_class(dungeon_runs):
     base_monsters = dict()
-    for record in dungeon_runs:
-        for monster in record.monsters.all():
-            if monster.base_monster.name not in base_monsters.keys():
-                base_monsters[monster.base_monster.name] = 0
-            base_monsters[monster.base_monster.name] += 1
+    for record in dungeon_runs.values_list('monsters__base_monster__name', flat=True):
+        if record not in base_monsters.keys():
+            base_monsters[record] = 0
+        base_monsters[record] += 1
 
     base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
     return (list(base_monsters.keys()), list(base_monsters.values()))
@@ -996,54 +916,37 @@ def get_rift_dungeon_damage_distribution(runs, parts):
     if not runs.exists():
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
-    runs = runs.order_by('dmg_total')
+    damages = [dmg_total for dmg_total in list(runs.values_list('dmg_total', flat=True))]
+    lowest = min(damages)
+    highest = max(damages)
 
-    min_max = runs.aggregate(lowest=Min('dmg_total'), highest=Max('dmg_total'))
-    lowest = min_max['lowest']
-    highest = min_max['highest']
+    delta = (highest - lowest) / (parts + 1)
+    points = np.arange(lowest, highest + delta, delta)
 
-    delta = (highest - lowest) / parts
-    points = [(lowest + (delta / 2) + i * delta) for i in range(parts)]
-    distribution = [0 for _ in range(parts)]
+    distribution = np.histogram(damages, bins=points)[0].tolist()
 
-    i = 0
-    right = int(points[i] + delta / 2)
-    for run in runs:
-        dmg_total = run.dmg_total
-        while dmg_total > right and i < parts - 1:
-            i += 1
-            right += delta
-        distribution[i] += 1
-
-    points = [str(round(point)) for point in points]
+    points = [str(int((points[i] + points[i+1])/2)) for i in range(len(points) - 1)]
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=False):
+def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage):
     records = list()
 
-
-    for comp in get_unique_comps(comps):
+    for comp in comps:
         runs = dungeon_runs
         for monster_comp in comp:
-            if not base:
-                runs = runs.filter(monsters=monster_comp)
-            else:
-                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+            runs = runs.filter(monsters=monster_comp)
 
-        runs = runs.distinct()
+        if not runs.exists():
+            continue
+
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
-
-        if not base:
-            monsters_in_comp = comp
-        else:
-            monsters_in_comp = [mon.base_monster for mon in comp]
 
         most_freq_rating = runs.values('win', 'clear_rating').annotate(wins=Count('clear_rating')).order_by('-wins').first()['clear_rating']
 
         record = {
-            'comp': monsters_in_comp,
+            'comp': comp,
             'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
             'most_freq_rating': RiftDungeonRun().get_rating_name(most_freq_rating),
             'wins': wins_comp,
@@ -1059,47 +962,31 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=Fals
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
             record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
-            if not base:
-                records.append(record)
-            else:
-                exists = False
-                for temp_record_base in records:
-                    if record['comp'] == temp_record_base['comp']:
-                        exists = True
-                        break
-                if not exists:
-                    records.append(record)
+            record['average_time'] = str(record['average_time'])
+            records.append(record)
 
     return records
 # endregion
 
 # region DIMENSION HOLE DUNGEONS - should be async and in tasks to speed things up even more
-def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
+def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run):
     records = list()
-    for comp in get_unique_comps(comps):
+    for comp in comps:
         runs = dungeon_runs
         
         for monster_comp in comp:
-            if not base:
-                runs = runs.filter(monsters=monster_comp)
-            else:
-                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+            runs = runs.filter(monsters=monster_comp)
         
         runs = runs.distinct()
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
-
-        if not base:
-            monsters_in_comp = comp
-        else:
-            monsters_in_comp = [mon.base_monster for mon in comp]
 
         first = runs.first()
 
         record = {
             'dungeon': DimensionHoleRun().get_dungeon_name(first.dungeon),
             'stage': first.stage,
-            'comp': monsters_in_comp,
+            'comp': comp,
             'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
             'wins': wins_comp,
             'loses': runs_comp - wins_comp,
@@ -1112,17 +999,9 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
             record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
-            if not base:
-                records.append(record)
-            else:
-                exists = False
-                for temp_record_base in records:
-                    if record['comp'] == temp_record_base['comp']:
-                        exists = True
-                        break
-                if not exists:
-                    records.append(record)
-
+            record['average_time'] = str(record['average_time'])
+            records.append(record)
+    
     return records
 
 def get_dimhole_runs_per_dungeon(dungeon_runs):

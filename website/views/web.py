@@ -9,6 +9,7 @@ from website.functions import *
 
 import matplotlib.cm as cm
 import numpy as np
+import time
 
 # Create your views here.
 def get_homepage(request):
@@ -22,7 +23,7 @@ def get_homepage_ajax(request, task_id):
 
         if data.ready():
             context = data.get()
-
+            
             html = render_to_string('website/index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 
@@ -89,8 +90,8 @@ def get_monsters_ajax(request, task_id):
             context['best_monsters'] = Monster.objects.filter(id__in=context['best_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-avg_eff')
             context['fastest_monsters'] = Monster.objects.filter(id__in=context['fastest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-speed')
             context['toughest_monsters'] = Monster.objects.filter(id__in=context['toughest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp')
-            context['toughest_def_break_monsters'] = Monster.objects.filter(id__in=context['toughest_def_break_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp_def_break')
-            
+            context['toughest_def_break_monsters'] = Monster.objects.filter(id__in=context['toughest_def_break_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp_def_break')     
+
             html = render_to_string('website/monsters/monster_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 
@@ -118,7 +119,7 @@ def get_monster_by_id_ajax(request, task_id, arg_id):
             context['decks'] = Deck.objects.filter(id__in=context['decks_ids']).prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
             context['records'] = get_monster_records(context['monster'])
 
-            html = render_to_string('website/monsters/monster_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            html = render_to_string('website/monsters/monster_by_id_ajax.html', context)
             return HttpResponse(html)
 
     return HttpResponse('')
@@ -136,7 +137,6 @@ def get_decks_ajax(request, task_id):
             context = data.get()
 
             context['decks'] = Deck.objects.filter(id__in=context['decks_ids']).prefetch_related('monsters', 'monsters__base_monster', 'monsters__base_monster__family', 'leader', 'leader__base_monster', 'leader__base_monster__family').order_by('-team_runes_eff')
-
 
             html = render_to_string('website/decks/deck_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -261,11 +261,9 @@ def get_dungeon_by_stage_ajax(request, task_id, name, stage):
 
         if data.ready():
             context = data.get()
-            
+
             for record in context['records_personal']:
                 record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
-            for record in context['records_base']:
-                record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
 
             html = render_to_string('website/dungeons/dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -286,8 +284,6 @@ def get_rift_dungeon_by_stage_ajax(request, task_id, name):
             
             for record in context['records_personal']:
                 record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
-            for record in context['records_base']:
-                record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
 
             html = render_to_string('website/dungeons/rift_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -309,8 +305,6 @@ def get_dimension_hole_ajax(request, task_id):
             if context['records_ok']:
                 for record in context['records_personal']:
                     record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
-                for record in context['records_base']:
-                    record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
 
             html = render_to_string('website/dimhole/dimhole_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
