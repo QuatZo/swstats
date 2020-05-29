@@ -1,14 +1,6 @@
 {% load add_str %}
 
-{% if avg_eff %}<h3>Average Efficiency: {{ avg_eff }}%</h3>{% endif %}
 {% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %} 
-
-<center>
-    <h5>
-        Runes Scatter Plot has been hidden because of poor optimisation. It was causing browser crash for lower-end PC's.<br />
-        Once I find a way to optimise it or some sort of replacement, it will be back. Sorry for the trouble!
-    </h5>
-</center>
 
 <!-- Normal Distribution Chart -->
 {% include "website/runes/charts/rune_chart_distribution.html" with means=all_means distribution=all_distribution color=all_color %}

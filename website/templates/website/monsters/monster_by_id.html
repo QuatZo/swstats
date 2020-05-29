@@ -11,7 +11,7 @@
                 url: "{% url 'monster_by_id_ajax' task_id=task_id arg_id=arg_id %}",
                 type: "GET",
                 success: function(response) {
-                    seconds += 1;
+                    seconds += .5;
                     $('#secs').text(seconds);
                     if(response){
                         $('#content-ajax-container').html(response);
@@ -29,6 +29,6 @@
             });
         }
         var seconds = 0;
-        var fetchDataInterval = setInterval(fetchData, 1000);
+        var fetchDataInterval = setInterval(fetchData, 500);
     </script>
 {% endblock %}

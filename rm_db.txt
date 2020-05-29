@@ -1,5 +1,5 @@
 DROP TABLE website_arena CASCADE;
-DROP TABLE website_buildingCASCADE;
+DROP TABLE website_building CASCADE;
 DROP TABLE website_command CASCADE;
 DROP TABLE website_deck CASCADE;
 DROP TABLE website_deck_monsters CASCADE;
@@ -13,6 +13,7 @@ DROP TABLE website_homunculusskill CASCADE;
 DROP TABLE website_item CASCADE;
 DROP TABLE website_monster CASCADE;
 DROP TABLE website_monster_runes CASCADE;
+DROP TABLE website_monsterbase CASCADE;
 DROP TABLE website_monsterfamily CASCADE;
 DROP TABLE website_monsterfusion CASCADE;
 DROP TABLE website_monsterhoh CASCADE;
