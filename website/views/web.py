@@ -284,8 +284,6 @@ def get_rift_dungeon_by_stage_ajax(request, task_id, name):
             
             for record in context['records_personal']:
                 record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
-            for record in context['records_base']:
-                record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
 
             html = render_to_string('website/dungeons/rift_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)

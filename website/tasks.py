@@ -996,53 +996,27 @@ def get_rift_dungeon_by_stage_task(request_get, name):
         dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
 
 
+    
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
-
+    
     damage_distribution = get_rift_dungeon_damage_distribution(dungeon_runs, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
 
     comps = list()
-    for run in dungeon_runs:
-        COMP_COUNT = 6 
-
-        monsters = list()
-        for monster in run.monsters.all():
-            monsters.append(monster)
-        if monsters and monsters not in comps and len(monsters) == COMP_COUNT:
-            comps.append(monsters)
+    for _, group in itertools.groupby(list(dungeon_runs.values('battle_key', 'monsters__id')), lambda item: item["battle_key"]):
+        mons = [mon['monsters__id'] for mon in group if mon['monsters__id']]
+        mons.sort()
+        if mons and mons not in comps and len(mons) == 6:
+            comps.append(mons)  
 
     try:
         highest_damage = dungeon_runs.order_by('-dmg_total').first().dmg_total
     except AttributeError:
         highest_damage = None
 
-    records_personal = [
-        {
-            'comp': [monster.id for monster in record['comp']],
-            'average_time': str(record['average_time']),
-            'most_freq_rating': record['most_freq_rating'],
-            'wins': record['wins'],
-            'loses': record['loses'],
-            'success_rate': record['success_rate'],
-            'dmg_best': record['dmg_best'],
-            'dmg_avg': record['dmg_avg'],
-        } for record in sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
-    ]
-    records_base = [
-        {
-            'comp': [monster.id for monster in record['comp']],
-            'average_time': str(record['average_time']),
-            'most_freq_rating': record['most_freq_rating'],
-            'wins': record['wins'],
-            'loses': record['loses'],
-            'success_rate': record['success_rate'],
-            'dmg_best': record['dmg_best'],
-            'dmg_avg': record['dmg_avg'],
-        } for record in sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, True), key=itemgetter('sorting_val'), reverse = True)
-    ]
-
+    records_personal = sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
 
     context = {
@@ -1067,7 +1041,6 @@ def get_rift_dungeon_by_stage_task(request_get, name):
     
         # personal table
         'records_personal': records_personal,
-        'records_base': records_base,
     }
 
     return context

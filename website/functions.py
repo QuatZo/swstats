@@ -849,17 +849,6 @@ def get_comp_count(id_dungeon):
         return 6
     return 5
 
-def get_unique_comps(comps):
-    new_comps = list()
-    for comp in comps:
-        exists = False
-        for new_comp in new_comps:
-            if set(comp) == set(new_comp):
-                exists = True
-        if not exists:
-            new_comps.append(comp)
-    return new_comps
-
 def get_dungeon_runs_distribution(runs, parts):
     """Return sets of clear times in specific number of parts, to make Distribution chart."""
     if not runs.exists():
@@ -881,7 +870,6 @@ def get_dungeon_runs_distribution(runs, parts):
 
 def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run):
     records = list()
-    records_comps = list()
 
     for comp in comps:
         runs = dungeon_runs
@@ -928,54 +916,37 @@ def get_rift_dungeon_damage_distribution(runs, parts):
     if not runs.exists():
         return { 'distribution': [], 'scope': [], 'interval': parts }
 
-    runs = runs.order_by('dmg_total')
+    damages = [dmg_total for dmg_total in list(runs.values_list('dmg_total', flat=True))]
+    lowest = min(damages)
+    highest = max(damages)
 
-    min_max = runs.aggregate(lowest=Min('dmg_total'), highest=Max('dmg_total'))
-    lowest = min_max['lowest']
-    highest = min_max['highest']
+    delta = (highest - lowest) / (parts + 1)
+    points = np.arange(lowest, highest + delta, delta)
 
-    delta = (highest - lowest) / parts
-    points = [(lowest + (delta / 2) + i * delta) for i in range(parts)]
-    distribution = [0 for _ in range(parts)]
+    distribution = np.histogram(damages, bins=points)[0].tolist()
 
-    i = 0
-    right = int(points[i] + delta / 2)
-    for run in runs:
-        dmg_total = run.dmg_total
-        while dmg_total > right and i < parts - 1:
-            i += 1
-            right += delta
-        distribution[i] += 1
-
-    points = [str(round(point)) for point in points]
+    points = [str(int((points[i] + points[i+1])/2)) for i in range(len(points) - 1)]
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=False):
+def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage):
     records = list()
 
-
-    for comp in get_unique_comps(comps):
+    for comp in comps:
         runs = dungeon_runs
         for monster_comp in comp:
-            if not base:
-                runs = runs.filter(monsters=monster_comp)
-            else:
-                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+            runs = runs.filter(monsters=monster_comp)
 
-        runs = runs.distinct()
+        if not runs.exists():
+            continue
+
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
-
-        if not base:
-            monsters_in_comp = comp
-        else:
-            monsters_in_comp = [mon.base_monster for mon in comp]
 
         most_freq_rating = runs.values('win', 'clear_rating').annotate(wins=Count('clear_rating')).order_by('-wins').first()['clear_rating']
 
         record = {
-            'comp': monsters_in_comp,
+            'comp': comp,
             'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
             'most_freq_rating': RiftDungeonRun().get_rating_name(most_freq_rating),
             'wins': wins_comp,
@@ -991,16 +962,8 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=Fals
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
             record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
-            if not base:
-                records.append(record)
-            else:
-                exists = False
-                for temp_record_base in records:
-                    if record['comp'] == temp_record_base['comp']:
-                        exists = True
-                        break
-                if not exists:
-                    records.append(record)
+            record['average_time'] = str(record['average_time'])
+            records.append(record)
 
     return records
 # endregion
@@ -1008,7 +971,7 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage, base=Fals
 # region DIMENSION HOLE DUNGEONS - should be async and in tasks to speed things up even more
 def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
     records = list()
-    for comp in get_unique_comps(comps):
+    for comp in comps:
         runs = dungeon_runs
         
         for monster_comp in comp:
