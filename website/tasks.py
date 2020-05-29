@@ -397,7 +397,6 @@ def get_homepage_task():
     """Return the homepage with carousel messages & introduction."""
     runes = Rune.objects.all()
     rune_best = runes.order_by('-efficiency').first()
-    rune_equipped = Rune.objects.filter(equipped=True).count()
 
     monsters = Monster.objects.all()
     monster_best = monsters.order_by('-avg_eff').first()

@@ -23,7 +23,7 @@ def get_homepage_ajax(request, task_id):
 
         if data.ready():
             context = data.get()
-
+            
             html = render_to_string('website/index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 
