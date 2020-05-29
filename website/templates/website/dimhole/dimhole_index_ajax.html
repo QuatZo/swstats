@@ -24,10 +24,3 @@
 {% else %}
 	{% include "website/dimhole/dimhole_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" base=False %}
 {% endif %}
-
-{% if records_base|get_type == 'str' %}
-	<h2>{{ records_base }}</h2>
-{% else %}
-	{% include "website/dimhole/dimhole_records_table.html" with records=records_base collapse_id="records_base" text="Comps per Base Monster" collapsed="collapse" base=True %}
-{% endif %}
-

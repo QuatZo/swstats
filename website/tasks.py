@@ -1081,12 +1081,11 @@ def get_dimension_hole_task(request_get):
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
     comps = list()
-    for run in dungeon_runs:
-        monsters = list()
-        for monster in run.monsters.all():
-            monsters.append(monster)
-        if monsters not in comps and monsters:
-            comps.append(monsters)
+    for _, group in itertools.groupby(list(dungeon_runs.values('id', 'monsters__id')), lambda item: item["id"]):
+        mons = [mon['monsters__id'] for mon in group if mon['monsters__id']]
+        mons.sort()
+        if mons and mons not in comps and len(mons) == 4:
+            comps.append(mons)   
 
     try:
         fastest_run = dungeon_runs_clear.first().clear_time.total_seconds()
@@ -1095,33 +1094,12 @@ def get_dimension_hole_task(request_get):
     
     if 'stage' in request_get.keys() and request_get['stage'] and 'dungeon' in request_get.keys() and request_get['dungeon']:
         records_ok = True
-        records_personal = [
-            {
-                'comp': [monster.id for monster in record['comp']],
-                'dungeon': record['dungeon'],
-                'stage': record['stage'],
-                'average_time': str(record['average_time']),
-                'wins': record['wins'],
-                'loses': record['loses'],
-                'success_rate': record['success_rate'],
-            } for record in sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
-        ]
-        records_base = [
-            {
-                'comp': [monster.id for monster in record['comp']],
-                'dungeon': record['dungeon'],
-                'stage': record['stage'],
-                'average_time': str(record['average_time']),
-                'wins': record['wins'],
-                'loses': record['loses'],
-                'success_rate': record['success_rate'],
-            } for record in sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, True), key=itemgetter('sorting_val'), reverse = True)
-        ]
+        records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
     else:
         records_personal = "Pick dungeon & stage to see recorded comps."
-        records_base = "Pick dungeon & stage to see recorded base monsters in comps."
 
     dungeon_runs = dungeon_runs_clear # exclude failed runs
+
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
     runs_per_dungeon = get_dimhole_runs_per_dungeon(dungeon_runs)
     runs_per_practice = get_dimhole_runs_per_practice(dungeon_runs)
@@ -1163,7 +1141,6 @@ def get_dimension_hole_task(request_get):
         # personal table
         'records_ok': records_ok,
         'records_personal': records_personal,
-        'records_base': records_base,
     }
 
     return context

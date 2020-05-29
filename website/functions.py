@@ -969,32 +969,24 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage):
 # endregion
 
 # region DIMENSION HOLE DUNGEONS - should be async and in tasks to speed things up even more
-def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
+def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run):
     records = list()
     for comp in comps:
         runs = dungeon_runs
         
         for monster_comp in comp:
-            if not base:
-                runs = runs.filter(monsters=monster_comp)
-            else:
-                runs = runs.filter(monsters__base_monster=monster_comp.base_monster)
+            runs = runs.filter(monsters=monster_comp)
         
         runs = runs.distinct()
         runs_comp = runs.count()
         wins_comp = runs.filter(win=True).count()
-
-        if not base:
-            monsters_in_comp = comp
-        else:
-            monsters_in_comp = [mon.base_monster for mon in comp]
 
         first = runs.first()
 
         record = {
             'dungeon': DimensionHoleRun().get_dungeon_name(first.dungeon),
             'stage': first.stage,
-            'comp': monsters_in_comp,
+            'comp': comp,
             'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
             'wins': wins_comp,
             'loses': runs_comp - wins_comp,
@@ -1007,17 +999,9 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, base=False):
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
             record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
-            if not base:
-                records.append(record)
-            else:
-                exists = False
-                for temp_record_base in records:
-                    if record['comp'] == temp_record_base['comp']:
-                        exists = True
-                        break
-                if not exists:
-                    records.append(record)
-
+            record['average_time'] = str(record['average_time'])
+            records.append(record)
+    
     return records
 
 def get_dimhole_runs_per_dungeon(dungeon_runs):

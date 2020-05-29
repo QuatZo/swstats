@@ -305,8 +305,6 @@ def get_dimension_hole_ajax(request, task_id):
             if context['records_ok']:
                 for record in context['records_personal']:
                     record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
-                for record in context['records_base']:
-                    record['comp'] = [MonsterBase.objects.get(id=monster_id) for monster_id in record['comp']]
 
             html = render_to_string('website/dimhole/dimhole_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
