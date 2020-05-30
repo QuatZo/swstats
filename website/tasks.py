@@ -855,7 +855,7 @@ def get_decks_task(request_get):
         filters.append('Family: ' + family)
         decks = decks.filter(monsters__base_monster__family__name=family)
 
-    if 'palce' in request_get.keys() and request_get['place']:
+    if 'place' in request_get.keys() and request_get['place']:
         place = request_get['place'][0].replace('_', ' ')
         filters.append('Place: ' + place)
         decks = decks.filter(place=Deck().get_place_id(place))
@@ -921,7 +921,8 @@ def get_dungeon_by_stage_task(request_get, name, stage):
     if 'base' in request_get.keys() and request_get['base']:
         base = request_get['base'][0].replace('_', ' ')
         filters.append('Base Monster: ' + base)
-        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
+        dungeon_runs_ids = dungeon_runs.filter(monsters__base_monster__name=base).values_list('id', flat=True)
+        dungeon_runs = dungeon_runs.filter(id__in=dungeon_runs_ids)
         
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
@@ -992,9 +993,8 @@ def get_rift_dungeon_by_stage_task(request_get, name):
     if 'base' in request_get.keys() and request_get['base']:
         base = request_get['base'][0].replace('_', ' ')
         filters.append('Base Monster: ' + base)
-        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
-
-
+        dungeon_runs_ids = dungeon_runs.filter(monsters__base_monster__name=base).values_list('id', flat=True)
+        dungeon_runs = dungeon_runs.filter(id__in=dungeon_runs_ids)
     
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
@@ -1058,14 +1058,15 @@ def get_dimension_hole_task(request_get):
     if 'base' in request_get.keys() and request_get['base']:
         base = request_get['base'][0].replace('_', ' ')
         filters.append('Base Monster: ' + base)
-        dungeon_runs = dungeon_runs.filter(monsters__base_monster__name=base)
+        dungeon_runs_ids = dungeon_runs.filter(monsters__base_monster__name=base).values_list('id', flat=True)
+        dungeon_runs = dungeon_runs.filter(id__in=dungeon_runs_ids)
 
     if 'dungeon' in request_get.keys() and request_get['dungeon']:
         dungeon = request_get['dungeon'][0].replace('_', ' ')
         filters.append('Dungeon: ' + dungeon)
         dungeon_runs = dungeon_runs.filter(dungeon=DimensionHoleRun().get_dungeon_id_by_name(dungeon))
 
-    if 'practive' in request_get.keys() and request_get['practice']:
+    if 'practice' in request_get.keys() and request_get['practice']:
         filters.append('Practice Mode: ' + request_get['practice'][0])
         dungeon_runs = dungeon_runs.filter(practice=request_get['practice'][0])
 
