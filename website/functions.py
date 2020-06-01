@@ -904,9 +904,10 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run):
 def get_dungeon_runs_by_base_class(dungeon_runs):
     base_monsters = dict()
     for record in dungeon_runs.values_list('monsters__base_monster__name', flat=True):
-        if record not in base_monsters.keys():
-            base_monsters[record] = 0
-        base_monsters[record] += 1
+        if record:
+            if record not in base_monsters.keys():
+                base_monsters[record] = 0
+            base_monsters[record] += 1
 
     base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
     return (list(base_monsters.keys()), list(base_monsters.values()))

@@ -931,6 +931,7 @@ def get_dungeon_by_stage_task(request_get, name, stage):
     dungeon_runs = dungeon_runs.prefetch_related('monsters')
     
     comps = list()
+    nulls = 0
     for _, group in itertools.groupby(list(dungeon_runs.values('id', 'dungeon', 'monsters__id')), lambda item: item["id"]):
         results = np.array([[mon['monsters__id'], mon['dungeon']] for mon in group if mon['monsters__id']])
         if not results.shape[0]:
@@ -939,7 +940,7 @@ def get_dungeon_by_stage_task(request_get, name, stage):
         dungeon_id = results[0, 1]
         mons.sort()
         if mons and mons not in comps and len(mons) == get_comp_count(dungeon_id):
-            comps.append(mons)        
+            comps.append(mons)    
 
     try:
         fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
