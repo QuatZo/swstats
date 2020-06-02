@@ -137,7 +137,6 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         plots.append(self.create_pie_plot(stars.index, stars, "Stars"))
         #################################################
 
-
         #################################################
         # EQUIPPED RUNES DISTRIBUTION
         # PICK ONLY 6* with runes with runes
@@ -287,21 +286,11 @@ def get_report_menu(request):
 
 def get_report(request):
     """Return the Report page."""
-    monsters_base = MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).prefetch_related('monster_set') # archetype=5 -> Material Monsters, awaken=0 -> Unawakened
-
-    base = list()
-    for monster_base in monsters_base:
-        if monster_base.monster_set.count():
-            base.append({
-                'id': monster_base.id,
-                'name': monster_base.name,
-                'count': monster_base.monster_set.count(),
-            })
-
-    base = sorted(base, key=itemgetter('count'), reverse = True)
+    monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).prefetch_related('monster_set').values('id', 'name').annotate(count=Count('monster__id'))) # archetype=5 -> Material Monsters, awaken=0 -> Unawakened
+    monsters_base = sorted(monsters_base, key=itemgetter('count'), reverse = True)
 
     context = {
-        'base': base,
+        'base': monsters_base,
     }
 
     return render( request, 'website/report/report_index.html', context)

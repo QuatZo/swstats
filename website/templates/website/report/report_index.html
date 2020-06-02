@@ -42,7 +42,7 @@
     var url = "/api/reportgenerator/"
     $("#report-upload").submit(function(e) {
         e.preventDefault();
-        $('#report-generator').text("Generating report, please wait...");
+        $('#report-generator').html("<div class='loader'>Loading...</div></div>");
         $.ajax({
             type: "POST",
             url: url,
