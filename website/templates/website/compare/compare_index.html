@@ -1,0 +1,71 @@
+{% extends "website/base.html" %}
+{% load add_str %}
+
+{% block content_title %}
+    Compare profile
+{% endblock %}
+
+{% block ajax_container %} 
+    <form method="POST" id="profile-upload">
+        {% csrf_token %}
+        <label for="profile-json" class="btn btn-light profile-json-upload-button">
+            <i class="fa fa-cloud-upload"></i> Choose JSON File
+        </label>
+        <input id="profile-json" name='profile-json-upload-button' type="file" style="display:none;">
+        <input type="submit" value="Upload Profile" class="btn btn-secondary">
+    </form>
+    <p>
+        <br /><b>Disclaimer:</b> If you upload your profile on this page, it <b>WILL BE</b> saved in server database. 
+        It means that it <b>WILL BE</b> accessible for other people <b>anonymously</b>.
+    </p>
+    <div id='row'>
+        {% csrf_token %}
+    </div>
+{% endblock %}
+
+{% block jquery %}
+<script>
+    $('#profile-json').change(function() {
+        var i = $(this).prev('label').clone();
+        var file = $('#profile-json')[0].files[0];
+        var name = "Choose JSON File";
+        if(file != undefined){ name = file.name; }
+        $(this).prev('label').text(name);
+    });
+
+    var url = '/api/desktopupload/';
+    function fetchData(){
+            
+        }
+        var seconds = 0;
+        var fetchDataInterval = setInterval(fetchData, 500);
+    $("#profile-upload").submit(function(e) {
+        $("#row").html("<div class='loader'>Loading...</div>")
+        e.preventDefault();
+        var profile = document.getElementById("profile-json").files[0];
+        if (profile) {
+            var reader = new FileReader();
+            reader.readAsText(profile, "UTF-8");
+            reader.onload = function (evt) {
+                $.ajax({
+                    url: "/api/upload/",
+                    type: "POST",
+                    contentType: 'application/json',
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                    data: evt.target.result,
+                    success: function(response) {
+                        $('#row').html("<h1>Profile has been uploaded successfully. Starting comparison... Please wait for results.<div class='loader'>Loading...</div>");
+                        clearInterval(fetchDataInterval);
+                    },
+                    error: function(xhr) {
+                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
+                        clearInterval(fetchDataInterval);
+                    }
+                });
+                $('#profile-json').val('');
+                $('#profile-json').prev('label').text("Choose JSON File");
+            }
+        }
+    });
+</script>
+{% endblock %}

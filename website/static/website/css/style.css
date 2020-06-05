@@ -96,6 +96,10 @@ body {
     text-transform: uppercase;
 }
 
+.sidebar-heading span{
+    margin: auto;
+}
+
 
 [role="main"] {
     padding-top: 48px; /* Space for fixed navbar */
@@ -155,6 +159,10 @@ body {
 .navbar.toggled .navbar-brand{
     max-width: 80px;
     min-width: 80px;
+}
+
+.navbar.toggled .menu-img{
+    margin: auto;
 }
 
 .sidebar.toggled{
@@ -560,6 +568,10 @@ h1.h2
 
     .sidebar.toggled{
         display: none;
+    }
+
+    .sidebar-sticky{
+        height: unset;
     }
 
     .carousel, 

@@ -44,6 +44,8 @@ urlpatterns = [
     url(r'^$', views.get_homepage, name='home'),
     path('homepage/<str:task_id>/', views.get_homepage_ajax, name='homepage_ajax'),
 
+    path('compare/', views.get_compare, name='compare'),
+
     path('runes/', views.get_runes, name='runes'),
     path('runes/<str:task_id>/', views.get_runes_ajax, name='runes_ajax'),
     path('runes/id/<int:arg_id>/', views.get_rune_by_id, name='rune_by_id'),
@@ -65,9 +67,9 @@ urlpatterns = [
     path('dungeons/<str:name>/<str:task_id>/', views.get_rift_dungeon_by_stage_ajax, name='rift_dungeon_by_stage_ajax'),
     path('dungeons/<str:name>/<int:stage>/<str:task_id>/', views.get_dungeon_by_stage_ajax, name='dungeon_by_stage_ajax'),
 
-    path('homunculus/', views.get_homunculus, name='homunculus'),
-    path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
-    path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'),
+    path('homunculus/', views.get_homunculus, name='homunculus'), # not in Sidebar Menu
+    path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'), # not in Sidebar Menu
+    path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'), # not in Sidebar Menu
 
     path('dimhole/', views.get_dimension_hole, name='dimhole'),
     path('dimhole/<str:task_id>/', views.get_dimension_hole_ajax, name='dimhole_ajax'),
@@ -86,7 +88,7 @@ urlpatterns = [
 
     path('reports/', views.get_report_menu, name='reports'),
     path('reports/generate/', views.get_report, name='reports_generate'),
-    path('oldreports/', RedirectView.as_view(url='/reports/old'), name='old_reports'), # old link, 
+    path('oldreports/', RedirectView.as_view(url='/reports/old'), name='old_reports'), # old link, before Generate Report Update
     path('reports/old/', views.get_old_reports, name='reports_old')
 ]
 

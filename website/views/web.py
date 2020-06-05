@@ -29,6 +29,10 @@ def get_homepage_ajax(request, task_id):
 
     return HttpResponse('')
 
+def get_compare(request):
+    """Return the Compare Page."""
+    return render( request, 'website/compare/compare_index.html')
+
 def get_runes(request):
     task = get_runes_task.delay(dict(request.GET))
 

@@ -53,6 +53,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "compare" %}active{% endif %}" href="{% url 'compare' %}" >
+                                <img src={% static 'website/images/icons/compare.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Compare profile to others</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == "runes" %}active{% endif %}" href="{% url 'runes' %}" >
                                     <img src={% static 'website/images/icons/runes.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
                                 <span class="text">Runes</span>
@@ -74,12 +80,6 @@
                             <a class="nav-link {% if request.resolver_match.url_name == "dungeons" %}active{% endif %}" href="{% url 'dungeons' %}" >
                                 <img src={% static 'website/images/icons/dungeons.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
                                 <span class="text">Dungeons</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == "homunculus" %}active{% endif %}" href="{% url 'homunculus' %}" >
-                                <img src={% static 'website/images/icons/homunculus.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                                <span class="text">Homunculus</span>
                             </a>
                         </li>
                         <li class="nav-item">
