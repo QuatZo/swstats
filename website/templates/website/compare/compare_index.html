@@ -40,7 +40,7 @@
         var seconds = 0;
         var fetchDataInterval = setInterval(fetchData, 500);
     $("#profile-upload").submit(function(e) {
-        $("#row").html("<div class='loader'>Loading...</div>")
+        $("#row").html("<h1>Uploading file to the server...</h1><div class='loader'>Loading...</div>")
         e.preventDefault();
         var profile = document.getElementById("profile-json").files[0];
         if (profile) {
@@ -48,13 +48,13 @@
             reader.readAsText(profile, "UTF-8");
             reader.onload = function (evt) {
                 $.ajax({
-                    url: "/api/upload/",
+                    url: "{% url 'compare_upload' %}",
                     type: "POST",
-                    contentType: 'application/json',
                     headers: { "X-CSRFToken": "{{ csrf_token }}" },
-                    data: evt.target.result,
+                    data: JSON.parse(evt.target.result),
                     success: function(response) {
-                        $('#row').html("<h1>Profile has been uploaded successfully. Starting comparison... Please wait for results.<div class='loader'>Loading...</div>");
+                        $('#row').html("<h1>File sent to the server. Creating profile...<div class='loader'>Loading...</div>");
+                        console.log(response.task_id); // not working
                         clearInterval(fetchDataInterval);
                     },
                     error: function(xhr) {

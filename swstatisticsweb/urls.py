@@ -45,6 +45,7 @@ urlpatterns = [
     path('homepage/<str:task_id>/', views.get_homepage_ajax, name='homepage_ajax'),
 
     path('compare/', views.get_compare, name='compare'),
+    path('compare/upload/', views.get_compare_upload, name='compare_upload'),
 
     path('runes/', views.get_runes, name='runes'),
     path('runes/<str:task_id>/', views.get_runes_ajax, name='runes_ajax'),

@@ -33,6 +33,13 @@ def get_compare(request):
     """Return the Compare Page."""
     return render( request, 'website/compare/compare_index.html')
 
+def get_compare_upload(request):
+    if request.POST['command'] != 'HubUserLogin':
+        return HttpResponse({'task_id': None})
+    task = handle_profile_upload_task.delay(request.POST)
+    
+    return HttpResponse({'task_id': task.id})
+
 def get_runes(request):
     task = get_runes_task.delay(dict(request.GET))
 

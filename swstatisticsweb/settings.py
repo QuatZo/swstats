@@ -176,6 +176,9 @@ LOGGING = {
     }
 }
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = None # ALL
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None # ALL
+
 # CACHES = {
 #     "default": {
 #         "BACKEND": "django_redis.cache.RedisCache",
