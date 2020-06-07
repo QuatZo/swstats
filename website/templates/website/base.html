@@ -53,9 +53,9 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == "compare" %}active{% endif %}" href="{% url 'compare' %}" >
-                                <img src={% static 'website/images/icons/compare.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                                <span class="text">Compare profile to others</span>
+                            <a class="nav-link {% if request.resolver_match.url_name == "upload" %}active{% endif %}" href="{% url 'upload' %}" >
+                                <img src={% static 'website/images/icons/upload.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Upload Profile</span>
                             </a>
                         </li>
                         <li class="nav-item">

@@ -44,8 +44,9 @@ urlpatterns = [
     url(r'^$', views.get_homepage, name='home'),
     path('homepage/<str:task_id>/', views.get_homepage_ajax, name='homepage_ajax'),
 
-    path('compare/', views.get_compare, name='compare'),
-    path('compare/upload/', views.get_compare_upload, name='compare_upload'),
+    path('upload/', views.handle_www_profile, name='upload'),
+    path('upload/profile/', views.handle_www_profile_upload, name='upload_profile'),
+    path('upload/profile/<str:task_id>/', views.handle_www_profile_upload_ajax, name='upload_profile_ajax'),
 
     path('runes/', views.get_runes, name='runes'),
     path('runes/<str:task_id>/', views.get_runes_ajax, name='runes_ajax'),

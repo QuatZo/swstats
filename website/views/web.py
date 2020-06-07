@@ -10,6 +10,7 @@ from website.functions import *
 import matplotlib.cm as cm
 import numpy as np
 import time
+import json
 
 # Create your views here.
 def get_homepage(request):
@@ -29,16 +30,26 @@ def get_homepage_ajax(request, task_id):
 
     return HttpResponse('')
 
-def get_compare(request):
+def handle_www_profile(request):
     """Return the Compare Page."""
-    return render( request, 'website/compare/compare_index.html')
+    return render( request, 'website/upload/upload_index.html', {'task_id': None})
 
-def get_compare_upload(request):
-    if request.POST['command'] != 'HubUserLogin':
+def handle_www_profile_upload(request):
+    data = json.loads(request.body)
+    if data['command'] != 'HubUserLogin':
         return HttpResponse({'task_id': None})
-    task = handle_profile_upload_task.delay(request.POST)
+    task = handle_profile_upload_task.delay(data)
     
-    return HttpResponse({'task_id': task.id})
+    return HttpResponse(json.dumps({'task_id': task.id}), content_type="application/json")
+
+def handle_www_profile_upload_ajax(request, task_id):
+    if request.is_ajax():
+        data = handle_profile_upload_task.AsyncResult(task_id) 
+
+        if data.ready():
+            return HttpResponse('Done')
+
+    return HttpResponse('')
 
 def get_runes(request):
     task = get_runes_task.delay(dict(request.GET))
