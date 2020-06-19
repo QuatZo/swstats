@@ -119,8 +119,8 @@ body {
     display: -webkit-inline-box !important;
 }
 
-.navbar-nav .nav-item{
-    padding-left: 4em;
+.sidebar .nav-item{
+    padding-left: 1vw;
 }
 
 .carousel-caption{
@@ -149,18 +149,25 @@ body {
     display: unset;
 }
 
-.navbar.toggled .navbar-brand{
+.navbar .navbar-brand,
+.sidebar
+{
+    min-width: 250px;
+    width: 250px !important;
+    max-width: 250px;
+}
+
+.navbar.toggled .navbar-brand,
+.sidebar.toggled
+{
     max-width: 80px;
     min-width: 80px;
 }
 
-.navbar.toggled .menu-img{
+.navbar.toggled a img{
+    display: block;
     margin: auto;
-}
-
-.sidebar.toggled{
-    max-width: 80px;
-    min-width: 80px;
+    float: unset;
 }
 
 .navbar.toggled .text,
@@ -173,6 +180,11 @@ body {
     width: 35px;
     height: 35px;
     font-size: 35px;
+}
+
+.sidebar ~ [role="main"] {
+    max-width: calc(100% - 250px);
+    flex: 0 0 calc(100% - 250px);
 }
 
 .sidebar.toggled ~ [role="main"] {
@@ -537,8 +549,6 @@ h1.h2
 }
 /* /////// /////// */
 
-
-
 @media (max-width: 768px) {
     .report-button{
         height: 40vh;
@@ -550,8 +560,22 @@ h1.h2
     .navbar.toggled .text{
         display: unset;
     }
+    .navbar .navbar-brand,
+    .sidebar
+    {
+        min-width: 100%;
+        width: 100% !important;
+        max-width: 100%;
+        position: unset;
+    }
 
-    [role="main"],
+    .navbar.toggled a img{
+        display: unset;
+        margin: unset;
+        float: right;
+    }
+
+    .sidebar ~ [role="main"],
     .sidebar.toggled ~ [role="main"]
     {
         margin: 0 !important;
