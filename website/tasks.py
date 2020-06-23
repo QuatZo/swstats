@@ -994,8 +994,8 @@ def get_rift_dungeon_by_stage_task(request_get, name):
     if 'base' in request_get.keys() and request_get['base']:
         base = request_get['base'][0].replace('_', ' ')
         filters.append('Base Monster: ' + base)
-        dungeon_runs_ids = dungeon_runs.filter(monsters__base_monster__name=base).values_list('id', flat=True)
-        dungeon_runs = dungeon_runs.filter(id__in=dungeon_runs_ids)
+        dungeon_runs_ids = dungeon_runs.filter(monsters__base_monster__name=base).values_list('battle_key', flat=True)
+        dungeon_runs = dungeon_runs.filter(battle_key__in=dungeon_runs_ids)
     
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
