@@ -67,12 +67,7 @@
                                 {% endwith %}
                             {% endif %}
                         </td>
-                        <td>{% if monster|check_skillups %}
-                                Yes
-                            {% else %}
-                                No
-                            {% endif %}
-                        </td>
+                        <td>{{ monster.skills }}</td>
                         <td>{{ monster.created|international_date }}</td>
                         {% for monster_runes in monsters_runes %}
                             {% if monster_runes.monster == monster %}

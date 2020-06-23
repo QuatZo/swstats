@@ -162,7 +162,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         df.loc[~df.index.isin(full_skillups_indexes), 'skills'] = "No"
 
         skillups = df["skills"].value_counts().sort_index()
-        plots.append(self.create_pie_plot(skillups.index, skillups, "Skill-ups <br>(only 6* with equipped runes)", ['#ff7777', '#77ff77']))
+        plots.append(self.create_pie_plot(skillups.index, skillups, "Fully skilled up <br>(only 6* with equipped runes)", ['#ff7777', '#77ff77']))
         #################################################
         
         #################################################
