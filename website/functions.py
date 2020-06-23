@@ -937,7 +937,7 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage):
     for comp in comps:
         runs = dungeon_runs
         for monster_comp in comp:
-            runs = runs.filter(monsters=monster_comp)
+            runs = runs.filter(monsters__id=monster_comp)
 
         if not runs.exists():
             continue
@@ -949,7 +949,6 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage):
 
         record = {
             'comp': comp,
-            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
             'most_freq_rating': RiftDungeonRun().get_rating_name(most_freq_rating),
             'wins': wins_comp,
             'loses': runs_comp - wins_comp,
@@ -962,10 +961,8 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage):
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
-        if record['average_time'] is not None:
-            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
-            record['average_time'] = str(record['average_time'])
-            records.append(record)
+        record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
+        records.append(record)
 
     return records
 # endregion

@@ -16,13 +16,12 @@
         <thead>
             <tr>
                 <th scope="col">Monsters</th>
-                <th scope="col">Average Time</th>
                 <th scope="col">Most Frequent Rating</th>
-                <th scope="col">Wins</th>
-                <th scope="col">Loses</th>
+                <th scope="col">S or higher</th>
+                <th scope="col">A+ or lower</th>
                 <th scope="col">Success Rate</th>
                 <th scope="col">Best Damage</th>
-                <th scope="col">Avg Damage</th>
+                <th scope="col">Average Damage</th>
             </tr>
         </thead>
         <tbody>
@@ -39,7 +38,6 @@
                             {% endif %}
                         {% endfor %}                    
                     </td>
-                    <td>{{ record.average_time }}</td>    
                     <td>{{ record.most_freq_rating }}</td>    
                     <td>{{ record.wins }}</td>    
                     <td>{{ record.loses }}</td>    
