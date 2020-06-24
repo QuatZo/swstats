@@ -141,7 +141,7 @@ def generate_plots(monsters, monsters_runes, base_monster):
     # PICK ONLY 6* with runes with runes
     df = df[df['stars'] == 6]
     if not df.shape[0]: # no 6* builds
-        return plots
+        return plots, 'No information given'
 
     df_full = df.copy()
     runes_cols = ["rune #" + str(i) for i in range(1 ,7)]
@@ -150,7 +150,7 @@ def generate_plots(monsters, monsters_runes, base_monster):
     #################################################
 
     if not df.shape[0]: # no builds with runes
-        return plots
+        return plots, 'No information given'
 
     #################################################
     # SKILL-UPS DISTRIBUTION
@@ -233,6 +233,11 @@ def generate_plots(monsters, monsters_runes, base_monster):
     builds_count['build'] = builds_count['rune #2'] + ' / ' + builds_count['rune #4'] + ' / ' + builds_count['rune #6']
     colors = create_rgb_colors(builds_count.shape[0], True)
     plots.append(create_bar_plot(builds_count['build'],  builds_count['count'], "Most Common Builds <br>(only 6* with equipped runes)", colors, 30))
+
+    if len(builds_count):
+        most_common_build = builds_count['build'].tolist()[0]
+    else:
+        most_common_build = 'No information given'
     #################################################
 
     #################################################
@@ -252,7 +257,7 @@ def generate_plots(monsters, monsters_runes, base_monster):
     plots.append(create_bar_plot(counts_slot6.index, counts_slot6.values, "Most Common Slot 6<br>(only 6* with equipped runes)", colors, 30))
     #################################################
 
-    return plots
+    return plots, most_common_build
 
 
 class ReportGeneratorViewSet(viewsets.ViewSet):
@@ -266,7 +271,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
             
             monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes = get_monster_info(base_monster)
 
-            plots = generate_plots(monsters, monsters_runes, base_monster)
+            plots, _ = generate_plots(monsters, monsters_runes, base_monster)
 
             context = {
                 'base_monster': base_monster,
@@ -321,9 +326,10 @@ def create_monster_report_by_bot(monster_id):
     monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes = get_monster_info(base_monster)
 
     try:
-        plots = generate_plots(monsters, monsters_runes, base_monster)
+        plots, most_common_builds = generate_plots(monsters, monsters_runes, base_monster)
     except KeyError as e: # no results
         plots = None
+        most_common_builds = 'No information given'
 
     context = {
         'base_monster': base_monster,
@@ -332,6 +338,7 @@ def create_monster_report_by_bot(monster_id):
         'hoh_date': hoh_date,
         'fusion': fusion_exist,
         'plots': plots,
+        'most_common_builds': most_common_builds,
     }
 
     html = render_to_string('website/report/report_bot_generate.html', context)

@@ -1,14 +1,19 @@
 {% extends "website/report/report_bot_index.html" %}
 {% load static %}
 {% load add_str %}
+{% load monster_name_from_filename %}
 
+{% block meta %}
+    <meta name="title" content="Monster Report - {{ base_monster.name|monster_name_from_filename }}">
+    <meta name="description" content="{{ base_monster.name|monster_name_from_filename }} popular builds {{ most_common_builds }}">
+{% endblock %}
 {% block custom_title %}
     Monster Report - {{ base_monster }}
 {% endblock %}
 
 {% block row %}
     <div class="col-6 col-sm-2"><b>Monster</b></div>
-    <div class="col-6 col-sm-2"> {{ base_monster }} </div>
+    <div class="col-6 col-sm-2"> {{ base_monster.name|monster_name_from_filename }} </div>
     <div class="col-6 col-sm-2"><b>Count</b></div>
     <div class="col-6 col-sm-2"> {{ monsters.count }} </div>
     <div class="col-6 col-sm-2"><b>Type</b></div>
