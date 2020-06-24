@@ -127,7 +127,7 @@ dmypy.json
 
 
 
-# custom
+############################### custom
 # vscode
 ./vscode
 
@@ -143,3 +143,6 @@ logs/
 
 # celerybeat
 celerybeat*.*
+
+# bot
+website/bot

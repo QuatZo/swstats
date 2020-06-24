@@ -91,7 +91,10 @@ urlpatterns = [
     path('reports/', views.get_report_menu, name='reports'),
     path('reports/generate/', views.get_report, name='reports_generate'),
     path('oldreports/', RedirectView.as_view(url='/reports/old'), name='old_reports'), # old link, before Generate Report Update
-    path('reports/old/', views.get_old_reports, name='reports_old')
+    path('reports/old/', views.get_old_reports, name='reports_old'),
+
+    ### BOT
+    path('bot/monsters/<int:monster_id>', views.bot_get_monster_report, name='bot_get_monster_report'),
 ]
 
 if settings.DEBUG:

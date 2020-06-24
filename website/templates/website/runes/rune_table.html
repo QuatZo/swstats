@@ -70,9 +70,13 @@
                     <td>{{ rune.efficiency_max|add_str:"%" }}</td>
                     <td> {% if rune.equipped %}
                             {% with rune|get_monster as mon %}
-                                <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
-                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min"/>
-                                </a>
+                                {% if mon %}
+                                    <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
+                                        <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min"/>
+                                    </a>
+                                {% else %}
+                                    <img src="{% static 'website/images/monsters/monster_unknown.png' %}" class="table-monster-avatar-min"/>
+                                {% endif %}
                             {% endwith %}
                         {% else %}
                             <span data-feather="slash" style="color: red;"></span>

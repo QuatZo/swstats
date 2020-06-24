@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import dj_database_url
 import dotenv
-# from celery.schedules import crontab  
+from celery.schedules import crontab  
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -192,9 +192,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = None # ALL
 
 # CACHE_TTL = 60 * 30 # 30 minutes cache # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
 
-# CELERY_BEAT_SCHEDULE = {
-#  'generate-cache-every-hour': {
-#        'task': 'website.tasks.generate_cache',
-#        'schedule': crontab(minute='*/30'),
-#     }, 
-# }
+CELERY_BEAT_SCHEDULE = {
+    'bot-report-generate': {
+       'task': 'website.tasks.generate_bot_reports',
+       'schedule': crontab(hour=0, minute=0),
+    }, 
+}

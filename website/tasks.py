@@ -1231,3 +1231,19 @@ def get_homunculus_base_task(request_get, base):
     }
 
     return context
+
+########################### BOT ###########################
+@shared_task
+def generate_bot_reports():
+    from .views import create_monster_report_by_bot # import locally because of circular import
+
+    monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).values_list('id', flat=True)) # archetype=5 -> Material Monsters, awaken=0 -> Unawakened
+    monsters_base.sort()
+
+    for monster_id in monsters_base:
+        if(create_monster_report_by_bot(monster_id)):
+            text = "[Bot][Periodic Task] Created report about " + str(monster_id)
+            print(text)
+        else:
+            text = "[Bot][Periodic Task] Error has been raised while creating report about " + str(monster_id)
+            print(text)
