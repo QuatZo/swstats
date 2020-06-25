@@ -196,5 +196,6 @@ CELERY_BEAT_SCHEDULE = {
     'bot-report-generate': {
        'task': 'website.tasks.generate_bot_reports',
        'schedule': crontab(hour=0, minute=0),
+       # 'schedule': crontab(minute='*/5'),
     }, 
 }

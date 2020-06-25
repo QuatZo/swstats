@@ -1234,12 +1234,15 @@ def get_homunculus_base_task(request_get, base):
 
 ########################### BOT ###########################
 @shared_task
-def generate_bot_reports():
+def generate_bot_reports(monster_id=None):
     from .views import create_monster_report_by_bot # import locally because of circular import
 
-    monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).values_list('id', flat=True)) # archetype=5 -> Material Monsters, awaken=0 -> Unawakened
-    monsters_base.sort()
-
+    if monster_id:
+        monsters_base = [monster_id]
+    else:
+        monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).values_list('id', flat=True)) # archetype=5 -> Material Monsters, awaken=0 -> Unawakened
+        monsters_base.sort()
+        
     for monster_id in monsters_base:
         if(create_monster_report_by_bot(monster_id)):
             text = "[Bot][Periodic Task] Created report about " + str(monster_id)

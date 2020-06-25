@@ -1,0 +1,88 @@
+.report-generator{
+    width: 80%;
+    margin: auto;
+}
+
+.monster-info{
+    margin-top: 25px;
+}
+
+.monster-info-content{
+    display: flex;
+    width: 100%;
+    padding: 1vw;
+}
+
+.monster-info-left,
+.monster-info-right{
+    width: 20%;
+    display: flex;
+}
+
+.monster-info-mid{
+    width: 60%;
+    margin: auto;
+    text-align: center;
+}
+
+.plots-container .btn{
+    width: 100%;
+    background-color: #343a40;
+    border-color: #343a40;
+}
+
+.plots-main{
+    display: flex;
+    margin: 25px 0;
+}
+
+.plots-main-left{
+    width: 45%;
+    margin-right: 5%;
+}
+
+.plots-main-right{
+    width: 45%;
+    margin-left: 5%;
+}
+
+
+@media (max-width: 768px) {
+    .report-generator{
+        width: 95%;
+    }
+
+    .monster-info-content{
+        display: unset;
+    }
+    .monster-info-left, 
+    .monster-info-right
+    {
+        width: 100%;
+        display: unset;
+    }
+
+    .monster-info-left .row,
+    .monster-info-right .row{
+        margin: 0;
+    }
+
+    .plots-main{
+        display: unset;
+        margin: 25px 0;
+    }
+
+    .plots-main-left,
+    .plots-main-right
+    {
+        width: 100%;
+        margin: 0;
+    }
+
+    .plots-main-left{
+        margin: 25px 0;
+    }
+    .plots-main-right{
+        margin-bottom: 25px;
+    }
+}

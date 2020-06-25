@@ -71,7 +71,7 @@ def create_pie_plot(labels, values, title, colors=None):
         font=dict(
             family="Courier New, monospace",
             size=15,
-            color="#7f7f7f"
+            color="#7f7f7f",
         ),
     )
 
@@ -113,8 +113,10 @@ def create_bar_plot(x, y, title, colors=None, angle=90):
     )
     return plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)
 
-def generate_plots(monsters, monsters_runes, base_monster):
+def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     plots = list()
+    no_records = 'No information given'
+    top_sets = list()
 
     #################################################
     # PREPARE DATA
@@ -141,16 +143,16 @@ def generate_plots(monsters, monsters_runes, base_monster):
     # PICK ONLY 6* with runes with runes
     df = df[df['stars'] == 6]
     if not df.shape[0]: # no 6* builds
-        return plots, 'No information given'
+        return plots, no_records, None, None, top_sets
 
     df_full = df.copy()
     runes_cols = ["rune #" + str(i) for i in range(1 ,7)]
     df.dropna(subset=runes_cols, how='any', inplace=True) # delete without runes
-    plots.append(create_pie_plot(["With Runes", "Without Runes"], [df.shape[0], df_full.shape[0] - df.shape[0]], "Runes <br>(only 6*)", ['#77ff77', '#ff7777']))
+    plots.append(create_pie_plot(["With<br>Runes", "Without<br>Runes"], [df.shape[0], df_full.shape[0] - df.shape[0]], "Runes <br>(only 6*)", ['#77ff77', '#ff7777']))
     #################################################
 
     if not df.shape[0]: # no builds with runes
-        return plots, 'No information given'
+        return plots, no_records, None, None, top_sets
 
     #################################################
     # SKILL-UPS DISTRIBUTION
@@ -205,10 +207,21 @@ def generate_plots(monsters, monsters_runes, base_monster):
 
     #################################################
     # SETS BAR
+    broken_indexes = df[df["sets"] == ''].index
+    df.loc[broken_indexes, "sets"] = "Broken"
     counts = df["sets"].value_counts()
-    counts = counts[(counts > 1) & (counts > round(counts[0] / 50))]
+    counts = counts[counts > round(counts[0] / 50)]
     colors = create_rgb_colors(counts.shape[0], True)
-    plots.append(create_bar_plot(counts.index, counts, "Sets Distribution <br>(only 6* with equipped runes)", colors))
+
+    top_sets_temp = counts[:min(len(counts), 3)]
+    top_sets_temp = [top_set.replace(' + ', '/') + '(' + str(round(100 * top_count / len(df))) + '%)' for top_set, top_count in top_sets_temp.to_dict().items()]
+    for i in range(len(top_sets_temp)):
+        top_sets.append(f'Top {i + 1} sets: {top_sets_temp[i]}')
+
+    plot_sets = create_bar_plot(counts.index, counts, "Sets Distribution <br>(only 6* with equipped runes)", colors)
+
+    if not bot:
+        plots.append(plot_sets)
     #################################################
 
     #################################################
@@ -232,12 +245,15 @@ def generate_plots(monsters, monsters_runes, base_monster):
     builds_count = builds_count[(builds_count['count'] > 1) & (builds_count['count'] > round(builds_count['count'][0] / 50))].sort_values(["count"], ascending=False) # single builds to drop
     builds_count['build'] = builds_count['rune #2'] + ' / ' + builds_count['rune #4'] + ' / ' + builds_count['rune #6']
     colors = create_rgb_colors(builds_count.shape[0], True)
-    plots.append(create_bar_plot(builds_count['build'],  builds_count['count'], "Most Common Builds <br>(only 6* with equipped runes)", colors, 30))
+
+    plot_builds = create_bar_plot(builds_count['build'],  builds_count['count'], "Most Common Builds <br>(only 6* with equipped runes)", colors, 30)
+    if not bot:
+        plots.append(plot_builds)
 
     if len(builds_count):
         most_common_build = builds_count['build'].tolist()[0]
     else:
-        most_common_build = 'No information given'
+        most_common_build = no_records
     #################################################
 
     #################################################
@@ -257,7 +273,7 @@ def generate_plots(monsters, monsters_runes, base_monster):
     plots.append(create_bar_plot(counts_slot6.index, counts_slot6.values, "Most Common Slot 6<br>(only 6* with equipped runes)", colors, 30))
     #################################################
 
-    return plots, most_common_build
+    return plots, most_common_build, plot_sets, plot_builds, top_sets
 
 
 class ReportGeneratorViewSet(viewsets.ViewSet):
@@ -271,7 +287,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
             
             monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes = get_monster_info(base_monster)
 
-            plots, _ = generate_plots(monsters, monsters_runes, base_monster)
+            plots, _, _, _, _ = generate_plots(monsters, monsters_runes, base_monster)
 
             context = {
                 'base_monster': base_monster,
@@ -326,10 +342,13 @@ def create_monster_report_by_bot(monster_id):
     monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes = get_monster_info(base_monster)
 
     try:
-        plots, most_common_builds = generate_plots(monsters, monsters_runes, base_monster)
+        plots, most_common_builds, plot_sets, plot_builds, top_sets = generate_plots(monsters, monsters_runes, base_monster, True)
     except KeyError as e: # no results
         plots = None
         most_common_builds = 'No information given'
+        plot_sets = None
+        plot_builds = None
+        top_sets = None
 
     context = {
         'base_monster': base_monster,
@@ -339,6 +358,10 @@ def create_monster_report_by_bot(monster_id):
         'fusion': fusion_exist,
         'plots': plots,
         'most_common_builds': most_common_builds,
+        'date_update': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'plot_sets': plot_sets,
+        'plot_builds': plot_builds,
+        'top_sets': top_sets,
     }
 
     html = render_to_string('website/report/report_bot_generate.html', context)

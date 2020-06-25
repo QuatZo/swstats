@@ -1,0 +1,16 @@
+{% load static %}
+
+<div class='plots-container'>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-plots" aria-expanded="true" aria-controls="#monster-plots"> 
+        Click here to show more cool graphs about {{ monster_name }}
+    </button>
+    <div id="monster-plots" class="show" style="overflow-x: hidden;">
+        <div class="row">
+            {% for plot in plots %}
+                <div class="col-12 col-sm-6">
+                    {{ plot|safe }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

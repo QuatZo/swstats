@@ -4,39 +4,80 @@
 {% load monster_name_from_filename %}
 
 {% block meta %}
-    <meta name="title" content="Monster Report - {{ base_monster.name|monster_name_from_filename }}">
-    <meta name="description" content="{{ base_monster.name|monster_name_from_filename }} popular builds {{ most_common_builds }}">
+    <meta name="title" content="SW Monster Report - {{ base_monster.name|monster_name_from_filename }} (click for more info)">
+    {% if most_common_builds != 'No information given' %}
+        <meta name="description" content="{{ base_monster.name|monster_name_from_filename }} popular runes {{ most_common_builds }}
+            {{ base_monster.name|monster_name_from_filename }} {{ top_sets.0 }}
+            {{ base_monster.name|monster_name_from_filename }} {{ top_sets.1 }}
+            {{ base_monster.name|monster_name_from_filename }} {{ top_sets.2 }}">
+    {% else %}
+        <meta name="description" content="No information given about {{ base_monster.name|monster_name_from_filename }}">
+    {% endif %}
 {% endblock %}
 {% block custom_title %}
-    Monster Report - {{ base_monster }}
+    Monster Report - {{ base_monster.name|monster_name_from_filename }}
 {% endblock %}
 
-{% block row %}
-    <div class="col-6 col-sm-2"><b>Monster</b></div>
-    <div class="col-6 col-sm-2"> {{ base_monster.name|monster_name_from_filename }} </div>
-    <div class="col-6 col-sm-2"><b>Count</b></div>
-    <div class="col-6 col-sm-2"> {{ monsters.count }} </div>
-    <div class="col-6 col-sm-2"><b>Type</b></div>
-    <div class="col-6 col-sm-2"> {{ base_monster.get_archetype_display }} </div>
-    <div class="col-6 col-sm-2"><b>Attribute</b></div>
-    <div class="col-6 col-sm-2"> {{ base_monster.get_attribute_display }} </div>
-    <div class="col-6 col-sm-2"><b>Hoh</b></div>
-    {% if hoh %}
-        <div class="col-6 col-sm-2"> Yes ({{ hoh_date }}) </div>
-    {% else %}
-        <div class="col-6 col-sm-2"> No </div>
-    {% endif %}
-    
-    <div class="col-6 col-sm-2"><b>Fusion</b></div>
-    {% if fusion %}
-        <div class="col-6 col-sm-2">Yes</div>
-    {% else %}
-        <div class="col-6 col-sm-2">No</div>
+{% block info_main %}
+    <div class='monster-info border'>
+        <div class='monster-info-content'>
+            <div class='monster-info-left'>
+                <div class='row'>
+                    <div class="col-8 col-sm-6"><b>Type</b></div>
+                    <div class="col-4 col-sm-6"> {{ base_monster.get_archetype_display }} </div>
+                    <div class="col-8 col-sm-6"><b>Attribute</b></div>
+                    <div class="col-4 col-sm-6"> {{ base_monster.get_attribute_display }} </div>
+                </div>
+            </div>
+            <div class='monster-info-mid'>
+                <h2><b>{{ base_monster.name|monster_name_from_filename }}</b></h2><br />
+                <h3>({{ monsters.count }})</h3>
+            </div>
+            <div class='monster-info-right'>
+                <div class='row'>
+                    <div class="col-8 col-sm-6"><b>Hoh</b></div>
+                    {% if hoh %}
+                        <div class="col-4 col-sm-6"> Yes ({{ hoh_date }}) </div>
+                    {% else %}
+                        <div class="col-4 col-sm-6"> No </div>
+                    {% endif %}
+                    
+                    <div class="col-8 col-sm-6"><b>Fusion</b></div>
+                    {% if fusion %}
+                        <div class="col-4 col-sm-6">Yes</div>
+                    {% else %}
+                        <div class="col-4 col-sm-6">No</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <h3 style='text-align: center;'>{{ date_update }}</h3>
+    </div>
+{% endblock %}
+
+{% block plots_main %}
+    {% if plot_sets and plot_builds %}
+        <div class='plots-main'>
+            <div class='plots-main-left border'>
+                {{ plot_sets|safe }}
+            </div>
+            <div class='plots-main-right border'>
+                {{ plot_builds|safe }}
+            </div>
+        </div>
     {% endif %}
 {% endblock %}
 
 {% block plots %}
     {% if plots %}
-        {% include "website/report/report_monster_plots.html" with plots=plots %}
+        {% include "website/report/report_bot_monster_plots.html" with plots=plots monster_name=base_monster.name|monster_name_from_filename %}
     {% endif %}
+{% endblock %}
+
+{% block custom_jquery %}
+    <script>
+        $("#monster-plots").removeClass('show')
+        $("#monster-plots").addClass('collapse')
+    </script>
+
 {% endblock %}

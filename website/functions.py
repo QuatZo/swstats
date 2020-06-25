@@ -210,7 +210,6 @@ def parse_monster(temp_monster, buildings = list(), units_locked = list()):
             monster[db] = temp_monster[c2u]
 
     monster['wizard'] = Wizard.objects.get(id=temp_monster['wizard_id'])
-    print(temp_monster['unit_master_id'])
     monster['base_monster'] = MonsterBase.objects.get(id=temp_monster['unit_master_id'])
 
     ####################
