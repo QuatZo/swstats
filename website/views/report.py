@@ -188,7 +188,8 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     #################################################
 
     #################################################
-    # HP & ATTACK & DEFENSE & CRIT RATE & CRIT DMG DISTRIBUTION
+    # SPEED & HP & ATTACK & DEFENSE & CRIT RATE & CRIT DMG DISTRIBUTION
+    plots.append(create_histogram_plot(df['speed'], "Speed Distribution<br>(only 6* with equipped runes)"))
     plots.append(create_histogram_plot(df['hp'], "HP Distribution<br>(only 6* with equipped runes)"))
     plots.append(create_histogram_plot(df['attack'], "Attack Distribution<br>(only 6* with equipped runes)"))
     plots.append(create_histogram_plot(df['defense'], "Defense Distribution<br>(only 6* with equipped runes)"))
@@ -246,9 +247,8 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     #################################################
 
     #################################################
-    # AVERAGE RUNE EFFICIENCY & SPEED DISTRIBUTION
+    # AVERAGE RUNE EFFICIENCY & DISTRIBUTION
     plots.append(create_histogram_plot(df['avg_eff'], "Average Rune Efficiency Distribution<br>(only 6* with equipped runes)"))
-    plots.append(create_histogram_plot(df['speed'], "Speed Distribution<br>(only 6* with equipped runes)"))
     #################################################
 
     #################################################

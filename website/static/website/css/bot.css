@@ -1,5 +1,6 @@
 .report-generator{
     width: 80%;
+    height: 100%;
     margin: auto;
 }
 
@@ -46,6 +47,15 @@
     margin-left: 5%;
 }
 
+.footer{
+    width: 80%;
+    height: 25px;
+    position: fixed;
+    bottom: 0;
+    text-align: center;
+    left: 10%;
+    background-color: white;
+}
 
 @media (max-width: 768px) {
     .report-generator{
@@ -84,5 +94,11 @@
     }
     .plots-main-right{
         margin-bottom: 25px;
+    }
+
+    .footer{
+        width: 95%;
+        left: 2.5%;
+        font-size: x-small;
     }
 }
