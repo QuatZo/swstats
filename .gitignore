@@ -147,3 +147,6 @@ celerybeat*.*
 # bot
 website/bot
 celerybeat*
+
+# static files
+static/

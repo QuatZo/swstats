@@ -127,8 +127,14 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
                 df.loc[result['monster'].id, "rune #" + str(i + 1)] = Rune().get_substat_display(rune.primary)
             else:
                 df.loc[result['monster'].id, "rune #" + str(i + 1)] = rune
-        set_names = [str(set_name) for set_name in get_sets.get_sets(result['runes'])]
+
+        set_names, broken = get_sets.get_sets(result['runes'], True)
+        set_names = [str(set_name) for set_name in set_names]
         set_names.sort()
+        
+        if broken:
+            set_names.append('Broken')
+
         df.loc[result['monster'].id, 'sets'] = ' + '.join(set_names)
     #################################################
 
@@ -207,8 +213,6 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
 
     #################################################
     # SETS BAR
-    broken_indexes = df[df["sets"] == ''].index
-    df.loc[broken_indexes, "sets"] = "Broken"
     counts = df["sets"].value_counts()
     counts = counts[counts > round(counts[0] / 50)]
     colors = create_rgb_colors(counts.shape[0], True)

@@ -7,8 +7,10 @@ register = template.Library()
 import math
 
 @register.filter
-def get_sets(runes):
+def get_sets(runes, bot=False):
     sets = dict()
+    broken = False
+    
     for rune in runes:
         if rune is None:
             continue
@@ -21,9 +23,16 @@ def get_sets(runes):
 
     set_names = list()
 
+    total = 0
     for key, val in sets.items():
         equipped_set = math.floor(val['amount'] / val['set'])
-        for i in range(equipped_set):
+        total += equipped_set * val['set']
+        for _ in range(equipped_set):
             set_names.append(key)
 
+    if total < 6:
+        broken = True
+
+    if bot:
+        return set_names, broken
     return set_names
