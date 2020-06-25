@@ -1,6 +1,6 @@
 .report-generator{
     width: 80%;
-    height: 100%;
+    height: calc(100vh - 50px);
     margin: auto;
 }
 
@@ -30,6 +30,7 @@
     width: 100%;
     background-color: #343a40;
     border-color: #343a40;
+    margin-bottom: 30px;
 }
 
 .plots-main{
