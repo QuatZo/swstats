@@ -131,10 +131,10 @@ body {
 .carousel-caption h5{
     height: 100%;
     vertical-align: text-bottom;
-    font-size: 3rem;
+    font-size: 3vw;
 }
 .carousel-caption p{
-    font-size: 1.25rem;
+    font-size: 1.5vw;
 }
 
 .carousel-caption .btn:hover a{

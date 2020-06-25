@@ -418,7 +418,7 @@ def get_homepage_task():
         {
             'id': 2,
             'title': 'Database',
-            'text': f'Our datbase contains {runes.count()} runes and {monsters.count()} monsters.',
+            'text': f'Our database contains {runes.count()} runes and {monsters.count()} monsters.',
         },
         {
             'id': 3,
