@@ -41,7 +41,7 @@ def get_monster_info(base_monster):
         hoh_exist = False
         if hoh.exists():
             hoh_exist = True
-            hoh_date = hoh.first().date_open
+            hoh_date = datetime.strftime(hoh.first().date_open, "%Y-%m-%d")
 
         fusion = MonsterFusion.objects.filter(monster=monster_id)
     else:
@@ -50,11 +50,10 @@ def get_monster_info(base_monster):
         hoh_exist = False
         if hoh.exists():
             hoh_exist = True
-            hoh_date = hoh.first().date_open
+            hoh_date = datetime.strftime(hoh.first().date_open, "%Y-%m-%d")
 
         fusion = MonsterFusion.objects.filter(monster=base_monster)
 
-    hoh_date = datetime.strftime(hoh_date, "%Y-%m-%d") if type(hoh_date) == 'datetime.date' else None
 
     return monsters, hoh_exist, hoh_date, fusion.exists(), filename, runes
 
@@ -141,7 +140,7 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     #################################################
     # STARS DISTRIBUTION
     stars = df["stars"].value_counts()
-    plots.append(create_pie_plot(stars.index, stars, "Stars"))
+    stars_plot = create_pie_plot(stars.index, stars, "Stars")
     #################################################
 
     #################################################
@@ -154,7 +153,7 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     df_full = df.copy()
     runes_cols = ["rune #" + str(i) for i in range(1 ,7)]
     df.dropna(subset=runes_cols, how='any', inplace=True) # delete without runes
-    plots.append(create_pie_plot(["With<br>Runes", "Without<br>Runes"], [df.shape[0], df_full.shape[0] - df.shape[0]], "Runes <br>(only 6*)", ['#77ff77', '#ff7777']))
+    equipped_runes_plot = create_pie_plot(["With<br>Runes", "Without<br>Runes"], [df.shape[0], df_full.shape[0] - df.shape[0]], "Runes <br>(only 6*)", ['#77ff77', '#ff7777'])
     #################################################
 
     if not df.shape[0]: # no builds with runes
@@ -169,7 +168,7 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     df.loc[~df.index.isin(full_skillups_indexes), 'skills'] = "No"
 
     skillups = df["skills"].value_counts().sort_index()
-    plots.append(create_pie_plot(skillups.index, skillups, "Fully skilled up <br>(only 6* with equipped runes)", ['#ff7777', '#77ff77']))
+    skillups_plot = create_pie_plot(skillups.index, skillups, "Fully skilled up <br>(only 6* with equipped runes)", ['#ff7777', '#77ff77'])
     #################################################
     
     #################################################
@@ -179,36 +178,39 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     df.loc[~df.index.isin(full_stransmog_indexes), 'transmog'] = "No"
 
     transmogs = df["transmog"].value_counts().sort_index()
-    plots.append(create_pie_plot(transmogs.index, transmogs, "Transmogrifications <br>(only 6* with equipped runes)", ['#ff7777', '#77ff77']))
+    transmogs_plot = create_pie_plot(transmogs.index, transmogs, "Transmogrifications <br>(only 6* with equipped runes)", ['#ff7777', '#77ff77'])
     #################################################
 
     #################################################
     # EFFECTIVE HP & EFFECTIVE HP WHILE DEF BROKEN
-    plots.append(create_histogram_plot(df['eff_hp'], "Effective HP Distribution<br>(only 6* with equipped runes)"))
-    plots.append(create_histogram_plot(df['eff_hp_def_break'], "Effective HP with Defense Break<br>(only 6* with equipped runes)"))
+    eff_hp_plot = create_histogram_plot(df['eff_hp'], "Effective HP Distribution<br>(only 6* with equipped runes)")
+    eff_hp_def_plot = create_histogram_plot(df['eff_hp_def_break'], "Effective HP with Defense Break<br>(only 6* with equipped runes)")
     #################################################
 
     #################################################
-    # HP & DEFENSE DISTRIBUTION
+    # HP & ATTACK & DEFENSE & CRIT RATE & CRIT DMG DISTRIBUTION
     plots.append(create_histogram_plot(df['hp'], "HP Distribution<br>(only 6* with equipped runes)"))
-    plots.append(create_histogram_plot(df['defense'], "Defense Distribution<br>(only 6* with equipped runes)"))
-    #################################################
-    
-    #################################################
-    # ATTACK & SPEED DISTRIBUTION
     plots.append(create_histogram_plot(df['attack'], "Attack Distribution<br>(only 6* with equipped runes)"))
-    plots.append(create_histogram_plot(df['speed'], "Speed Distribution<br>(only 6* with equipped runes)"))
-    #################################################
-
-    #################################################
-    # CRIT RATE & CRIT DMG DISTRIBUTION
+    plots.append(create_histogram_plot(df['defense'], "Defense Distribution<br>(only 6* with equipped runes)"))
     plots.append(create_histogram_plot(df['crit_rate'], "Critical Rate Distribution<br>(only 6* with equipped runes)"))
     plots.append(create_histogram_plot(df['crit_dmg'], "Critical Damage Distribution<br>(only 6* with equipped runes)"))
     #################################################
     
     #################################################
-    # AVERAGE RUNE EFFICIENCY & CRIT DMG DISTRIBUTION
-    plots.append(create_histogram_plot(df['avg_eff'], "Average Rune Efficiency Distribution<br>(only 6* with equipped runes)"))
+    # SLOT 2, 4 & 6
+    counts_slot2 = df["rune #2"].value_counts()
+    counts_slot2 = counts_slot2[counts_slot2 > 1]
+    counts_slot4 = df["rune #4"].value_counts()
+    counts_slot4 = counts_slot4[counts_slot4 > 1]
+    counts_slot6 = df["rune #6"].value_counts()
+    counts_slot6 = counts_slot6[counts_slot6 > 1]
+
+    colors = create_rgb_colors(counts_slot2.shape[0], True)
+    plots.append(create_bar_plot(counts_slot2.index, counts_slot2.values, "Most Common Slot 2<br>(only 6* with equipped runes)", colors, 30))
+    colors = create_rgb_colors(counts_slot4.shape[0], True)
+    plots.append(create_bar_plot(counts_slot4.index, counts_slot4.values, "Most Common Slot 4<br>(only 6* with equipped runes)", colors, 30))
+    colors = create_rgb_colors(counts_slot6.shape[0], True)
+    plots.append(create_bar_plot(counts_slot6.index, counts_slot6.values, "Most Common Slot 6<br>(only 6* with equipped runes)", colors, 30))
     #################################################
 
     #################################################
@@ -244,6 +246,12 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     #################################################
 
     #################################################
+    # AVERAGE RUNE EFFICIENCY & SPEED DISTRIBUTION
+    plots.append(create_histogram_plot(df['avg_eff'], "Average Rune Efficiency Distribution<br>(only 6* with equipped runes)"))
+    plots.append(create_histogram_plot(df['speed'], "Speed Distribution<br>(only 6* with equipped runes)"))
+    #################################################
+
+    #################################################
     # MOST COMMON BUILDS
     builds_count = df.groupby(["rune #2", "rune #4", "rune #6"]).size().reset_index(name='count').sort_values('count', ascending=False).reset_index(drop=True)
     builds_count = builds_count[(builds_count['count'] > 1) & (builds_count['count'] > round(builds_count['count'][0] / 50))].sort_values(["count"], ascending=False) # single builds to drop
@@ -260,22 +268,11 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
         most_common_build = no_records
     #################################################
 
-    #################################################
-    # SLOT 2, 4 & 6
-    counts_slot2 = df["rune #2"].value_counts()
-    counts_slot2 = counts_slot2[counts_slot2 > 1]
-    counts_slot4 = df["rune #4"].value_counts()
-    counts_slot4 = counts_slot4[counts_slot4 > 1]
-    counts_slot6 = df["rune #6"].value_counts()
-    counts_slot6 = counts_slot6[counts_slot6 > 1]
-
-    colors = create_rgb_colors(counts_slot2.shape[0], True)
-    plots.append(create_bar_plot(counts_slot2.index, counts_slot2.values, "Most Common Slot 2<br>(only 6* with equipped runes)", colors, 30))
-    colors = create_rgb_colors(counts_slot4.shape[0], True)
-    plots.append(create_bar_plot(counts_slot4.index, counts_slot4.values, "Most Common Slot 4<br>(only 6* with equipped runes)", colors, 30))
-    colors = create_rgb_colors(counts_slot6.shape[0], True)
-    plots.append(create_bar_plot(counts_slot6.index, counts_slot6.values, "Most Common Slot 6<br>(only 6* with equipped runes)", colors, 30))
-    #################################################
+    plots.append(eff_hp_plot)
+    plots.append(eff_hp_def_plot)
+    plots.append(stars_plot)
+    plots.append(skillups_plot)
+    plots.append(transmogs_plot)
 
     return plots, most_common_build, plot_sets, plot_builds, top_sets
 
