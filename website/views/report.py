@@ -214,7 +214,7 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     colors = create_rgb_colors(counts.shape[0], True)
 
     top_sets_temp = counts[:min(len(counts), 3)]
-    top_sets_temp = [top_set.replace(' + ', '/') + '(' + str(round(100 * top_count / len(df))) + '%)' for top_set, top_count in top_sets_temp.to_dict().items()]
+    top_sets_temp = [top_set.replace(' + ', '/') + ' (' + str(round(100 * top_count / len(df))) + '%)' for top_set, top_count in top_sets_temp.to_dict().items()]
     for i in range(len(top_sets_temp)):
         top_sets.append(f'Top {i + 1} sets: {top_sets_temp[i]}')
 
