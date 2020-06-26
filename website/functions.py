@@ -944,9 +944,6 @@ def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
             'leader': run['leader'],
         }
 
-        if not run['avg_time']:
-            continue
-
         records_temp = dungeon_runs.filter(**filters)
         records_count = records_temp.count()
         wins_count = records_temp.filter(win=True).count()
@@ -965,7 +962,10 @@ def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
-        record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+        if record['average_time']:
+            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+        else:
+            record['sorting_val'] = -1
         record['average_time'] = str(record['average_time'])
         records.append(record)
 

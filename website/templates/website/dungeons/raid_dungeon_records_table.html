@@ -58,7 +58,13 @@
                             <img src="{% static 'website/images/monsters/monster_unknown.png' %}" class="table-monster-avatar" />
                         {% endif %}
                     </td>
-                    <td>{{ record.average_time }}</td>    
+                    <td>
+                        {% if record.average_time %}
+                            {{ record.average_time }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>    
                     <td>{{ record.wins }}</td>    
                     <td>{{ record.loses }}</td>    
                     <td>{{ record.success_rate }}%</td>                  
