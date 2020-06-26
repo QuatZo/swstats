@@ -1058,7 +1058,6 @@ def get_raid_dungeon_by_stage_task(request_get, stage):
 
     return context
 
-
 @shared_task
 def get_rift_dungeon_by_stage_task(request_get, name):
     is_filter = False

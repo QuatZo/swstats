@@ -944,6 +944,9 @@ def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
             'leader': run['leader'],
         }
 
+        if not run['avg_time']:
+            continue
+
         records_temp = dungeon_runs.filter(**filters)
         records_count = records_temp.count()
         wins_count = records_temp.filter(win=True).count()
