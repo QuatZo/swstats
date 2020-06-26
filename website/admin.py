@@ -98,14 +98,23 @@ class DungeonRunAdmin(admin.ModelAdmin):
     def get_monsters(self, obj):
         return "\n".join([str(monster) for monster in obj.monsters.all()])
 
-class RaidBattleKeyAdmin(admin.ModelAdmin):
-    list_display = ( 'battle_key', 'stage' )
-
 class RiftDungeonRunAdmin(admin.ModelAdmin):
-    list_display = ( 'battle_key', 'wizard', 'dungeon', 'win', 'clear_time', 'clear_rating', 'get_monsters', 'dmg_phase_1', 'dmg_phase_glory', 'dmg_phase_2', 'dmg_total', 'date')
+    list_display = ( 'battle_key', 'wizard', 'dungeon', 'win', 'clear_time', 'clear_rating', 'get_front_line', 'get_back_line', 'leader', 'dmg_phase_1', 'dmg_phase_glory', 'dmg_phase_2', 'dmg_total', 'date')
 
-    def get_monsters(self, obj):
-        return "\n".join([str(monster) for monster in obj.monsters.all()])
+    def get_front_line(self, obj):
+        return ', '.join([str(obj.monster_1), str(obj.monster_2), str(obj.monster_3), str(obj.monster_4)])
+
+    def get_back_line(self, obj):
+        return ', '.join([str(obj.monster_5), str(obj.monster_6), str(obj.monster_7), str(obj.monster_8)])
+
+class RaidDungeonRunAdmin(admin.ModelAdmin):
+    list_display = ( 'battle_key', 'wizard', 'stage', 'win', 'clear_time', 'get_front_line', 'get_back_line', 'leader', 'date')
+
+    def get_front_line(self, obj):
+        return ', '.join([str(obj.monster_1), str(obj.monster_2), str(obj.monster_3), str(obj.monster_4)])
+
+    def get_back_line(self, obj):
+        return ', '.join([str(obj.monster_5), str(obj.monster_6), str(obj.monster_7), str(obj.monster_8)])
 
 class SiegeRecordAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'wizard', 'get_monsters', 'leader', 'win', 'lose', 'ratio', 'last_update', 'full' )
@@ -146,7 +155,7 @@ admin.site.register(WizardItem, WizardItemAdmin)
 
 # live
 admin.site.register(DungeonRun, DungeonRunAdmin)
-admin.site.register(RaidBattleKey, RaidBattleKeyAdmin)
 admin.site.register(RiftDungeonRun, RiftDungeonRunAdmin)
+admin.site.register(RaidDungeonRun, RaidDungeonRunAdmin)
 admin.site.register(SiegeRecord, SiegeRecordAdmin)
 admin.site.register(DimensionHoleRun, DimensionHoleRunAdmin)

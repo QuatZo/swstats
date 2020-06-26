@@ -26,14 +26,10 @@
             {% for record in records %}
                 <tr>
                     <td>
-                        {% for monster in record.comp %}
-                            {% if base %} 
-                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" onclick="filterMonster('{{ monster.name }}')" style="cursor: pointer;" />
-                            {% else %}    
-                                <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href"> 
-                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar"/>
-                                </a> 
-                            {% endif %}
+                        {% for monster in record.comp %}  
+                            <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href"> 
+                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar"/>
+                            </a> 
                         {% endfor %}                    
                     </td>
                     <td>{{ record.average_time }}</td>    

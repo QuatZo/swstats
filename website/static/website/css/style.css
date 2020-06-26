@@ -3,6 +3,10 @@ body {
     
 }
 
+td{
+    vertical-align: middle !important;
+}
+
 .feather {
     width: 25px;
     height: 25px;

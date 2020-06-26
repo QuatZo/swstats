@@ -153,14 +153,17 @@ class UploadViewSet(viewsets.ViewSet):
             elif request.data['command'] == 'GetUnitRecommendPage_V2':
                 handle_monster_recommendation_upload_task.delay(request.data['response'], request.data['request'])
 
-            elif request.data['command'] == 'BattleRiftOfWorldsRaidStart':
-                handle_raid_start_upload_task.delay(request.data)
-            elif request.data['command'] == 'BattleDungeonResult' or request.data['command'] == 'BattleRiftOfWorldsRaidResult' or request.data['command'] == 'BattleDungeonResult_V2':
+            elif request.data['command'] == 'BattleRiftOfWorldsRaidStart': # R5
+                handle_raid_start_upload_task.delay(request.data['response'], request.data['request'])
+            elif request.data['command'] == 'BattleRiftOfWorldsRaidResult': # R5
+                handle_raid_run_upload_task.delay(request.data['response'], request.data['request'])
+            
+            elif request.data['command'] == 'BattleDungeonResult' or request.data['command'] == 'BattleDungeonResult_V2':
                 handle_dungeon_run_upload_task.delay(request.data['response'], request.data['request'])
             
-            elif request.data['command'] == 'BattleRiftDungeonStart':
+            elif request.data['command'] == 'BattleRiftDungeonStart': # Elemental Rift
                 handle_rift_dungeon_start_upload_task.delay(request.data['response'], request.data['request'])
-            elif request.data['command'] == 'BattleRiftDungeonResult':
+            elif request.data['command'] == 'BattleRiftDungeonResult': # Elemental Rift
                 handle_rift_dungeon_run_upload_task.delay(request.data['response'], request.data['request'])
                 
             elif request.data['command'] == 'GetGuildSiegeDefenseDeckByWizardId':

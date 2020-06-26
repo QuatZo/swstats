@@ -271,6 +271,7 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     plots.append(eff_hp_plot)
     plots.append(eff_hp_def_plot)
     plots.append(stars_plot)
+    plots.append(equipped_runes_plot)
     plots.append(skillups_plot)
     plots.append(transmogs_plot)
 

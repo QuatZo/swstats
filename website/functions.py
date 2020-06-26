@@ -381,7 +381,8 @@ def parse_decks(decks, wizard_id):
 logger = logging.getLogger(__name__)
 
 def log_request_data(data):
-    logger.debug(f"Error/Warning during upload occured for request: {json.dumps(data)}")
+    text = "Error/Warning during upload occured for request: " + json.dumps(data)
+    logger.debug(text)
 
 def has_banned_words(text):
     banned_words = [ 'like', 'crystal', 'button', 'thumb' ]
@@ -747,7 +748,26 @@ def get_monster_rank_stats(monsters, monster, stat, count):
 def get_monster_records(monster):
     siege = monster.siege_defense_monsters.all()
     dungeons = monster.dungeon_monsters.all().distinct('dungeon')
-    rifts = monster.rift_dungeon_monsters.all().distinct('dungeon')
+
+    raids_has = False
+    raids = RaidDungeonRun.objects.all()
+    for i in range(1, 9):
+        if raids.filter(**{f'monster_{i}': monster}).exists():
+            raids_has = True
+            break
+
+    rifts = list()
+    rifts_obj = RiftDungeonRun.objects.all()
+    for i in range(1, 9):
+        rift_temp = rifts_obj.filter(**{f'monster_{i}': monster})
+        if rift_temp.exists():
+            rift_dungeons = list(set(rift_temp.values_list('dungeon', flat=True)))
+            for rift_dungeon in rift_dungeons:
+                if rift_dungeon not in rifts:
+                    rifts.append(RiftDungeonRun.objects.filter(dungeon=rift_dungeon).first())
+                if len(rifts) == 5:
+                    break
+
     has_records = False
     if siege.exists()  or dungeons.exists() or rifts.exists():
         has_records = True
@@ -755,6 +775,7 @@ def get_monster_records(monster):
         'siege': siege,
         'dungeons': dungeons,
         'rifts': rifts,
+        'raids': raids_has,
         'has': has_records,
     }
 # endregion
@@ -844,11 +865,6 @@ def get_siege_records_group_by_ranking(records):
 # endregion
 
 # region DUNGEONS - should be async and in tasks to speed things up even more
-def get_comp_count(id_dungeon):
-    if id_dungeon == 999999999: # rift of worlds 
-        return 6
-    return 5
-
 def get_dungeon_runs_distribution(runs, parts):
     """Return sets of clear times in specific number of parts, to make Distribution chart."""
     if not runs.exists():
@@ -859,7 +875,7 @@ def get_dungeon_runs_distribution(runs, parts):
     slowest = max(runs_seconds)
 
     delta = (slowest - fastest) / (parts + 1)
-
+    delta = max(1, delta)
     points = np.arange(fastest, slowest + delta, delta)
 
     distribution = np.histogram(runs_seconds, bins=points)[0].tolist()
@@ -912,6 +928,59 @@ def get_dungeon_runs_by_base_class(dungeon_runs):
     base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
     return (list(base_monsters.keys()), list(base_monsters.values()))
 
+def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
+    records = list()
+
+    for run in dungeon_runs.values('monster_1', 'monster_2', 'monster_3', 'monster_4', 'monster_5', 'monster_6', 'monster_7', 'monster_8', 'leader').annotate(avg_time=Avg('clear_time')):
+        filters = {
+            'monster_1': run['monster_1'],
+            'monster_2': run['monster_2'],
+            'monster_3': run['monster_3'],
+            'monster_4': run['monster_4'],
+            'monster_5': run['monster_5'],
+            'monster_6': run['monster_6'],
+            'monster_7': run['monster_7'],
+            'monster_8': run['monster_8'],
+            'leader': run['leader'],
+        }
+
+        records_temp = dungeon_runs.filter(**filters)
+        records_count = records_temp.count()
+        wins_count = records_temp.filter(win=True).count()
+
+        record = {
+            'frontline': [run[f'monster_{i}'] for i in range(1, 5)],
+            'backline': [run[f'monster_{i}'] for i in range(5, 9)],
+            'leader': run['leader'],
+            'average_time': run['avg_time'],
+            'wins': wins_count,
+            'loses': records_count - wins_count,
+            'success_rate': round(wins_count * 100 / records_count, 2),
+        }
+
+        # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
+        # 60 - seconds in one minute;
+        # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+        # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
+        record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+        record['average_time'] = str(record['average_time'])
+        records.append(record)
+
+    return records
+
+def get_raid_dungeon_runs_by_base_class(dungeon_runs):
+    base_monsters = dict()
+    monster_args = [f'monster_{i}__base_monster__name' for i in range(1, 9)]
+    for record in dungeon_runs.values_list(*monster_args):
+        for mon in list(set(record)):
+            if mon:
+                if mon not in base_monsters.keys():
+                    base_monsters[mon] = 0
+                base_monsters[mon] += 1
+
+    base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
+    return (list(base_monsters.keys()), list(base_monsters.values()))
+
 def get_rift_dungeon_damage_distribution(runs, parts):
     """Return sets of damages in specific number of parts, to make Distribution chart."""
     if not runs.exists():
@@ -922,6 +991,7 @@ def get_rift_dungeon_damage_distribution(runs, parts):
     highest = max(damages)
 
     delta = (highest - lowest) / (parts + 1)
+    delta = max(1, delta)
     points = np.arange(lowest, highest + delta, delta)
 
     distribution = np.histogram(damages, bins=points)[0].tolist()
@@ -930,30 +1000,39 @@ def get_rift_dungeon_damage_distribution(runs, parts):
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage):
+def get_rift_dungeon_records_personal(dungeon_runs, highest_damage):
     records = list()
 
-    for comp in comps:
-        runs = dungeon_runs
-        for monster_comp in comp:
-            runs = runs.filter(monsters__id=monster_comp)
+    for run in dungeon_runs.values('monster_1', 'monster_2', 'monster_3', 'monster_4', 'monster_5', 'monster_6', 'monster_7', 'monster_8', 'leader').annotate(avg_time=Avg('clear_time')):
+        filters = {
+            'monster_1': run['monster_1'],
+            'monster_2': run['monster_2'],
+            'monster_3': run['monster_3'],
+            'monster_4': run['monster_4'],
+            'monster_5': run['monster_5'],
+            'monster_6': run['monster_6'],
+            'monster_7': run['monster_7'],
+            'monster_8': run['monster_8'],
+            'leader': run['leader'],
+        }
 
-        if not runs.exists():
-            continue
+        records_temp = dungeon_runs.filter(**filters)
+        records_count = records_temp.count()
+        wins_count = records_temp.filter(win=True).count()
 
-        runs_comp = runs.count()
-        wins_comp = runs.filter(win=True).count()
-
-        most_freq_rating = runs.values('win', 'clear_rating').annotate(wins=Count('clear_rating')).order_by('-wins').first()['clear_rating']
+        most_freq_rating = records_temp.values('win', 'clear_rating').annotate(wins=Count('clear_rating')).order_by('-wins').first()['clear_rating']
+        dmg = records_temp.aggregate(max_dmg=Max('dmg_total'), avg_dmg=Avg('dmg_total'))
 
         record = {
-            'comp': comp,
+            'frontline': [run[f'monster_{i}'] for i in range(1, 5)],
+            'backline': [run[f'monster_{i}'] for i in range(5, 9)],
+            'leader': run['leader'],
             'most_freq_rating': RiftDungeonRun().get_rating_name(most_freq_rating),
-            'wins': wins_comp,
-            'loses': runs_comp - wins_comp,
-            'success_rate': round(wins_comp * 100 / runs_comp, 2),
-            'dmg_best': round(runs.aggregate(max_dmg=Max('dmg_total'))['max_dmg']),
-            'dmg_avg': round(runs.aggregate(avg_dmg=Avg('dmg_total'))['avg_dmg']),
+            'wins': wins_count,
+            'loses': records_count - wins_count,
+            'success_rate': round(wins_count * 100 / records_count, 2),
+            'dmg_best': round(dmg['max_dmg']),
+            'dmg_avg': round(dmg['avg_dmg']),
         }
 
         # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
@@ -964,6 +1043,20 @@ def get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage):
         records.append(record)
 
     return records
+
+def get_rift_dungeon_runs_by_base_class(dungeon_runs):
+    base_monsters = dict()
+    monster_args = [f'monster_{i}__base_monster__name' for i in range(1, 9)]
+    for record in dungeon_runs.values_list(*monster_args):
+        for mon in list(set(record)):
+            if mon:
+                if mon not in base_monsters.keys():
+                    base_monsters[mon] = 0
+                base_monsters[mon] += 1
+
+    base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
+    return (list(base_monsters.keys()), list(base_monsters.values()))
+
 # endregion
 
 # region DIMENSION HOLE DUNGEONS - should be async and in tasks to speed things up even more

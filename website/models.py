@@ -579,7 +579,6 @@ class DungeonRun(models.Model):
         (7001, 'Hall of Light'),
         (8001, 'Giants Keep'),
         (9001, 'Dragons Lair'),
-        (999999999, 'Rift of Worlds'), # couldn't find Dungeon ID for this, since it's not exactly a dungeon
     )
 
     id = models.BigAutoField(primary_key=True, unique=True, db_index=True)
@@ -614,10 +613,6 @@ class DungeonRun(models.Model):
     @classmethod
     def get_all_dungeons(cls):
         return dict(cls.DUNGEON_TYPES).values()
-     
-class RaidBattleKey(models.Model):
-    battle_key = models.BigIntegerField(primary_key=True, unique=True) # battle_info.battle_key
-    stage = models.IntegerField() # battle_info.room_info.stage_id
 
 class RiftDungeonRun(models.Model):
     """Uses 'BattleRiftDungeonResult' and 'BattleRiftDungeonStart' command"""
@@ -653,9 +648,18 @@ class RiftDungeonRun(models.Model):
     dmg_phase_glory = models.IntegerField(default=0) # BattleRiftDungeonResult, request, round_list[1][1]
     dmg_phase_2 = models.IntegerField(default=0) # BattleRiftDungeonResult, request, round_list[2][1]
     dmg_total =  models.IntegerField(db_index=True) # overrided save function
-    monsters = models.ManyToManyField(Monster, db_index=True, related_name='rift_dungeon_monsters') # BattleRiftDungeonStart, request, unit_id_list
     date = models.DateTimeField(null=True, blank=True, db_index=True) # BattleRiftDungeonStart, response, tvalue
-
+    
+    monster_1 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_fl_1", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, unit_id_list, slot_index
+    monster_2 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_fl_2", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, unit_id_list, slot_index
+    monster_3 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_fl_3", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, unit_id_list, slot_index
+    monster_4 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_fl_4", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, unit_id_list, slot_index
+    monster_5 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_bl_1", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, unit_id_list, slot_index
+    monster_6 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_bl_2", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, unit_id_list, slot_index
+    monster_7 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_bl_3", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, unit_id_list, slot_index
+    monster_8 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_bl_4", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, unit_id_list, slot_index
+    leader = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_leader", null=True, default=None, db_index=True) # BattleRiftDungeonStart, request, leader_index
+    
     # override save function, to calculate total dmg automatically
     def save(self, *args, **kwargs):
         self.dmg_total = self.dmg_phase_1 + self.dmg_phase_glory + self.dmg_phase_2
@@ -663,7 +667,6 @@ class RiftDungeonRun(models.Model):
 
     def __str__(self):
             return self.get_dungeon_display() + ' B1 (' + str(self.clear_time) + ')'
-
 
     class Meta:
         ordering = ['dungeon', '-clear_rating', '-dmg_total']
@@ -685,6 +688,30 @@ class RiftDungeonRun(models.Model):
     @classmethod
     def get_rating_name(cls, id):
         return dict(cls.CLEAR_RATINGS)[id]
+
+class RaidDungeonRun(models.Model):
+    battle_key = models.BigAutoField(primary_key=True, unique=True, db_index=True)
+    wizard = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL, db_index=True, blank=True) # wizard_id, response; if not exists then wizard_info in request
+    stage = models.IntegerField() # stage_id, request
+    win = models.BooleanField(null=True, blank=True) # win_lose, request & response
+    clear_time = models.DurationField(null=True, blank=True, db_index=True) # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
+    date = models.DateTimeField(null=True, blank=True, db_index=True) # tvalue
+
+    monster_1 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_fl_1", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
+    monster_2 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_fl_2", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
+    monster_3 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_fl_3", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
+    monster_4 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_fl_4", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
+    monster_5 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_bl_1", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
+    monster_6 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_bl_2", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
+    monster_7 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_bl_3", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
+    monster_8 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_bl_4", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
+    leader = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="raid_monster_leader", null=True, default=None, db_index=True) # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, leader & unit_info
+    
+    def __str__(self):
+        return 'Rift of Worlds B' + str(self.stage) + ' (' + str(self.clear_time) + ')'
+    
+    class Meta:
+        ordering = ['-stage', '-clear_time', '-win']
 
 class SiegeRecord(models.Model):
     # id - response; defense_deck_list; deck_id

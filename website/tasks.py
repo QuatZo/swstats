@@ -169,16 +169,53 @@ def handle_monster_recommendation_upload_task(data_resp, data_req):
         log_exception(e, data_resp=data_resp, data_req=data_req)
 
 @shared_task
-def handle_raid_start_upload_task(data):
+def handle_raid_start_upload_task(data_resp, data_req):
     try:
-        logger.debug(f"New Raid has been started")
-        obj, created = RaidBattleKey.objects.get_or_create(battle_key=data['battle_info']['battle_key'], defaults={
-            'battle_key': data['battle_info']['battle_key'],
-            'stage': data['battle_info']['room_info']['stage_id'],
-        })
-        logger.debug(f"Created new Raid key")
+        dungeon = dict()
+
+        dungeon['battle_key'] = data_req['battle_key']
+        dungeon['stage'] = data_resp['battle_info']['room_info']['stage_id']
+        dungeon['date'] = datetime.datetime.utcfromtimestamp(data_resp['tvalue'])
+        wizard, created = Wizard.objects.update_or_create(id=data_req['wizard_id'], defaults=parse_wizard(data_resp['wizard_info'], data_resp['tvalue']))
+        dungeon['wizard'] = Wizard.objects.get(id=data_req['wizard_id'])
+
+        unit_list = None
+        for user in data_resp['battle_info']['user_list']:
+            if user['wizard_id'] == data_req['wizard_id']:
+                for temp_monster in user['deck_list']:
+                    mon = Monster.objects.filter(id=temp_monster['unit_info']['unit_id'])
+                    if mon.count() > 0:
+                        temp_monster_instance = mon.first()
+                        dungeon['monster_' + str(temp_monster['index'])] = temp_monster_instance
+                        if temp_monster['leader']:
+                            dungeon['leader'] = temp_monster_instance
+
+        obj, created = RaidDungeonRun.objects.update_or_create(battle_key=dungeon['battle_key'], defaults=dungeon)
+        logger.debug(f"Successfully created Rift of Worlds (R{dungeon['stage']}) Start for {data_req['wizard_id']}")
     except Exception as e: # to find all exceptions and fix them without breaking the whole app, it is a temporary solution
-        log_exception(e, data=data)
+        log_exception(e, data_resp=data_resp, data_req=data_req)
+
+@shared_task
+def handle_raid_run_upload_task(data_resp, data_req):
+    try:
+        dungeon = dict()
+        if data_req['win_lose'] == 1:
+            dungeon['win'] = True
+            time_str = str(data_req['clear_time'])
+            _time = {
+                'hour': 0 if int(time_str[:-3]) < 3600 else round(int(time_str[:-3]) / 3600),
+                'minute': 0 if int(time_str[:-3]) < 60 else round(int(time_str[:-3]) / 60),
+                'second': int(time_str[:-3]) if int(time_str[:-3]) < 60 else int(time_str[:-3]) % 60,
+                'microsecond': int(time_str[-3:]) * 1000,
+            }
+            dungeon['clear_time'] = datetime.time(_time['hour'], _time['minute'], _time['second'], _time['microsecond'])
+        else:
+            dungeon['win'] = False
+        
+        obj, created = RaidDungeonRun.objects.update_or_create(battle_key=data_req['battle_key'], defaults=dungeon)
+        logger.debug(f"Successfully created Rift of Worlds Run for {data_req['wizard_id']}")
+    except Exception as e: # to find all exceptions and fix them without breaking the whole app, it is a temporary solution
+        log_exception(e, data_resp=data_resp, data_req=data_req)
 
 @shared_task
 def handle_dungeon_run_upload_task(data_resp, data_req):
@@ -188,16 +225,8 @@ def handle_dungeon_run_upload_task(data_resp, data_req):
         dungeon = dict()
         wizard, created = Wizard.objects.update_or_create(id=data_resp['wizard_info']['wizard_id'], defaults=parse_wizard(data_resp['wizard_info'], data_resp['tvalue']))
         dungeon['wizard'] = Wizard.objects.get(id=data_resp['wizard_info']['wizard_id'])
-        if command == 'BattleRiftOfWorldsRaidResult':
-            dungeon['dungeon'] = 999999999
-            rift_battles = RaidBattleKey.objects.filter(battle_key=data_req['battle_key'])
-            if not rift_battles.count():
-                logging.error(f"Unknown stage for Rift Raid Battle (ID: {data_req['battle_key']})")
-                return
-            dungeon['stage'] = rift_battles.first().stage
-        else:
-            dungeon['dungeon'] = data_req['dungeon_id']
-            dungeon['stage'] = data_req['stage_id']
+        dungeon['dungeon'] = data_req['dungeon_id']
+        dungeon['stage'] = data_req['stage_id']
         dungeon['date'] = datetime.datetime.utcfromtimestamp(data_resp['tvalue'])
         
         if data_resp['win_lose'] == 1:
@@ -218,13 +247,7 @@ def handle_dungeon_run_upload_task(data_resp, data_req):
         # good  ->  [Rune, Rune, Rune]
         # bad   ->  instead of list of Rune objects, it has number objects { "5": Rune , "6": Rune, "7": Rune}
         # so, using monster_id from request data, if exists in database
-        if command == 'BattleRiftOfWorldsRaidResult':
-            for wizard_monsters in data_req['user_status_list']:
-                if data_resp['wizard_info']['wizard_id'] == wizard_monsters['wizard_id']:
-                    data_monsters = wizard_monsters['unit_id_list']
-                    break
-        else:
-            data_monsters = data_req['unit_id_list']
+        data_monsters = data_req['unit_id_list']
 
         for temp_monster in data_monsters:
             mon = Monster.objects.filter(id=temp_monster['unit_id'])
@@ -249,14 +272,15 @@ def handle_rift_dungeon_start_upload_task(data_resp, data_req):
         wizard, created = Wizard.objects.update_or_create(id=data_resp['wizard_info']['wizard_id'], defaults=parse_wizard(data_resp['wizard_info'], data_resp['tvalue']))
         dungeon['wizard'] = Wizard.objects.get(id=data_resp['wizard_info']['wizard_id'])
 
-        monsters = list()
         for temp_monster in data_req['unit_id_list']:
             mon = Monster.objects.filter(id=temp_monster['unit_id'])
             if mon.count() > 0:
-                monsters.append(mon.first())
+                temp_monster_instance = mon.first()
+                dungeon['monster_' + str(temp_monster['slot_index'])] = temp_monster_instance
+                if data_req['leader_index'] == temp_monster['slot_index']:
+                    dungeon['leader'] = temp_monster_instance
 
         obj, created = RiftDungeonRun.objects.update_or_create(battle_key=dungeon['battle_key'], defaults=dungeon)
-        obj.monsters.set(monsters)
         obj.save()
         logger.debug(f"Successfuly created Rift Dungeon ({dungeon['dungeon']}) Start for {data_resp['wizard_info']['wizard_id']}")
     except Exception as e: # to find all exceptions and fix them without breaking the whole app, it is a temporary solution
@@ -931,16 +955,13 @@ def get_dungeon_by_stage_task(request_get, name, stage):
     dungeon_runs = dungeon_runs.prefetch_related('monsters')
     
     comps = list()
-    nulls = 0
     for _, group in itertools.groupby(list(dungeon_runs.values('id', 'dungeon', 'monsters__id')), lambda item: item["id"]):
-        results = np.array([[mon['monsters__id'], mon['dungeon']] for mon in group if mon['monsters__id']])
-        if not results.shape[0]:
+        results = [mon['monsters__id'] for mon in group if mon['monsters__id']]
+        if not len(results):
             continue
-        mons = results[:, 0].tolist()
-        dungeon_id = results[0, 1]
-        mons.sort()
-        if mons and mons not in comps and len(mons) == get_comp_count(dungeon_id):
-            comps.append(mons)    
+        results.sort()
+        if results and results not in comps and len(results) == 5:
+            comps.append(results)    
 
     try:
         fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
@@ -977,6 +998,68 @@ def get_dungeon_by_stage_task(request_get, name, stage):
     return context
 
 @shared_task
+def get_raid_dungeon_by_stage_task(request_get, stage):
+    is_filter = False
+    filters = list()
+
+    name = 'Rift of Worlds'
+
+    dungeon_runs = RaidDungeonRun.objects.filter(stage=stage)
+    if request_get:
+        is_filter = True
+
+    if 'base' in request_get.keys() and request_get['base']:
+        base = request_get['base'][0].replace('_', ' ')
+        filters.append('Base Monster: ' + base)
+        dungeon_runs_final_ids = list()
+        for i in range(1, 9):
+            dungeon_runs_ids = dungeon_runs.filter(**{f'monster_{i}__base_monster__name': base}).values_list('battle_key', flat=True)
+            if dungeon_runs_ids:
+                dungeon_runs_final_ids += list(dungeon_runs_ids)
+        dungeon_runs = dungeon_runs.filter(battle_key__in=dungeon_runs_final_ids)
+    
+    dungeon_runs = dungeon_runs.prefetch_related('monster_1', 'monster_1__base_monster','monster_2', 'monster_2__base_monster','monster_3', 'monster_3__base_monster','monster_4', 'monster_4__base_monster','monster_5', 'monster_5__base_monster','monster_6', 'monster_6__base_monster','monster_7', 'monster_7__base_monster','monster_8', 'monster_8__base_monster','leader', 'leader__base_monster')
+    dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
+    
+    runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
+    avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
+
+    try:
+        fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
+    except AttributeError:
+        fastest_run = None
+
+    records_personal = sorted(get_raid_dungeon_records_personal(dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
+    base_names, base_quantities = get_raid_dungeon_runs_by_base_class(dungeon_runs)
+
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+    
+        # all
+        'name': name,
+        'stage': 1,
+        'avg_time': str(avg_time),
+        
+        # chart distribution
+        'runs_distribution': runs_distribution['distribution'],
+        'runs_means': runs_distribution['scope'],
+        'runs_colors': create_rgb_colors(runs_distribution['interval']),
+    
+        # chart base
+        'base_names': base_names,
+        'base_quantity': base_quantities,
+        'base_colors': create_rgb_colors(len(base_names)),
+    
+        # personal table
+        'records_personal': records_personal,
+    }
+
+    return context
+
+
+@shared_task
 def get_rift_dungeon_by_stage_task(request_get, name):
     is_filter = False
     filters = list()
@@ -994,30 +1077,27 @@ def get_rift_dungeon_by_stage_task(request_get, name):
     if 'base' in request_get.keys() and request_get['base']:
         base = request_get['base'][0].replace('_', ' ')
         filters.append('Base Monster: ' + base)
-        dungeon_runs_ids = dungeon_runs.filter(monsters__base_monster__name=base).values_list('battle_key', flat=True)
-        dungeon_runs = dungeon_runs.filter(battle_key__in=dungeon_runs_ids)
+        dungeon_runs_final_ids = list()
+        for i in range(1, 9):
+            dungeon_runs_ids = dungeon_runs.filter(**{f'monster_{i}__base_monster__name': base}).values_list('battle_key', flat=True)
+            if dungeon_runs_ids:
+                dungeon_runs_final_ids += list(dungeon_runs_ids)
+        dungeon_runs = dungeon_runs.filter(battle_key__in=dungeon_runs_final_ids)
     
-    dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
+    dungeon_runs = dungeon_runs.prefetch_related('monster_1', 'monster_1__base_monster','monster_2', 'monster_2__base_monster','monster_3', 'monster_3__base_monster','monster_4', 'monster_4__base_monster','monster_5', 'monster_5__base_monster','monster_6', 'monster_6__base_monster','monster_7', 'monster_7__base_monster','monster_8', 'monster_8__base_monster','leader', 'leader__base_monster')
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
     
     damage_distribution = get_rift_dungeon_damage_distribution(dungeon_runs, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
 
 
-    comps = list()
-    for _, group in itertools.groupby(list(dungeon_runs.values('battle_key', 'monsters__id')), lambda item: item["battle_key"]):
-        mons = [mon['monsters__id'] for mon in group if mon['monsters__id']]
-        mons.sort()
-        if mons and mons not in comps and len(mons) == 6:
-            comps.append(mons)  
-
     try:
         highest_damage = dungeon_runs.order_by('-dmg_total').first().dmg_total
     except AttributeError:
         highest_damage = None
 
-    records_personal = sorted(get_rift_dungeon_runs_by_comp(comps, dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
-    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
+    records_personal = sorted(get_rift_dungeon_records_personal(dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
+    base_names, base_quantities = get_rift_dungeon_runs_by_base_class(dungeon_runs)
 
     context = {
         # filters

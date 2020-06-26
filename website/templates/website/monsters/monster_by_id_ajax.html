@@ -8,7 +8,7 @@
 {% load dungeon_to_div_id %}
 {% load concat_arrays %}
 
-{% include "website/monsters/monster_table.html" with monsters=monster|to_list text="Monster's Stats" collapse_id="monster-"|add_str:monster.id collapsed="collapse"%}
+{% include "website/monsters/monster_table.html" with monsters=monster|to_list text="Monster's Stats" collapse_id="monster-"|add_str:monster.id collapsed="show"%}
 <div class="title-container">
 	<h2 class="title">
 		Monster's Cards
@@ -129,19 +129,21 @@
 				</h4>
 			</div>
 			<div>
-				{% for dungeon in records.dungeons|concat_arrays:records.rifts %}
-					{% if dungeon|is_dungeon %}
-						{% if dungeon|is_rift_beast %}
-							<a href="{% url 'rift_dungeon_by_stage' name=dungeon|dungeon_to_div_id %}">
-								<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
-							</a>
-						{% else %}
-							<a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=dungeon.stage %}">
-								<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
-							</a>
-						{% endif %}
-					{% endif %}
+				{% for dungeon in records.dungeons %}
+					<a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=dungeon.stage %}">
+						<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
+					</a>
 				{% endfor %}
+				{% for rift in records.rifts %}
+					<a href="{% url 'rift_dungeon_by_stage' name=rift|dungeon_to_div_id %}">
+						<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:rift %} />
+					</a>
+				{% endfor %}
+				{% if records.raids %}
+					<a href="{% url 'dungeon_by_stage' name='rift of worlds' stage=5 %}">
+						<img class="table-monster-avatar" src={% static 'website/images/dungeons/dungeon_rift_of_worlds.png' %} />
+					</a>
+				{% endif %}
 			</div>
 		{% endif %}
 	</div>

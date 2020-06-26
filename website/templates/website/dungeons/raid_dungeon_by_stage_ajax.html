@@ -7,7 +7,5 @@
 </p>
 
 {% include "website/dungeons/charts/dungeon_chart_distribution.html" with means=runs_means distribution=runs_distribution color=runs_colors %}
-
 {% include "website/dungeons/charts/dungeon_chart_group_by_base.html" with name=base_names color=base_colors count=base_quantity %}
-
-{% include "website/dungeons/dungeon_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" %}
+{% include "website/dungeons/raid_dungeon_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" %}

@@ -213,12 +213,14 @@ def get_dungeons(request):
     rift_dungeons = RiftDungeonRun.objects.values('dungeon', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('dungeon')).order_by('dungeon', '-win')
     dungeons_base = DungeonRun().get_all_dungeons()
     rift_dungeons_base = RiftDungeonRun.get_all_dungeons()
+    raid_dungeons = RaidDungeonRun.objects.values('stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('stage')).order_by('-stage')
+    raid_dungeon_name = 'Rift of Worlds'
+
 
     records = dict()
     for dungeon_base in dungeons_base:
         stages = dict()
         max_stage = 10
-        if dungeon_base == 'Rift of Worlds': max_stage = 5
         for i in range(max_stage, 0, -1):
             stages["B" + str(i)] = {
                 'avg_time': None,
@@ -237,6 +239,18 @@ def get_dungeons(request):
             'loses': None,
         }
         records[rift_dungeon_base] = stages
+    
+    
+    raid_max_stage = 5
+    stages = dict()
+    for i in range(raid_max_stage, 0, -1):
+        stages["B" + str(i)] = {
+            'avg_time': None,
+            'quantity': None,
+            'wins': None,
+            'loses': None,
+        }
+    records[raid_dungeon_name] = stages
 
     for dungeon in dungeons:
         dungeon_name = DungeonRun().get_dungeon_name(dungeon['dungeon'])
@@ -266,6 +280,17 @@ def get_dungeons(request):
             'loses': dungeon_quantity if not rift_dungeon['win'] else records[dungeon_name][dungeon_stage]['loses'],
         }
 
+    for raid_dungeon in raid_dungeons:
+        dungeon_stage = "B" + str(raid_dungeon['stage'])
+        dungeon_quantity = raid_dungeon['quantity']
+
+        records[raid_dungeon_name][dungeon_stage] = {
+            'avg_time': str(raid_dungeon['avg_time']) if raid_dungeon['avg_time'] else records[raid_dungeon_name][dungeon_stage]['avg_time'],
+            'quantity': dungeon_quantity if not records[raid_dungeon_name][dungeon_stage]['quantity'] else records[raid_dungeon_name][dungeon_stage]['quantity'] + dungeon_quantity,
+            'wins': dungeon_quantity if raid_dungeon['win'] else records[raid_dungeon_name][dungeon_stage]['wins'],
+            'loses': dungeon_quantity if not raid_dungeon['win'] else records[raid_dungeon_name][dungeon_stage]['loses'],
+        }
+
     context = {
         'dungeons': records
     }
@@ -273,22 +298,39 @@ def get_dungeons(request):
     return render( request, 'website/dungeons/dungeon_index.html', context)
 
 def get_dungeon_by_stage(request, name, stage):
-    task = get_dungeon_by_stage_task.delay(dict(request.GET), name, stage)
+    if name.lower() == 'rift-of-worlds':
+        task = get_raid_dungeon_by_stage_task.delay(dict(request.GET), stage)
+    else:
+        task = get_dungeon_by_stage_task.delay(dict(request.GET), name, stage)
     
     return render( request, 'website/dungeons/dungeon_by_stage.html', {'task_id': task.id, 'name': name.capitalize().replace('_', ' ').replace('-', ' '), 'stage': stage})
 
 def get_dungeon_by_stage_ajax(request, task_id, name, stage):
     if request.is_ajax():
-        data = get_dungeon_by_stage_task.AsyncResult(task_id) 
+        if name.lower() == 'rift of worlds':
+            data = get_raid_dungeon_by_stage_task.AsyncResult(task_id)
 
-        if data.ready():
-            context = data.get()
+            if data.ready():
+                context = data.get()
 
-            for record in context['records_personal']:
-                record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+                for record in context['records_personal']:
+                    record['frontline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['frontline']]
+                    record['backline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['backline']]
+                    record['leader'] = Monster.objects.get(id=record['leader']) if record['leader'] else None
 
-            html = render_to_string('website/dungeons/dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
-            return HttpResponse(html)
+                html = render_to_string('website/dungeons/raid_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
+                return HttpResponse(html)
+        else:
+            data = get_dungeon_by_stage_task.AsyncResult(task_id) 
+
+            if data.ready():
+                context = data.get()
+
+                for record in context['records_personal']:
+                    record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+
+                html = render_to_string('website/dungeons/dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
+                return HttpResponse(html)
 
     return HttpResponse('')
 
@@ -305,7 +347,9 @@ def get_rift_dungeon_by_stage_ajax(request, task_id, name):
             context = data.get()
             
             for record in context['records_personal']:
-                record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+                record['frontline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['frontline']]
+                record['backline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['backline']]
+                record['leader'] = Monster.objects.get(id=record['leader']) if record['leader'] else None
 
             html = render_to_string('website/dungeons/rift_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
