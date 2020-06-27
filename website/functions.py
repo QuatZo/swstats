@@ -930,29 +930,23 @@ def get_dungeon_runs_by_base_class(dungeon_runs):
 
 def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
     records = list()
+    comps = list()
 
-    for run in dungeon_runs.values('monster_1', 'monster_2', 'monster_3', 'monster_4', 'monster_5', 'monster_6', 'monster_7', 'monster_8', 'leader').annotate(avg_time=Avg('clear_time')):
-        filters = {
-            'monster_1': run['monster_1'],
-            'monster_2': run['monster_2'],
-            'monster_3': run['monster_3'],
-            'monster_4': run['monster_4'],
-            'monster_5': run['monster_5'],
-            'monster_6': run['monster_6'],
-            'monster_7': run['monster_7'],
-            'monster_8': run['monster_8'],
-            'leader': run['leader'],
-        }
+    for run in dungeon_runs.values('monster_1', 'monster_2', 'monster_3', 'monster_4', 'monster_5', 'monster_6', 'monster_7', 'monster_8', 'leader'):
+        if run in comps:
+            continue
+        comps.append(run)
 
-        records_temp = dungeon_runs.filter(**filters)
+        records_temp = dungeon_runs.filter(**run)
         records_count = records_temp.count()
         wins_count = records_temp.filter(win=True).count()
+        avg_time = dungeon_runs.filter(clear_time__isnull=False).aggregate(avg_time=Avg('clear_time'))['avg_time']
 
         record = {
             'frontline': [run[f'monster_{i}'] for i in range(1, 5)],
             'backline': [run[f'monster_{i}'] for i in range(5, 9)],
             'leader': run['leader'],
-            'average_time': run['avg_time'],
+            'average_time': avg_time,
             'wins': wins_count,
             'loses': records_count - wins_count,
             'success_rate': round(wins_count * 100 / records_count, 2),
@@ -1005,21 +999,14 @@ def get_rift_dungeon_damage_distribution(runs, parts):
 
 def get_rift_dungeon_records_personal(dungeon_runs, highest_damage):
     records = list()
+    comps = list()
 
-    for run in dungeon_runs.values('monster_1', 'monster_2', 'monster_3', 'monster_4', 'monster_5', 'monster_6', 'monster_7', 'monster_8', 'leader').annotate(avg_time=Avg('clear_time')):
-        filters = {
-            'monster_1': run['monster_1'],
-            'monster_2': run['monster_2'],
-            'monster_3': run['monster_3'],
-            'monster_4': run['monster_4'],
-            'monster_5': run['monster_5'],
-            'monster_6': run['monster_6'],
-            'monster_7': run['monster_7'],
-            'monster_8': run['monster_8'],
-            'leader': run['leader'],
-        }
+    for run in dungeon_runs.values('monster_1', 'monster_2', 'monster_3', 'monster_4', 'monster_5', 'monster_6', 'monster_7', 'monster_8', 'leader'):
+        if run in comps:
+            continue
+        comps.append(run)
 
-        records_temp = dungeon_runs.filter(**filters)
+        records_temp = dungeon_runs.filter(**run)
         records_count = records_temp.count()
         wins_count = records_temp.filter(win=True).count()
 
