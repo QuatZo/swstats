@@ -97,6 +97,11 @@ def create_bar_plot(x, y, title, colors=None, angle=90):
     fig = go.Figure()
     fig.add_trace(go.Bar(x=x, y=y, marker_color=colors))
 
+    if type(x) is not list:
+        max_len = x.map(len).max()
+    else:
+        max_len = max([len(el) for el in x])
+
     fig.update_layout(
         title=title,
         title_x=.5,
@@ -108,8 +113,20 @@ def create_bar_plot(x, y, title, colors=None, angle=90):
         bargap=0.05,
         xaxis=dict(
             tickangle=angle,
-        )
+            tickmode='linear',
+        ),
     )
+
+    if max_len > 10:
+        fig.update_layout(
+            margin=dict(
+                l=10,
+                r=10,
+                b=max_len * 9.5,
+            ),
+        )
+
+
     return plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)
 
 def generate_plots(monsters, monsters_runes, base_monster, bot=False):
