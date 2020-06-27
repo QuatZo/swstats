@@ -937,7 +937,7 @@ def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
             continue
         comps.append(run)
 
-        records_temp = dungeon_runs.filter(**run)
+        records_temp = dungeon_runs.filter(win__isnull=False, **run)
         records_count = records_temp.count()
         wins_count = records_temp.filter(win=True).count()
         avg_time = dungeon_runs.filter(clear_time__isnull=False).aggregate(avg_time=Avg('clear_time'))['avg_time']
@@ -1006,7 +1006,7 @@ def get_rift_dungeon_records_personal(dungeon_runs, highest_damage):
             continue
         comps.append(run)
 
-        records_temp = dungeon_runs.filter(**run)
+        records_temp = dungeon_runs.filter(win__isnull=False, **run)
         records_count = records_temp.count()
         wins_count = records_temp.filter(win=True).count()
 
