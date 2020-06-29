@@ -338,17 +338,6 @@ def parse_wizard_buildings(decos, wizard_id):
         building['level'] = deco['level']
         obj, created = WizardBuilding.objects.update_or_create( wizard=building['wizard'], building=building['building'], defaults=building, )
 
-def parse_wizard_inventory(inventory):
-    for temp_item in inventory:
-        try:
-            item = dict()
-            item['wizard'] = Wizard.objects.get(id=temp_item['wizard_id'])
-            item['master_item'] = Item.objects.get(item_id=temp_item['item_master_id'], item_type=temp_item['item_master_type'])
-            item['quantity'] = temp_item['item_quantity']
-            obj, created = WizardItem.objects.update_or_create( wizard=item['wizard'], master_item=item['master_item'], defaults=item, )
-        except Item.DoesNotExist:
-            raise RecordDoesNotExist(f"Item with Master ID {temp_item['item_master_type']} & ID {temp_item['item_master_id']} is missing from Database.")
-
 def parse_arena_records(pvp_info, defense_units, wizard_id):
     arena = dict()
     arena['wizard'] = Wizard.objects.get(id=wizard_id)
@@ -940,7 +929,7 @@ def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
         records_temp = dungeon_runs.filter(win__isnull=False, **run)
         records_count = records_temp.count()
         wins_count = records_temp.filter(win=True).count()
-        avg_time = dungeon_runs.filter(clear_time__isnull=False).aggregate(avg_time=Avg('clear_time'))['avg_time']
+        avg_time = records_temp.filter(clear_time__isnull=False).aggregate(avg_time=Avg('clear_time'))['avg_time']
 
         record = {
             'frontline': [run[f'monster_{i}'] for i in range(1, 5)],

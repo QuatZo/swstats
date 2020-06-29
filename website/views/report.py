@@ -54,8 +54,9 @@ def get_monster_info(base_monster):
 
         fusion = MonsterFusion.objects.filter(monster=base_monster)
 
+    family = MonsterBase.objects.filter(family=base_monster.family).order_by('attribute', 'id')
 
-    return monsters, hoh_exist, hoh_date, fusion.exists(), filename, runes
+    return monsters, hoh_exist, hoh_date, fusion.exists(), filename, runes, family
 
 def create_pie_plot(labels, values, title, colors=None):
     fig = go.Figure()
@@ -99,8 +100,10 @@ def create_bar_plot(x, y, title, colors=None, angle=90):
 
     if type(x) is not list:
         max_len = x.map(len).max()
-    else:
+    elif len(x):
         max_len = max([len(el) for el in x])
+    else:
+        max_len = 0
 
     fig.update_layout(
         title=title,
@@ -238,9 +241,22 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     colors = create_rgb_colors(counts.shape[0], True)
 
     top_sets_temp = counts[:min(len(counts), 3)]
-    top_sets_temp = [top_set.replace(' + ', '/') + ' (' + str(round(100 * top_count / len(df))) + '%)' for top_set, top_count in top_sets_temp.to_dict().items()]
+    top_sets_temp = [top_set.replace(' + ', ' / ') + ' (' + str(round(100 * top_count / len(df))) + '%)' for top_set, top_count in top_sets_temp.to_dict().items()]
     for i in range(len(top_sets_temp)):
-        top_sets.append(f'Top {i + 1} sets: {top_sets_temp[i]}')
+        top_sets.append({
+            'id': i+1, 
+            'sets': top_sets_temp[i], 
+            'message': f'{base_monster.name} top {i + 1} set: {top_sets_temp[i]}',
+        })
+
+    if len(top_sets) < 3:
+        for i in range(3 - len(top_sets)):
+            top_sets.append({
+                'id': i + len(top_sets) + 1,
+                'sets': '',
+                'message': '',
+            })
+
 
     plot_sets = create_bar_plot(counts.index, counts, "Sets Distribution <br>(only 6* with equipped runes)", colors)
 
@@ -304,7 +320,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
             data = request.data
             base_monster = MonsterBase.objects.get(id=data)
             
-            monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes = get_monster_info(base_monster)
+            monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes, _ = get_monster_info(base_monster)
 
             plots, _, _, _, _ = generate_plots(monsters, monsters_runes, base_monster)
 
@@ -358,7 +374,7 @@ def get_old_reports(request):
 def create_monster_report_by_bot(monster_id):
     base_monster = MonsterBase.objects.get(id=monster_id)
         
-    monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes = get_monster_info(base_monster)
+    monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes, monster_family = get_monster_info(base_monster)
 
     try:
         plots, most_common_builds, plot_sets, plot_builds, top_sets = generate_plots(monsters, monsters_runes, base_monster, True)
@@ -372,6 +388,7 @@ def create_monster_report_by_bot(monster_id):
     context = {
         'base_monster': base_monster,
         'monsters': monsters,
+        'family': monster_family,
         'hoh': hoh_exist,
         'hoh_date': hoh_date,
         'fusion': fusion_exist,

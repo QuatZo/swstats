@@ -108,7 +108,6 @@ def handle_profile_upload_task(data):
         parse_wizard_buildings(data['deco_list'], wizard['id'])
         parse_arena_records(data['pvp_info'], data['defense_unit_list'], wizard['id'])
         parse_wizard_homunculus(data['homunculus_skill_list'])
-        parse_wizard_inventory(data['inventory_info'])
 
         logger.debug(f"Fully uploaded profile for {data['wizard_info']['wizard_id']}")
     except Exception as e: # to find all exceptions and fix them without breaking the whole app, it is a temporary solution
@@ -1320,7 +1319,7 @@ def generate_bot_reports(monster_id=None):
     if monster_id:
         monsters_base = [monster_id]
     else:
-        monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).values_list('id', flat=True)) # archetype=5 -> Material Monsters, awaken=0 -> Unawakened
+        monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5)).values_list('id', flat=True)) # archetype=5 -> Material Monsters
         monsters_base.sort()
         
     for monster_id in monsters_base:

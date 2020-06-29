@@ -124,23 +124,6 @@ class HomunculusBuildUploadViewSet(viewsets.ViewSet):
         
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
-class ItemUploadViewSet(viewsets.ViewSet):
-     def create(self, request):
-        if request.data:
-            for temp_item in request.data:
-                item = dict()
-                ########################################
-                # Item Model
-                item['item_id'] = temp_item['item_master_id']
-                item['item_type'] = temp_item['item_master_type']
-                item['name'] = temp_item['name']
-                ########################################
-
-                obj, created = Item.objects.update_or_create( item_type=item['item_type'], item_id=item['item_id'], defaults=item, )
-            return HttpResponse(status=status.HTTP_201_CREATED)
-        
-        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
-
 class UploadViewSet(viewsets.ViewSet):
     def create(self, request):
         if request.data:

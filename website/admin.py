@@ -85,12 +85,6 @@ class WizardHomunculusAdmin(admin.ModelAdmin):
 class RuneRTAAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'monster', 'rune' )
 
-class ItemAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'item_id', 'item_type', 'name')
-
-class WizardItemAdmin(admin.ModelAdmin):
-    list_display = ( 'id', 'wizard', 'master_item', 'quantity' )
-
 # live
 class DungeonRunAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'wizard', 'dungeon', 'stage', 'clear_time', 'get_monsters', 'win', 'date' )
@@ -150,8 +144,6 @@ admin.site.register(HomunculusSkill, HomunculusSkillAdmin)
 admin.site.register(HomunculusBuild, HomunculusBuildAdmin)
 admin.site.register(WizardHomunculus, WizardHomunculusAdmin)
 admin.site.register(RuneRTA, RuneRTAAdmin)
-admin.site.register(Item, ItemAdmin)
-admin.site.register(WizardItem, WizardItemAdmin)
 
 # live
 admin.site.register(DungeonRun, DungeonRunAdmin)

@@ -529,44 +529,6 @@ class WizardHomunculus(models.Model):
     class Meta:
         ordering = ['wizard', 'homunculus']
 
-class Item(models.Model):
-    ITEM_TYPES = (
-        (6, "?"),
-        (9, "Scroll"),
-        (11, "Essence"),
-        (12, "Monster Pieces"),
-        (15, "??"),
-        (16, "???"),
-        (19, "????"),
-        (20, "????????"),
-        (29, "Crafting Material"),
-        (37, "?????"),
-        (57, "??????"),
-        (58, "???????"),
-        (61, "Evolve Material"),
-    )
-
-    item_id = models.IntegerField()
-    item_type = models.SmallIntegerField(choices=ITEM_TYPES)
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['item_type', 'item_id']
-
-class WizardItem(models.Model):
-    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE)
-    master_item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
-
-    def __str__(self):
-        return 'x' + str(self.quantity) + ' ' + str(self.master_item)
-
-    class Meta:
-        ordering = ['wizard', 'master_item', '-quantity']
-
 class DungeonRun(models.Model):
     """Uses 'BattleDungeonResult' command"""
     DUNGEON_TYPES = (
