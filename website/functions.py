@@ -752,13 +752,14 @@ def get_monster_records(monster):
         if rift_temp.exists():
             rift_dungeons = list(set(rift_temp.values_list('dungeon', flat=True)))
             for rift_dungeon in rift_dungeons:
-                if rift_dungeon not in rifts:
-                    rifts.append(RiftDungeonRun.objects.filter(dungeon=rift_dungeon).first())
+                rift_name = RiftDungeonRun.objects.filter(dungeon=rift_dungeon).first().get_dungeon_display()
+                if rift_name not in rifts:
+                    rifts.append(rift_name)
                 if len(rifts) == 5:
                     break
 
     has_records = False
-    if siege.exists()  or dungeons.exists() or rifts.exists():
+    if siege.exists()  or dungeons.exists() or len(rifts):
         has_records = True
     return {
         'siege': siege,

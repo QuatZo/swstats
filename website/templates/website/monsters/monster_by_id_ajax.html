@@ -122,7 +122,7 @@
 			</div>
 			{% include "website/siege/siege_table.html" with records=records.siege text="" only_table=True %}
 		{% endif %}
-		{% if records.dungeons %}
+		{% if records.dungeons or records.rifts or records.raids_has %}
 			<div class="title-container">
 				<h4 class="title">
 					Dungeons
