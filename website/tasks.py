@@ -388,8 +388,8 @@ def handle_dimension_hole_run_upload_task(data_resp, data_req):
             dungeon['win'] = True
             time_str = str(data_resp['clear_time']['current_time'])
             _time = {
-                'hour': 0 if int(time_str[:-3]) < 3600 else round(int(time_str[:-3]) / 3600),
-                'minute': 0 if int(time_str[:-3]) < 60 else round(int(time_str[:-3]) / 60),
+                'hour': 0 if int(time_str[:-3]) < 3600 else math.floor(int(time_str[:-3]) / 3600),
+                'minute': 0 if int(time_str[:-3]) < 60 else math.floor(int(time_str[:-3]) / 60),
                 'second': int(time_str[:-3]) if int(time_str[:-3]) < 60 else int(time_str[:-3]) % 60,
                 'microsecond': int(time_str[-3:]) * 1000,
             }
