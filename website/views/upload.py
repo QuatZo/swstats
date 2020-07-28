@@ -158,6 +158,9 @@ class UploadViewSet(viewsets.ViewSet):
             elif request.data['command'] == 'BattleDimensionHoleDungeonResult':
                 handle_dimension_hole_run_upload_task.delay(request.data['response'], request.data['request'])
 
+            elif request.data['command'] == 'GetLobbyWizardLog':
+                handle_wizard_arena_upload_task.delay(request.data['response'], request.data['request'])
+
             return HttpResponse(status=status.HTTP_201_CREATED)
             
         logger.error("Given request is invalid")

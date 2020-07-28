@@ -470,8 +470,8 @@ class Arena(models.Model):
     )
 
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True) # wizard_id
-    wins = models.IntegerField() # arena_win
-    loses = models.IntegerField() # arena_lose
+    wins = models.IntegerField(blank=True, null=True, default=None) # arena_win
+    loses = models.IntegerField(blank=True, null=True, default=None) # arena_lose
     rank = models.IntegerField(choices=ARENA_RANKS, db_index=True) # rating_id
     def_1 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="first_def_monster", null=True, default=None, db_index=True) # defense_unit_list: unit_id & pos_id
     def_2 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="second_def_monster", null=True, default=None, db_index=True)

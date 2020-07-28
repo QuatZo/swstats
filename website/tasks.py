@@ -415,6 +415,24 @@ def handle_dimension_hole_run_upload_task(data_resp, data_req):
     except Exception as e: # to find all exceptions and fix them without breaking the whole app, it is a temporary solution
         log_exception(e, data_resp=data_resp, data_req=data_req)
 
+@shared_task
+def handle_wizard_arena_upload_task(data_resp, data_req):
+    try:
+        if data_req['wizard_id'] == data_req['target_wizard_id'] or data_resp['lobby_wizard_log']['page_no'] != 1:
+            return
+        wizard = {
+            'id': data_req['target_wizard_id'],
+            'last_update': datetime.datetime.utcfromtimestamp(data_resp['tvalue']),
+        }
+        Wizard.objects.update_or_create(id=wizard['id'], defaults=wizard, )
+        arena_rank = {
+            'wizard': Wizard.objects.get(id=wizard['id']),
+            'rank': data_resp['lobby_wizard_log']['pvp_best_rating_id'],
+        }
+        Arena.objects.update_or_create(wizard=arena_rank['wizard'], defaults=arena_rank, )
+    except Exception as e:
+        log_exception(e, data_resp=data_resp, data_req=data_req)
+
 ########################### WEB ###########################
 @shared_task
 def get_homepage_task():

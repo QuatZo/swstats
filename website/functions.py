@@ -385,7 +385,7 @@ def log_exception(e, **kwargs):
     trace_back = traceback.format_exc()
     message = "Unexpected, UNHANDLED error has occured:\n" + str(e) + " " + str(trace_back)
     logger.error(message)
-    logger.error(f"Error parts:", len(kwargs))
+    logger.error(f"Error parts: {len(kwargs)}")
     for key, val in kwargs.items():
         logger.error(key)
         log_request_data(val)

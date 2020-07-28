@@ -172,6 +172,9 @@ LOGGING = {
         '': {
             'level': 'DEBUG',
             'handlers': ['console', 'file']
+        },
+        'matplotlib': {
+            'level': 'WARNING'
         }
     }
 }
