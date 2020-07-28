@@ -541,6 +541,8 @@ class DungeonRun(models.Model):
         (7001, 'Hall of Light'),
         (8001, 'Giants Keep'),
         (9001, 'Dragons Lair'),
+        (10001, '--- PLACEHOLDER ---'),
+        (11001, '--- PLACEHOLDER ---'),
     )
 
     id = models.BigAutoField(primary_key=True, unique=True, db_index=True)
