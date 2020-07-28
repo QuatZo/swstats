@@ -70,7 +70,9 @@ class ArenaAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'wizard', 'wins', 'loses', 'ratio', 'rank', 'def_1', 'def_2', 'def_3', 'def_4')
 
     def ratio(self, obj):
-        return round(obj.wins / obj.loses, 2) if obj.loses > 0 else 0
+        if obj.wins and obj.loses:
+            return round(obj.wins / obj.loses, 2) if obj.loses > 0 else 0
+        return None
 
 class HomunculusSkillAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'name', 'description', 'depth', 'letter')
