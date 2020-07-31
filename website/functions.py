@@ -144,6 +144,115 @@ def parse_runes_rta(rta_runes):
         })
 # endregion
 
+# region ARTIFACTS
+def calc_efficiency_artifact(artifact):
+    primary = artifact['pri_effect']
+    substats = artifact['sec_effects']
+
+    MAINSTAT_MAX = {
+        100: 1500,
+        101: 100,
+        102: 100,
+    }
+
+    # TYPE: [ 1*, 2*, 3*, 4*, 5*, 6* ]
+    SUBSTAT_MAX = {
+        200: 30,
+        201: 30,
+        202: 30,
+        203: 30,
+        204: 20,
+        205: 20,
+        206: 30,
+        207: 30,
+        208: 15,
+        209: 15,
+        210: 15,
+        211: 15,
+        212: 20,
+        213: 15,
+        214: 15,
+        215: 15,
+        216: 15,
+        217: 15,
+        218: 15,
+        219: 20,
+        220: 20,
+        221: 200,
+
+        300: 20,
+        301: 20,
+        302: 20,
+        303: 20,
+        304: 20,
+        305: 30,
+        306: 30,
+        307: 30,
+        308: 30,
+        309: 30,
+
+        400: 30,
+        401: 30,
+        402: 30,
+        403: 30,
+        404: 30,
+        405: 30,
+        406: 30,
+        407: 30,
+        408: 30,
+        409: 30,
+    }
+
+    ratio = 1.00
+
+    # substats
+    for sub in substats:
+        ratio += sub[1] / SUBSTAT_MAX[sub[0]]
+
+    eff_curr = ratio / 2.8 * 100
+    eff_max = eff_curr + max(math.ceil((12 - artifact['level']) / 3), 0) * 0.2 / 2.8 * 100
+
+    return round(eff_curr, 2), round(eff_max, 2)
+
+def parse_artifact(temp_artifact):
+    com2us_keys = ['rid', 'type', 'attribute', 'unit_style', 'level', 'rank', 'natural_rank', 'locked']
+    map_keys = ['id', 'rtype', 'attribute', 'archetype', 'level', 'quality', 'quality_original', 'locked']
+    artifact = dict()
+    temp_artifact_keys = temp_artifact.keys()
+
+    for db, c2u in zip(map_keys, com2us_keys):
+        if c2u in temp_artifact_keys:
+            artifact[db] = temp_artifact[c2u]
+
+    if 'wizard_id' in temp_artifact_keys:
+        artifact['wizard'] = Wizard.objects.get(id=temp_artifact['wizard_id'])
+
+    if 'pri_effect' in temp_artifact_keys and temp_artifact['pri_effect']:
+        artifact['primary'] = temp_artifact['pri_effect'][0]
+        artifact['primary_value'] = temp_artifact['pri_effect'][1]
+
+    artifact['substats'] = []
+    artifact['substats_values'] = []
+
+    if 'sec_effects' in temp_artifact_keys and temp_artifact['sec_effects']:
+        subs = []
+        sub_values = []
+        for sec_effect in temp_artifact['sec_effects']:
+            subs.append(sec_effect[0])
+            sub_values.append(sec_effect[1])
+        
+        artifact['substats'] = subs
+        artifact['substats_values'] = sub_values
+
+        eff_curr, eff_max = calc_efficiency_artifact(temp_artifact)
+        artifact['efficiency'] = eff_curr
+        artifact['efficiency_max'] = eff_max
+
+    artifact['equipped'] = True if 'occupied_id' in temp_artifact_keys and temp_artifact['occupied_id'] > 0 else False
+    
+    obj, created = Artifact.objects.update_or_create( id=artifact['id'], defaults=artifact, )
+# endregion
+
 # region MONSTERS
 def calc_stats(monster, runes):
     base_stats = {
@@ -232,7 +341,28 @@ def parse_monster(temp_monster, buildings = list(), units_locked = list()):
         monster['avg_eff'] = round(sum_eff / len(monster_runes), 2) if len(monster_runes) > 0 else 0.00
         monster['eff_hp'] = stats['hp'] * (1140 + (stats['defense'] * 1 * 3.5)) / 1000
         monster['eff_hp_def_break'] = stats['hp'] * (1140 + (stats['defense'] * .3 * 3.5)) / 1000 # defense break = -70% defense
+    else:
+        monster['avg_eff'] = 0.00
     ####################
+
+    if 'artifacts' in temp_monster_keys and temp_monster['artifacts']:
+        monster_artifacts = [Artifact.objects.get(id=artifact['rid']) for artifact in temp_monster['artifacts']]
+        sum_eff_artifacts = 0
+        for monster_artifact in monster_artifacts:
+            sum_eff_artifacts += monster_artifact.efficiency
+        monster['avg_eff_artifacts'] = round(sum_eff_artifacts / len(monster_artifacts), 2) if len(monster_artifacts) > 0 else 0.00
+    else:
+        monster['avg_eff_artifacts'] = 0.00
+    
+    monster['avg_eff_total'] = 0.00
+    eff_len = 0
+    if 'avg_eff' in monster.keys():
+        monster['avg_eff_total'] += monster['avg_eff'] * len(monster_runes)
+        eff_len += len(monster_runes)
+    if 'avg_eff_artifacts' in monster.keys() and monster['avg_eff_artifacts'] > 0:
+        monster['avg_eff_total'] += monster['avg_eff_artifacts'] * len(monster_artifacts)
+        eff_len += len(monster_artifacts)
+    monster['avg_eff_total'] = round(monster['avg_eff_total'] / eff_len, 2) if eff_len > 0 else 0.00
 
     if 'skills' in temp_monster_keys:
         monster['skills'] = [skill[1] for skill in temp_monster['skills']]

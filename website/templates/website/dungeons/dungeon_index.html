@@ -6,7 +6,6 @@
 {% endblock %}
 
 {% block ajax_container %} 
-    <center><h3>We have introduced Frontline - Backline functionality. It means that for Rift & Raids you can now check whole setup (with placement). Sadly, all Rift & Raids records needed to be deleted (new structure).</h3></center><br />
     <div class="row">
         {% for dungeon, info in dungeons.items %}
             {% include 'website/dungeons/dungeon_card.html' with dungeon=dungeon info=info %}
