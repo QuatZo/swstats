@@ -220,7 +220,7 @@ def get_dungeons(request):
     records = dict()
     for dungeon_base in dungeons_base:
         stages = dict()
-        max_stage = 10
+        max_stage = 12 if DungeonRun().get_dungeon_id(dungeon_base) in [6001, 8001, 9001] else 10
         for i in range(max_stage, 0, -1):
             stages["B" + str(i)] = {
                 'avg_time': None,

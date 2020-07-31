@@ -36,14 +36,17 @@ class MonsterSourceAdmin(admin.ModelAdmin):
 
 class MonsterAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'wizard', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'eff_hp', 'eff_hp_def_break', 
-        'skills', 'get_runes', 'created', 'source', 'transmog', 'storage', 'locked'
+        'id', 'wizard', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'avg_eff_artifacts',
+        'avg_eff_total', 'eff_hp', 'eff_hp_def_break', 'skills', 'get_runes', 'get_artifacts', 'created', 'source', 'transmog', 'storage', 'locked'
     )
     
-    filter_horizontal=('runes', )
+    filter_horizontal=('runes', 'artifacts')
 
     def get_runes(self, obj):
         return "\n".join([str(rune) for rune in obj.runes.all()])
+        
+    def get_artifacts(self, obj):
+        return "\n".join([str(rune) for artifact in obj.artifacts.all()])
 
 class MonsterRepAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'wizard', 'monster' )
@@ -124,6 +127,9 @@ class DimensionHoleRunAdmin(admin.ModelAdmin):
     def get_monsters(self, obj):
         return "\n".join([str(monster) for monster in obj.monsters.all()])
 
+class ArtifactAdmin(admin.ModelAdmin):
+    list_display = ('id', 'wizard', 'rtype', 'attribute', 'archetype', 'level', 'primary', 'primary_value', 'substats', 'substats_values', 'quality', 'quality_original', 'efficiency', 'efficiency_max', 'equipped', 'locked')
+
 # Register your models here.
 admin.site.register(Command, CommandAdmin)
 
@@ -146,6 +152,7 @@ admin.site.register(HomunculusSkill, HomunculusSkillAdmin)
 admin.site.register(HomunculusBuild, HomunculusBuildAdmin)
 admin.site.register(WizardHomunculus, WizardHomunculusAdmin)
 admin.site.register(RuneRTA, RuneRTAAdmin)
+admin.site.register(Artifact, ArtifactAdmin)
 
 # live
 admin.site.register(DungeonRun, DungeonRunAdmin)

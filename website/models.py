@@ -225,6 +225,145 @@ class Rune(models.Model):
             if primary == stat:
                 return key
 
+class Artifact(models.Model):
+    ARTIFACT_QUALITIES = (
+        (0, 'Unknown'),
+        (1, 'Common'),
+        (2, 'Magic'),
+        (3, 'Rare'),
+        (4, 'Hero'),
+        (5, 'Legend'),
+    )
+
+    ARTIFACT_TYPES = (
+        (1, "Attribute"),
+        (2, "Archetype")
+    )
+
+    ARTIFACT_ATTRIBUTES = (
+        (1, "Water"),
+        (2, "Fire"),
+        (3, "Wind"),
+        (4, "Light"),
+        (5, "Dark"),
+    )
+
+    ARTIFACT_ARCHETYPES = (
+        (1, "Attack"),
+        (2, "Defense"),
+        (3, "HP"),
+        (4, "Support"),
+    )
+
+    ARTIFACT_PRIMARY_EFFECTS = (
+        (100, 'HP+'),
+        (101, 'ATK+'),
+        (102, 'DEF+'),
+    )
+
+    ARTIFACT_EFFECTS_COMMON = (
+        (200, "ATK+ Proportional to Lost HP up to %"),
+        (201, "DEF+ Proportional to Lost HP up to %"),
+        (202, "SPD Proportional to Lost HP up to %"),
+        (203, "SPD Under Inability Effects +%"),
+        (204, "ATK Increasing Effect +%"),
+        (205, "DEF Increasing Effect +%"),
+        (206, "SPD Increasing Effect +%"),
+        (207, "Crit Rate Increasing Effect +%"),
+        (208, "Damage Dealt by Counterattack +%"),
+        (209, "Damage Dealt by Attacking Together +%"),
+        (210, "Bomb Damage +%"),
+        (211, "Damage Dealt by Reflect DMG +%"),
+        (212, "Crushing Hit DMG +%"),
+        (213, "Damage Received Under Inability Effect -%"),
+        (214, "Received Crit DMG -%"),
+        (215, "Life Drain +%"),
+        (216, "HP when Revived +%"),
+        (217, "Attack Bar when Revived +%"),
+        (218, "Additional Damage by % of HP"),
+        (219, "Additional Damage by % of ATK"),
+        (220, "Additional Damage by % of DEF"),
+        (221, "Additional Damage by % of SPD"),
+    )
+
+    ARTIFACT_EFFECTS_ATTRIBUTE = ARTIFACT_EFFECTS_COMMON + (
+        (300, "Damage Dealt on Fire +%"),
+        (301, "Damage Dealt on Water +%"),
+        (302, "Damage Dealt on Wind +%"),
+        (303, "Damage Dealt on Light +%"),
+        (304, "Damage Dealt on Dark +%"),
+        (305, "Damage Received from Fire -%"),
+        (306, "Damage Received from Water -%"),
+        (307, "Damage Received from Wind -%"),
+        (308, "Damage Received from Light -%"),
+        (309, "Damage Received from Dark -%"),
+    )
+
+    ARTIFACT_EFFECTS_ARCHETYPE = ARTIFACT_EFFECTS_COMMON + (
+        (400, "Skill 1 CRIT DMG +%"),
+        (401, "Skill 2 CRIT DMG +%"),
+        (402, "Skill 3 CRIT DMG +%"),
+        (403, "Skill 4 CRIT DMG +%"),
+        (404, "Skill 1 Recovery +%"),
+        (405, "Skill 2 Recovery +%"),
+        (406, "Skill 3 Recovery +%"),
+        (407, "Skill 1 Accuracy +%"),
+        (408, "Skill 2 Accuracy +%"),
+        (409, "Skill 3 Accuracy +%"),
+    )
+
+    id = models.BigIntegerField(primary_key=True, unique=True, db_index=True) # rid
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True) # wizard_id
+    rtype = models.SmallIntegerField(choices=ARTIFACT_TYPES, db_index=True) # type
+    attribute = models.SmallIntegerField(choices=ARTIFACT_ATTRIBUTES, blank=True, null=True, db_index=True) # type
+    archetype = models.SmallIntegerField(choices=ARTIFACT_ARCHETYPES, blank=True, null=True, db_index=True) # type
+    level_max = 15
+    level = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(level_max)], db_index=True) # level
+    primary = models.SmallIntegerField(choices=ARTIFACT_PRIMARY_EFFECTS, db_index=True) # pri_effects[0][0]
+    primary_value = models.IntegerField(db_index=True) # pri_effects[0][1]
+    substats = ArrayField(models.IntegerField(null=True, blank=True, db_index=True)) # sec_effects ==> [0] - Type; [2] - Roll
+    substats_values = ArrayField(models.IntegerField(null=True, blank=True, db_index=True)) # sec_effects ==> [1] - Value;
+    quality = models.SmallIntegerField(choices=ARTIFACT_QUALITIES, db_index=True) # rank
+    quality_original = models.SmallIntegerField(choices=ARTIFACT_QUALITIES, db_index=True) # natural_rank
+    efficiency = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # to calculate in views
+    efficiency_max = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # to calculate in views
+    equipped = models.BooleanField(db_index=True) # occupied_id (0 - inventory, else Monster ID)
+    locked = models.BooleanField(db_index=True) # locked
+
+    def get_substat_display(self, substat):
+        effects = dict(self.ARTIFACT_EFFECTS_ATTRIBUTE)
+        if self.rtype == 2:
+            effects = dict(self.ARTIFACT_EFFECTS_ARCHETYPE)
+        return effects[substat]
+
+    def __str__(self):
+        if self.rtype == 1:
+            return str(self.get_attribute_display()) + ' ' + str(self.get_primary_display()) + str(self.primary_value) + ' (eff: ' + str(self.efficiency) + ')'
+        return str(self.get_archetype_display()) + ' ' + str(self.get_primary_display()) + str(self.primary_value) + ' (eff: ' + str(self.efficiency) + ')'
+
+    class Meta:
+        ordering = ['rtype', 'attribute', 'archetype', '-efficiency', '-quality_original']
+
+    @classmethod
+    def get_artifact_quality(cls, number):
+        return dict(cls.ARTIFACT_QUALITIES)[number]
+
+    @classmethod
+    def get_artifact_quality_id(cls, name):
+        for key, quality in dict(cls.ARTIFACT_QUALITIES).items():
+            if quality == name:
+                return key
+
+    @classmethod
+    def get_artifact_primary(cls, number):
+        return dict(cls.ARTIFACT_PRIMARY_EFFECTS)[number]
+
+    @classmethod
+    def get_artifact_primary_id(cls, name):
+        for key, primary in dict(cls.ARTIFACT_PRIMARY_EFFECTS).items():
+            if primary == name:
+                return key
+
 class MonsterFamily(models.Model):
     id = models.IntegerField(primary_key=True, unique=True, db_index=True) # unit_master_id, first 3 characters
     name = models.CharField(max_length=30, db_index=True) # mapping
@@ -350,12 +489,15 @@ class Monster(models.Model):
     crit_rate = models.IntegerField(db_index=True) # critical_rate
     crit_dmg = models.IntegerField(db_index=True) # critical_damage
     avg_eff = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # sum(rune_eff) / len(runes)
+    avg_eff_artifacts = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # sum(artifacts_eff) / len(artifacts)
+    avg_eff_total = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # (avg_eff + avg_eff_artifacts) / (len(runes) + len(artifacts))
     eff_hp = models.IntegerField(validators=[MinValueValidator(0.00)], db_index=True)
     eff_hp_def_break = models.IntegerField(validators=[MinValueValidator(0.00)], db_index=True)
     ############################################
 
     skills = ArrayField( models.IntegerField(db_index=True) ) # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already
     runes = models.ManyToManyField(Rune, related_name='equipped_runes', related_query_name='equipped_runes', blank=True, db_index=True) # runes
+    artifacts = models.ManyToManyField(Artifact, related_name='equipped_artifacts', related_query_name='equipped_artifacts', blank=True, db_index=True) # artifacts
     created = models.DateTimeField(db_index=True) # create_time
     source = models.ForeignKey(MonsterSource, on_delete=models.PROTECT) # source
     transmog = models.BooleanField() # costume_master_id
@@ -541,6 +683,8 @@ class DungeonRun(models.Model):
         (7001, 'Hall of Light'),
         (8001, 'Giants Keep'),
         (9001, 'Dragons Lair'),
+        (9501, 'Steel Fortress'),
+        (9502, 'Punishers Crypt'),
     )
 
     id = models.BigAutoField(primary_key=True, unique=True, db_index=True)
