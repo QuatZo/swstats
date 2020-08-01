@@ -1,0 +1,1 @@
+pg_dump --column-inserts -t "website_*" -f /opt/swstats/swstats.sql swstats -U postgres

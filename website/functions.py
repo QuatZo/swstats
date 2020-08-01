@@ -736,9 +736,11 @@ def get_artifact_list_grouped_by_primary(artifacts):
 
 def get_artifact_list_grouped_by_attribute(artifacts):
     """Return names, amount of attribute and quantity of artifact in every attribute in given artifacts list."""
-    group_by_attribute = artifacts.exclude(attribute=0).values('attribute').annotate(total=Count('attribute')).order_by('-total')
+    group_by_attribute = artifacts.exclude(attribute=0).exclude(attribute__isnull=True).values('attribute').annotate(total=Count('attribute')).order_by('-total')
     attribute_name = list()
     attribute_count = list()
+
+    print(group_by_attribute)
 
     for group in group_by_attribute:
         attribute_name.append(Artifact().get_artifact_attribute(group['attribute']))
@@ -748,7 +750,7 @@ def get_artifact_list_grouped_by_attribute(artifacts):
 
 def get_artifact_list_grouped_by_archetype(artifacts):
     """Return names, amount of archetype and quantity of artifact in every archetype in given artifacts list."""
-    group_by_archetype = artifacts.exclude(archetype=0).values('archetype').annotate(total=Count('archetype')).order_by('-total')
+    group_by_archetype = artifacts.exclude(archetype=0).exclude(archetype__isnull=True).values('archetype').annotate(total=Count('archetype')).order_by('-total')
     archetype_name = list()
     archetype_count = list()
 
