@@ -286,7 +286,7 @@ class Artifact(models.Model):
         (221, "Additional Damage by % of SPD"),
     )
 
-    ARTIFACT_EFFECTS_ATTRIBUTE = ARTIFACT_EFFECTS_COMMON + (
+    ARTIFACT_EFFECTS_ATTRIBUTE_ONLY = (
         (300, "Damage Dealt on Fire +%"),
         (301, "Damage Dealt on Water +%"),
         (302, "Damage Dealt on Wind +%"),
@@ -299,7 +299,9 @@ class Artifact(models.Model):
         (309, "Damage Received from Dark -%"),
     )
 
-    ARTIFACT_EFFECTS_ARCHETYPE = ARTIFACT_EFFECTS_COMMON + (
+    ARTIFACT_EFFECTS_ATTRIBUTE = ARTIFACT_EFFECTS_COMMON + ARTIFACT_EFFECTS_ATTRIBUTE_ONLY
+
+    ARTIFACT_EFFECTS_ARCHETYPE_ONLY = (
         (400, "Skill 1 CRIT DMG +%"),
         (401, "Skill 2 CRIT DMG +%"),
         (402, "Skill 3 CRIT DMG +%"),
@@ -312,6 +314,10 @@ class Artifact(models.Model):
         (409, "Skill 3 Accuracy +%"),
     )
 
+    ARTIFACT_EFFECTS_ARCHETYPE = ARTIFACT_EFFECTS_COMMON + ARTIFACT_EFFECTS_ARCHETYPE_ONLY
+
+    ARTIFACT_EFFECTS_ALL = ARTIFACT_EFFECTS_COMMON + ARTIFACT_EFFECTS_ATTRIBUTE_ONLY + ARTIFACT_EFFECTS_ARCHETYPE_ONLY
+
     id = models.BigIntegerField(primary_key=True, unique=True, db_index=True) # rid
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True) # wizard_id
     rtype = models.SmallIntegerField(choices=ARTIFACT_TYPES, db_index=True) # type
@@ -322,7 +328,7 @@ class Artifact(models.Model):
     primary = models.SmallIntegerField(choices=ARTIFACT_PRIMARY_EFFECTS, db_index=True) # pri_effects[0][0]
     primary_value = models.IntegerField(db_index=True) # pri_effects[0][1]
     substats = ArrayField(models.IntegerField(null=True, blank=True, db_index=True)) # sec_effects ==> [0] - Type; [2] - Roll
-    substats_values = ArrayField(models.IntegerField(null=True, blank=True, db_index=True)) # sec_effects ==> [1] - Value;
+    substats_values = ArrayField(models.FloatField(null=True, blank=True, db_index=True)) # sec_effects ==> [1] - Value;
     quality = models.SmallIntegerField(choices=ARTIFACT_QUALITIES, db_index=True) # rank
     quality_original = models.SmallIntegerField(choices=ARTIFACT_QUALITIES, db_index=True) # natural_rank
     efficiency = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # to calculate in views
@@ -345,6 +351,26 @@ class Artifact(models.Model):
         ordering = ['rtype', 'attribute', 'archetype', '-efficiency', '-quality_original']
 
     @classmethod
+    def get_artifact_rtype(cls, number):
+        return dict(cls.ARTIFACT_TYPES)[number]
+
+    @classmethod
+    def get_artifact_rtype_id(cls, name):
+        for key, rtype in dict(cls.ARTIFACT_TYPES).items():
+            if rtype == name:
+                return key
+    
+    @classmethod
+    def get_artifact_primary(cls, number):
+        return dict(cls.ARTIFACT_PRIMARY_EFFECTS)[number]
+
+    @classmethod
+    def get_artifact_primary_id(cls, name):
+        for key, primary in dict(cls.ARTIFACT_PRIMARY_EFFECTS).items():
+            if primary == name:
+                return key
+
+    @classmethod
     def get_artifact_quality(cls, number):
         return dict(cls.ARTIFACT_QUALITIES)[number]
 
@@ -363,6 +389,30 @@ class Artifact(models.Model):
         for key, primary in dict(cls.ARTIFACT_PRIMARY_EFFECTS).items():
             if primary == name:
                 return key
+
+    @classmethod
+    def get_artifact_attribute(cls, number):
+        return dict(cls.ARTIFACT_ATTRIBUTES)[number]
+
+    @classmethod
+    def get_artifact_attribute_id(cls, name):
+        for key, attribute in dict(cls.ARTIFACT_ATTRIBUTES).items():
+            if attribute == name:
+                return key
+    
+    @classmethod
+    def get_artifact_archetype(cls, number):
+        return dict(cls.ARTIFACT_ARCHETYPES)[number]
+
+    @classmethod
+    def get_artifact_archetype_id(cls, name):
+        for key, archetype in dict(cls.ARTIFACT_ARCHETYPES).items():
+            if archetype == name:
+                return key
+
+    @classmethod
+    def get_artifact_substat(cls, number):
+        return dict(cls.ARTIFACT_EFFECTS_ALL)[number]
 
 class MonsterFamily(models.Model):
     id = models.IntegerField(primary_key=True, unique=True, db_index=True) # unit_master_id, first 3 characters

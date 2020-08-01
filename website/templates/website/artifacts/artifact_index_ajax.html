@@ -1,0 +1,35 @@
+{% load add_str %}
+
+{% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %} 
+
+<!-- Normal Distribution Chart -->
+{% include "website/artifacts/charts/artifact_chart_distribution.html" with means=all_means distribution=all_distribution color=all_color %}
+
+<div class='chart'>
+    <!-- Artifacts Grouped By Quality Chart -->
+    {% include "website/artifacts/charts/artifact_chart_group_by_quality.html" with name=quality_name color=quality_color count=quality_count class='chart-2' %}
+    
+    <!-- Artifacts Grouped By Original Quality Chart -->
+    {% include "website/artifacts/charts/artifact_chart_group_by_quality_original.html" with name=quality_original_name color=quality_original_color count=quality_original_count class='chart-2 right' %}    
+</div>
+
+<div class='chart'>
+    <!-- Artifacts Grouped By Type Chart -->
+    {% include "website/artifacts/charts/artifact_chart_group_by_rtype.html" with name=rtype_name color=rtype_color count=rtype_count class='chart-2' %}
+
+    <!-- Artifacts Grouped By Primary Chart -->
+    {% include "website/artifacts/charts/artifact_chart_group_by_primary.html" with name=primary_name color=primary_color count=primary_count class='chart-2 right' %}
+</div>
+
+<div class='chart'>
+    <!-- Artifacts Grouped By Attribute Chart -->
+    {% include "website/artifacts/charts/artifact_chart_group_by_attribute.html" with name=attribute_name color=attribute_color count=attribute_count class='chart-2' %}
+
+    <!-- Artifacts Grouped By Archetype Chart -->
+    {% include "website/artifacts/charts/artifact_chart_group_by_archetype.html" with name=archetype_name color=archetype_color count=archetype_count class='chart-2 right' %}
+</div>
+
+
+{% with "Top "|add_str:best_amount|add_str:" artifacts" as text %}
+    {% include "website/artifacts/artifact_table.html" with artifacts=best_artifacts collapse_id="top_artifacts" text=text collapsed="collapse" %}
+{% endwith %}

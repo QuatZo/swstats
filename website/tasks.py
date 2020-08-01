@@ -685,6 +685,137 @@ def get_rune_by_id_task(request_get, arg_id):
     return context
 
 @shared_task
+def get_artifacts_task(request_get):
+    artifacts = Artifact.objects.order_by('-efficiency')
+
+    is_filter = False 
+    filters = list()
+
+    if request_get:
+        is_filter = True
+
+    if 'rtype' in request_get.keys() and request_get['rtype']:
+        filters.append('Type: ' + request_get['rtype'][0])
+        rtype_id = Artifact().get_artifact_rtype_id(request_get['rtype'][0])
+        artifacts = artifacts.filter(rtype=rtype_id)
+
+    if 'primary' in request_get.keys() and request_get['primary']:
+        filters.append('Primary: ' + request_get['primary'][0])
+        primary_id = Artifact().get_artifact_primary_id(request_get['primary'][0])
+        artifacts = artifacts.filter(primary=primary_id)
+    
+    if 'quality' in request_get.keys() and request_get['quality']:
+        filters.append('Quality: ' + request_get['quality'][0])
+        quality_id = Artifact().get_artifact_quality_id(request_get['quality'][0])
+        artifacts = artifacts.filter(quality=quality_id)
+    
+    if 'quality-original' in request_get.keys() and request_get['quality-original']:
+        filters.append('Original Quality: ' + request_get['quality-original'][0])
+        quality_original_id = Artifact().get_artifact_quality_id(request_get['quality-original'][0])
+        artifacts = artifacts.filter(quality_original=quality_original_id)
+
+    if 'attribute' in request_get.keys() and request_get['attribute']:
+        filters.append('Element: ' + request_get['attribute'][0])
+        attribute_id = Artifact().get_artifact_attribute_id(request_get['attribute'][0])
+        artifacts = artifacts.filter(attribute=attribute_id)
+
+    if 'archetype' in request_get.keys() and request_get['archetype']:
+        filters.append('Archetype: ' + request_get['archetype'][0])
+        archetype_id = Artifact().get_artifact_archetype_id(request_get['archetype'][0])
+        artifacts = artifacts.filter(archetype=archetype_id)
+
+    artifacts_count = artifacts.count()
+    
+    normal_distribution_artifacts = get_rune_list_normal_distribution(artifacts, min(40, artifacts_count), artifacts_count)
+    
+    artifacts_by_rtype = get_artifact_list_grouped_by_rtype(artifacts)
+    artifacts_by_primary = get_artifact_list_grouped_by_primary(artifacts)
+    artifacts_by_quality = get_artifact_list_grouped_by_quality(artifacts)
+    artifacts_by_quality_original = get_artifact_list_grouped_by_quality_original(artifacts)
+    artifacts_by_attribute = get_artifact_list_grouped_by_attribute(artifacts)
+    artifacts_by_archetype = get_artifact_list_grouped_by_archetype(artifacts)
+
+    best_artifacts = get_rune_list_best(artifacts, 100, artifacts_count)
+    best_artifacts_ids = [artifact.id for artifact in best_artifacts]
+    
+    context = {
+        # filters
+        'is_filter': is_filter,
+        'filters': '[' + ', '.join(filters) + ']',
+
+        # chart distribution
+        'all_distribution': normal_distribution_artifacts['distribution'],
+        'all_means': normal_distribution_artifacts['scope'],
+        'all_color': create_rgb_colors(normal_distribution_artifacts['interval']),
+
+        # chart group by rtype
+        'rtype_name': artifacts_by_rtype['name'],
+        'rtype_count': artifacts_by_rtype['quantity'],
+        'rtype_color': create_rgb_colors(artifacts_by_rtype['length']),
+
+        # chart group by primary
+        'primary_name': artifacts_by_primary['name'],
+        'primary_count': artifacts_by_primary['quantity'],
+        'primary_color': create_rgb_colors(artifacts_by_primary['length']),
+
+        # chart group by quality
+        'quality_name': artifacts_by_quality['name'],
+        'quality_count': artifacts_by_quality['quantity'],
+        'quality_color': create_rgb_colors(artifacts_by_quality['length']),
+
+        # chart group by original quality
+        'quality_original_name': artifacts_by_quality_original['name'],
+        'quality_original_count': artifacts_by_quality_original['quantity'],
+        'quality_original_color': create_rgb_colors(artifacts_by_quality_original['length']),
+        
+        # chart group by attribute
+        'attribute_name': artifacts_by_attribute['name'],
+        'attribute_count': artifacts_by_attribute['quantity'],
+        'attribute_color': create_rgb_colors(artifacts_by_attribute['length']),
+        
+        # chart group by archetype
+        'archetype_name': artifacts_by_archetype['name'],
+        'archetype_count': artifacts_by_archetype['quantity'],
+        'archetype_color': create_rgb_colors(artifacts_by_archetype['length']),
+
+        # table best by efficiency
+        'best_artifacts_ids': best_artifacts_ids,
+        'best_amount': len(best_artifacts),
+    }
+
+    return context
+
+@shared_task
+def get_artifact_by_id_task(request_get, arg_id):
+    artifact = get_object_or_404(Artifact.objects.prefetch_related('equipped_artifacts'), id=arg_id)
+    artifacts = Artifact.objects.all()
+
+    artifact_category_rtype = artifacts.filter(rtype=artifact.rtype)
+    artifact_category_attribute = artifacts.filter(attribute=artifact.attribute)
+    artifact_category_archetype = artifacts.filter(archetype=artifact.archetype)
+
+    similar_ids = get_artifact_similar(artifacts, artifact)
+
+    ranks = {
+        'normal': {
+            'efficiency': get_rune_rank_eff(artifacts, artifact),
+        },
+        'categorized': {
+            'efficiency_type': get_rune_rank_eff(artifact_category_rtype, artifact),
+            'efficiency_attribute': get_rune_rank_eff(artifact_category_attribute, artifact),
+            'efficiency_archetype': get_rune_rank_eff(artifact_category_archetype, artifact),
+        }
+    }
+
+    context = {
+        'ranks': ranks,
+        'similar_ids': similar_ids,
+        'arg_id': arg_id,
+    }
+
+    return context
+
+@shared_task
 def get_monsters_task(request_get):
     monsters = Monster.objects.order_by('-avg_eff')   
     is_filter = False 

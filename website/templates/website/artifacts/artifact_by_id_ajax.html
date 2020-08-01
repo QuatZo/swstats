@@ -1,0 +1,48 @@
+{% load add_str %}
+{% load add_reverse_str %}
+{% load to_list %}
+
+{% include "website/artifacts/artifact_table.html" with artifacts=artifact|to_list text="Artifact (ID: "|add_str:artifact.id|add_str:")" collapse_id="artifact-"|add_str:artifact.id collapsed="show"%}
+<div class="title-container">
+	<h2 class="title">
+		Artifact's Cards
+	</h2>
+	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 
+		Show/Hide 
+	</button>
+</div>
+<div class="row collapse" id="substat-row">
+	{% if ranks.normal.efficiency %}{% include "website/artifacts/artifact_card.html" with header='Efficiency' rank=ranks.normal.efficiency value=artifact.efficiency|add_str:'%' %}{% endif %}
+</div>
+
+<div class="title-container">
+	<h2 class="title">
+		Artifacts's Categorized Cards
+	</h2>
+	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-categorized-row" aria-expanded="true" aria-controls="#substat-categorized-row"> 
+		Show/Hide 
+	</button>
+</div>
+<div class="row collapse" id="substat-categorized-row">
+	{% if ranks.categorized.efficiency_type %}{% include "website/artifacts/artifact_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_type value=artifact.efficiency|add_str:'%' categorized=True category="type "|add_str:artifact.get_rtype_display %}{% endif %}
+	{% if ranks.categorized.efficiency_attribute and artifact.attribute %}{% include "website/artifacts/artifact_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_attribute value=artifact.efficiency|add_str:'%' categorized=True category="element "|add_str:artifact.get_attribute_display %}{% endif %}
+	{% if ranks.categorized.efficiency_archetype and artifact.archetype %}{% include "website/artifacts/artifact_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_archetype value=artifact.efficiency|add_str:'%' categorized=True category="archetype "|add_str:artifact.get_archetype_display %}{% endif %}
+</div>
+
+{% if artifact.equipped_artifacts %}
+	<div class="title-container">
+		<h2 class="title">
+			Monsters
+		</h2>
+		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-row" aria-expanded="true" aria-controls="#monster-row"> 
+			Show/Hide 
+		</button>
+	</div>
+	<div class="row collapse" id="monster-row">
+		{% for monster in artifact.equipped_artifacts.all %}
+			{% include "website/monsters/monster_card_compressed.html" with name=monster monster=monster %}
+		{% endfor %}
+	</div>
+{% endif %}
+
+{% include "website/artifacts/artifact_table.html" with artifacts=similar_artifacts text="Similar Artifacts (up to 50 randomly chosen)" collapse_id="artifact-"|add_str:artifact.id|add_str:"-similar" collapsed="collapse"%}

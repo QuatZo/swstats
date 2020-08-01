@@ -97,6 +97,46 @@ def get_rune_by_id_ajax(request, task_id, arg_id):
 
     return HttpResponse('')
 
+def get_artifacts(request):
+    task = get_artifacts_task.delay(dict(request.GET))
+
+    return render( request, 'website/artifacts/artifact_index.html', {'task_id': task.id})
+
+def get_artifacts_ajax(request, task_id):
+    if request.is_ajax():
+        data = get_artifacts_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['best_artifacts'] = Artifact.objects.filter(id__in=context['best_artifacts_ids']).order_by('-efficiency')
+            
+            html = render_to_string('website/artifacts/artifact_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
+def get_artifact_by_id(request, arg_id):
+    task = get_artifact_by_id_task.delay(dict(request.GET), arg_id)
+    artifact = get_object_or_404(Artifact.objects.prefetch_related('equipped_artifacts'), id=arg_id)
+    
+    return render( request, 'website/artifacts/artifact_by_id.html', {'task_id': task.id, 'artifact': artifact, 'arg_id': arg_id})
+
+def get_artifact_by_id_ajax(request, task_id, arg_id):
+    if request.is_ajax():
+        data = get_artifact_by_id_task.AsyncResult(task_id) 
+
+        if data.ready():
+            context = data.get()
+
+            context['artifact'] = get_object_or_404(Artifact.objects.prefetch_related('equipped_artifacts'), id=arg_id)
+            context['similar_artifacts'] = Artifact.objects.filter(id__in=context['similar_ids']).order_by('-efficiency').prefetch_related('equipped_artifacts')
+
+            html = render_to_string('website/artifacts/artifact_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
+
+    return HttpResponse('')
+
 def get_monsters(request):
     task = get_monsters_task.delay(dict(request.GET))
 

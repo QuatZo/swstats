@@ -1,0 +1,62 @@
+{{ name|json_script:'quality-original-names'}}
+{{ color|json_script:'quality-original-colors'}}
+{{ count|json_script:'quality-original-count'}}
+
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-artifact-quality-original" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-artifact-quality-original').getContext('2d');
+    var artifactQualitiesOriginal = JSON.parse(document.getElementById('quality-original-names').textContent);
+    var qualityOriginalColors = JSON.parse(document.getElementById('quality-original-colors').textContent);
+    var qualityOriginalCounts = JSON.parse(document.getElementById('quality-original-count').textContent);
+
+    var chartArtifactQualityOriginal = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: artifactQualitiesOriginal,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: qualityOriginalColors,
+                data: qualityOriginalCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickArtifactsQualityOriginal,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Artifacts Quantity Per Original Quality'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false },
+            hover: {
+                onHover: function(e) {
+                    var point = this.getElementAtEvent(e);
+                    if (point.length) e.target.style.cursor = 'pointer';
+                    else e.target.style.cursor = 'default';
+                }
+            }
+        }
+    }
+);
+function handleClickArtifactsQualityOriginal(evt) {   
+    var activeElement = chartArtifactQualityOriginal.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'quality-original', artifactQualitiesOriginal[index])
+    }
+};
+</script>

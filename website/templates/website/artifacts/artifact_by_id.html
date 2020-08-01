@@ -1,26 +1,20 @@
 {% extends "website/base.html" %}
 
-{% block custom_script %}
-	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-{% endblock %}
-
 {% block content_title %}
-    Siege Defenses
+	{{ artifact }}
 {% endblock %}
 
 {% block jquery %}
     <script>
         function fetchData(){
             $.ajax({
-                url: "{% url 'siege_ajax' task_id=task_id %}",
+                url: "{% url 'artifact_by_id_ajax' task_id=task_id arg_id=arg_id %}",
                 type: "GET",
                 success: function(response) {
-                    seconds += 1;
+                    seconds += .5;
                     $('#secs').text(seconds);
                     if(response){
                         $('#content-ajax-container').html(response);
-                        MathJax.typesetPromise();
                     }
                     else if (seconds == 60){
                         $('#content-ajax-container').html("<h2>Connection timed out.</h2>");

@@ -68,16 +68,17 @@
                                 <span class="text">Runes</span>
                             </a>
                         </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == "artifacts" %}active{% endif %}" href="{% url 'artifacts' %}" >
+                                <img src={% static 'website/images/icons/artifacts.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
+                                <span class="text">Artifacts</span>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == "monsters" %}active{% endif %}" href="{% url 'monsters' %}" >
                                 <img src={% static 'website/images/icons/monsters.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
                                 <span class="text">Monsters</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == "decks" %}active{% endif %}" href="{% url 'decks' %}" >
-                                <img src={% static 'website/images/icons/decks.svg'|is_active:request.resolver_match.url_name %} class="menu-img" />
-                                <span class="text">Decks</span>
                             </a>
                         </li>
                         <li class="nav-item">

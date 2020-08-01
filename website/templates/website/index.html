@@ -15,20 +15,20 @@
                     $('#secs').text(seconds);
                     if(response){
                         $('#content-ajax-container').html(response);
-                        clearInterval(fetchDataInterval);
                     }
                     else if (seconds == 60){
                         $('#content-ajax-container').html("<h2>Connection timed out.</h2>");
-                        clearInterval(fetchDataInterval);
+                    }
+                    else{
+                        setTimeout(fetchData, 500);
                     }
                 },
                 error: function(xhr) {
                     $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
-                    clearInterval(fetchDataInterval);
                 }
             });
         }
         var seconds = 0;
-        var fetchDataInterval = setInterval(fetchData, 250);
+        fetchData();
     </script>
 {% endblock %}

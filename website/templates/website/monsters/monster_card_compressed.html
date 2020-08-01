@@ -112,6 +112,16 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col-6 col-sm-6"><b>Artifacts</b></div>
+                <div class="col-6 col-sm-6">
+                    {% if monster.artifacts.count %}
+                        {{ monster.artifacts.count }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-6 col-sm-6"><b>Recommendation text ({{ monster.base_monster.recommendation_votes }} votes)</b></div>
                 <div class="col-6 col-sm-6"> {{ monster.base_monster.recommendation_text }} </div>
             </div>

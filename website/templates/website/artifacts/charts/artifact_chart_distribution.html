@@ -1,0 +1,46 @@
+{{ color|json_script:'color'}}
+{{ means|json_script:'mean'}}
+{{ distribution|json_script:'distribution'}}
+
+<div class='{{ class|default:'chart' }}'>
+    <canvas id="chart-distribution" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-distribution').getContext('2d');
+    var colors = JSON.parse(document.getElementById('color').textContent);
+    var means = JSON.parse(document.getElementById('mean').textContent);
+    var distribution = JSON.parse(document.getElementById('distribution').textContent);
+
+    var chartNormalDistribution = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: means,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: colors,
+                data: distribution,
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Artifact Efficiency Distribution'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false }
+        }
+    });
+</script>

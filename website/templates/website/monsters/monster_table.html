@@ -35,6 +35,7 @@
                 <th scope="col">Eff. HP</th>
                 <th scope="col">Eff. HP D-B</th>
                 <th scope="col">Sets</th>
+                <th scope="col">Artifacts</th>
                 <th scope="col">Skilled Up</th>
                 <th scope="col">Acquired</th>
                 <th scope="col">Awakened</th>
@@ -64,7 +65,7 @@
                     <td>{{ monster.eff_hp }}</td>
                     <td>{{ monster.eff_hp_def_break }}</td>
                     <td>
-                        {% if monster.runes.count > 0%}
+                        {% if monster.runes.count > 0 %}
                             {% with monster.runes.all|get_sets as sets %}
                                 {% if not sets %}
                                     Full Broken
@@ -76,6 +77,13 @@
                             {% endwith %}
                         {% else %}
                             <span data-feather="slash" style="color: red;"></span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if monster.artifacts.count > 0 %}
+                            {{ monster.artifacts.count }}
+                        {% else %}
+                            -
                         {% endif %}
                     </td>
                     <td>{% if monster|check_skillups %}
