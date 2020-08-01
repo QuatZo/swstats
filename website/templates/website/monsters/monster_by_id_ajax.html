@@ -54,6 +54,9 @@
 	{% include "website/runes/rune_table.html" with runes=rta.build text=monster.base_monster|add_str:"'s RTA Runes (Avg. Eff: "|add_str:rta.eff|add_str:"%)" collapse_id="monster-rta-"|add_str:monster.id|add_str:"-runes" collapsed="collapse"%}
 {% endif %}
 
+{% include "website/artifacts/artifact_table.html" with artifacts=monster.artifacts.all text=monster.base_monster|add_str:"'s Artifacts" collapse_id="monster-"|add_str:monster.id|add_str:"-artifacts" collapsed="collapse"%}
+
+
 {% if decks %}
 	<div class="title-container">
 		<h2 class="title">
@@ -73,7 +76,7 @@
 {% if similar %}
 	<div class="title-container">
 		<h2 class="title">
-			Other Builds for {{ monster.base_monster.name }} (20 randomly chosen)
+			Other Builds for {{ monster.base_monster.name }} (up to 20 randomly chosen)
 		</h2>
 		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-other-row" aria-expanded="true" aria-controls="#monster-other-row"> 
 			Show/Hide 
@@ -91,7 +94,7 @@
 {% if rta_similar %}
 	<div class="title-container">
 		<h2 class="title">
-			Other RTA Builds for {{ monster.base_monster.name }} (20 randomly chosen)
+			Other RTA Builds for {{ monster.base_monster.name }} (up to 20 randomly chosen)
 		</h2>
 		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-other-rta-row" aria-expanded="true" aria-controls="#monster-other-rta-row"> 
 			Show/Hide 
