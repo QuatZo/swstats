@@ -381,16 +381,6 @@ class Artifact(models.Model):
                 return key
 
     @classmethod
-    def get_artifact_primary(cls, number):
-        return dict(cls.ARTIFACT_PRIMARY_EFFECTS)[number]
-
-    @classmethod
-    def get_artifact_primary_id(cls, name):
-        for key, primary in dict(cls.ARTIFACT_PRIMARY_EFFECTS).items():
-            if primary == name:
-                return key
-
-    @classmethod
     def get_artifact_attribute(cls, number):
         return dict(cls.ARTIFACT_ATTRIBUTES)[number]
 
