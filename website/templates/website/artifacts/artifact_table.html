@@ -22,7 +22,6 @@
                 <th scope="col">Archetype</th>
                 <th scope="col">Level</th>
                 <th scope="col">Primary</th>
-                <th scope="col">Value</th>
                 <th scope="col">Substats</th>
                 <th scope="col">Eff.</th>
                 <th scope="col">Eff. Max</th>
@@ -31,7 +30,7 @@
         </thead>
         <tbody>
             {% for artifact in artifacts %}
-                <tr class="{{ "orig-quality-"|add_str:artifact.get_quality_original_display }}" onclick="goToArtifact('{% url "rune_by_id" arg_id=artifact.id %}')" style="cursor: pointer;">
+                <tr class="{{ "orig-quality-"|add_str:artifact.get_quality_original_display }}" onclick="goToArtifact('{% url "artifact_by_id" arg_id=artifact.id %}')" style="cursor: pointer;">
                     <td>{{ artifact.get_quality_display }}</td>
                     <td>{{ artifact.get_rtype_display }}</td>
                     <td>
@@ -49,8 +48,7 @@
                         {% endif %}
                     </td>
                     <td>{{ artifact.level }}</td>
-                    <td>{{ artifact.get_primary_display }}</td>
-                    <td>{{ artifact.primary_value }}</td>
+                    <td>{{ artifact.get_primary_display }}{{ artifact.primary_value }}</td>
                     <td>
                         {% for sub_text in artifact.substats|parse_artifact_substats_to_table:artifact.substats_values %}
                             {{ sub_text }}<br/>

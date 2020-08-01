@@ -5,14 +5,14 @@
 {% load rune_grinded_val %}
 
 {% block content_title %}
-	{{ rune }}
+	{{ artifact }}
 {% endblock %}
 
 {% block jquery %}
     <script>
         function fetchData(){
             $.ajax({
-                url: "{% url 'rune_by_id_ajax' task_id=task_id arg_id=arg_id %}",
+                url: "{% url 'artifact_by_id_ajax' task_id=task_id arg_id=arg_id %}",
                 type: "GET",
                 success: function(response) {
                     seconds += .5;

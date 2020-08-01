@@ -1,50 +1,35 @@
 {% load add_str %}
 {% load add_reverse_str %}
 {% load to_list %}
-{% load rune_grinded_val %}
 
-{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune (ID: "|add_str:rune.id|add_str:")" collapse_id="rune-"|add_str:rune.id collapsed="show"%}
+{% include "website/artifacts/artifact_table.html" with artifacts=artifact|to_list text="Artifact (ID: "|add_str:artifact.id|add_str:")" collapse_id="artifact-"|add_str:artifact.id collapsed="show"%}
 <div class="title-container">
 	<h2 class="title">
-		Rune's Cards
+		Artifact's Cards
 	</h2>
 	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 
 		Show/Hide 
 	</button>
 </div>
 <div class="row collapse" id="substat-row">
-	{% if ranks.normal.efficiency %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.normal.efficiency value=rune.efficiency|add_str:'%' %}{% endif %}
-	{% if ranks.normal.hp_flat %}{% include "website/runes/rune_card.html" with header='Flat HP' rank=ranks.normal.hp_flat value=rune.sub_hp_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
-	{% if ranks.normal.hp %}{% include "website/runes/rune_card.html" with header='HP%' rank=ranks.normal.hp value=rune.sub_hp|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.atk_flat %}{% include "website/runes/rune_card.html" with header='Flat ATK' rank=ranks.normal.atk_flat value=rune.sub_atk_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
-	{% if ranks.normal.atk %}{% include "website/runes/rune_card.html" with header='ATK%' rank=ranks.normal.atk value=rune.sub_atk|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.def_flat %}{% include "website/runes/rune_card.html" with header='Flat DEF' rank=ranks.normal.def_flat value=rune.sub_def_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
-	{% if ranks.normal.def %}{% include "website/runes/rune_card.html" with header='DEF%' rank=ranks.normal.def value=rune.sub_def|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.speed %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.normal.speed value=rune.sub_speed|rune_grinded_val:True %}{% endif %}
-	{% if ranks.normal.crit_rate %}{% include "website/runes/rune_card.html" with header='Critical Rate' rank=ranks.normal.crit_rate value=rune.sub_crit_rate|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.crit_dmg %}{% include "website/runes/rune_card.html" with header='Critical Damage' rank=ranks.normal.crit_dmg value=rune.sub_crit_dmg|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.res %}{% include "website/runes/rune_card.html" with header='Resistance' rank=ranks.normal.res value=rune.sub_res|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.acc %}{% include "website/runes/rune_card.html" with header='Accuracy' rank=ranks.normal.acc value=rune.sub_acc|rune_grinded_val:True|add_str:'%' %}{% endif %}
+	{% if ranks.normal.efficiency %}{% include "website/artifacts/artifact_card.html" with header='Efficiency' rank=ranks.normal.efficiency value=artifact.efficiency|add_str:'%' %}{% endif %}
 </div>
 
 <div class="title-container">
 	<h2 class="title">
-		Rune's Categorized Cards
+		Artifacts's Categorized Cards
 	</h2>
 	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-categorized-row" aria-expanded="true" aria-controls="#substat-categorized-row"> 
 		Show/Hide 
 	</button>
 </div>
 <div class="row collapse" id="substat-categorized-row">
-	{% if ranks.categorized.efficiency_slot %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_slot value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot %}{% endif %}
-	{% if ranks.categorized.efficiency_set %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_set value=rune.efficiency|add_str:'%' categorized=True category="set "|add_str:rune.rune_set %}{% endif %}
-	{% if ranks.categorized.efficiency_both %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_both value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}{% endif %}
-	{% if ranks.categorized.speed_slot %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_slot value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot %}{% endif %}
-	{% if ranks.categorized.speed_set %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_set value=rune.sub_speed|rune_grinded_val:True categorized=True category="set "|add_str:rune.rune_set %}{% endif %}
-	{% if ranks.categorized.speed_both %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_both value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}{% endif %}
+	{% if ranks.categorized.efficiency_type %}{% include "website/artifacts/artifact_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_type value=artifact.efficiency|add_str:'%' categorized=True category="type "|add_str:artifact.get_rtype_display %}{% endif %}
+	{% if ranks.categorized.efficiency_attribute and artifact.attribute %}{% include "website/artifacts/artifact_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_attribute value=artifact.efficiency|add_str:'%' categorized=True category="element "|add_str:artifact.get_attribute_display %}{% endif %}
+	{% if ranks.categorized.efficiency_archetype and artifact.archetype %}{% include "website/artifacts/artifact_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_archetype value=artifact.efficiency|add_str:'%' categorized=True category="archetype "|add_str:artifact.get_archetype_display %}{% endif %}
 </div>
 
-{% if rune.equipped_runes or rta_monster %}
+{% if artifact.equipped_artifacts %}
 	<div class="title-container">
 		<h2 class="title">
 			Monsters
@@ -54,15 +39,10 @@
 		</button>
 	</div>
 	<div class="row collapse" id="monster-row">
-		{% if rune.equipped_runes %}
-			{% for monster in rune.equipped_runes.all %}
-				{% include "website/monsters/monster_card_compressed.html" with name=monster|add_str:" (Normal Build)" monster=monster %}
-			{% endfor %}
-		{% endif %}
-		{% if rta_monster %}
-			{% include "website/monsters/monster_card_compressed.html" with name=rta_monster|add_str:" (RTA Build)" monster=rta_monster %}
-		{% endif %}
+		{% for monster in artifact.equipped_artifacts.all %}
+			{% include "website/monsters/monster_card_compressed.html" with name=monster monster=monster %}
+		{% endfor %}
 	</div>
 {% endif %}
 
-{% include "website/runes/rune_table.html" with runes=similar_runes text="Similar Runes (50 randomly chosen)" collapse_id="rune-"|add_str:rune.id|add_str:"-similar" collapsed="collapse"%}
+{% include "website/artifacts/artifact_table.html" with artifacts=similar_artifacts text="Similar Artifacts (up to 50 randomly chosen)" collapse_id="artifact-"|add_str:artifact.id|add_str:"-similar" collapsed="collapse"%}

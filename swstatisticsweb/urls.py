@@ -54,8 +54,8 @@ urlpatterns = [
 
     path('artifacts/', views.get_artifacts, name='artifacts'),
     path('artifacts/<str:task_id>/', views.get_artifacts_ajax, name='artifacts_ajax'),
-    # path('artifacts/id/<int:arg_id>/', views.get_artifact_by_id, name='artifact_by_id'),
-    # path('artifacts/id/<int:arg_id>/<str:task_id>/', views.get_artifact_by_id_ajax, name='artifact_by_id_ajax'),
+    path('artifacts/id/<int:arg_id>/', views.get_artifact_by_id, name='artifact_by_id'),
+    path('artifacts/id/<int:arg_id>/<str:task_id>/', views.get_artifact_by_id_ajax, name='artifact_by_id_ajax'),
 
     path('monsters/', views.get_monsters, name='monsters'),
     path('monsters/<str:task_id>/', views.get_monsters_ajax, name='monsters_ajax'),

@@ -787,47 +787,27 @@ def get_artifacts_task(request_get):
 
 @shared_task
 def get_artifact_by_id_task(request_get, arg_id):
-    rune = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
-    runes = Rune.objects.all()
+    artifact = get_object_or_404(Artifact.objects.prefetch_related('equipped_artifacts'), id=arg_id)
+    artifacts = Artifact.objects.all()
 
-    try:
-        rta_monster_id = RuneRTA.objects.filter(rune=rune.id).prefetch_related('monster', 'monster__base_monster', 'rune', 'rune__rune_set').first().monster.id
-    except AttributeError:
-        rta_monster_id = None
+    artifact_category_rtype = artifacts.filter(rtype=artifact.rtype)
+    artifact_category_attribute = artifacts.filter(attribute=artifact.attribute)
+    artifact_category_archetype = artifacts.filter(archetype=artifact.archetype)
 
-    runes_category_slot = runes.filter(slot=rune.slot)
-    runes_category_set = runes.filter(rune_set=rune.rune_set)
-    runes_category_both = runes.filter(slot=rune.slot, rune_set=rune.rune_set)
-
-    similar_ids = get_rune_similar(runes, rune)
+    similar_ids = get_artifact_similar(artifacts, artifact)
 
     ranks = {
         'normal': {
-            'efficiency': get_rune_rank_eff(runes, rune),
-            'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat'),
-            'hp': get_rune_rank_substat(runes, rune, 'sub_hp'),
-            'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat'),
-            'atk': get_rune_rank_substat(runes, rune, 'sub_atk'),
-            'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat'),
-            'def': get_rune_rank_substat(runes, rune, 'sub_def'),
-            'speed': get_rune_rank_substat(runes, rune, 'sub_speed'),
-            'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate'),
-            'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg'),
-            'res': get_rune_rank_substat(runes, rune, 'sub_res'),
-            'acc': get_rune_rank_substat(runes, rune, 'sub_acc'),
+            'efficiency': get_rune_rank_eff(artifacts, artifact),
         },
         'categorized': {
-            'efficiency_slot': get_rune_rank_eff(runes_category_slot, rune),
-            'efficiency_set': get_rune_rank_eff(runes_category_set, rune),
-            'efficiency_both': get_rune_rank_eff(runes_category_both, rune),
-            'speed_slot': get_rune_rank_substat(runes_category_slot, rune, 'sub_speed', ['slot']),
-            'speed_set': get_rune_rank_substat(runes_category_set, rune, 'sub_speed', ['set']),
-            'speed_both': get_rune_rank_substat(runes_category_both, rune, 'sub_speed', ['slot', 'set']),
+            'efficiency_type': get_rune_rank_eff(artifact_category_rtype, artifact),
+            'efficiency_attribute': get_rune_rank_eff(artifact_category_attribute, artifact),
+            'efficiency_archetype': get_rune_rank_eff(artifact_category_archetype, artifact),
         }
     }
 
     context = {
-        'rta_monster_id': rta_monster_id,
         'ranks': ranks,
         'similar_ids': similar_ids,
         'arg_id': arg_id,

@@ -757,6 +757,15 @@ def get_artifact_list_grouped_by_archetype(artifacts):
         archetype_count.append(group['total'])
 
     return { 'name': archetype_name, 'quantity': archetype_count, 'length': len(archetype_name) }
+
+def get_artifact_similar(artifacts, artifact):
+    """Return artifacts similar to the given one."""
+    similar_artifacts = artifacts.filter(rtype=artifact.rtype, attribute=artifact.attribute, archetype=artifact.archetype).exclude(id=artifact.id).values_list('id', flat=True)
+    MAX_COUNT = 50
+    artifacts_count = len(similar_artifacts)
+    if artifacts_count <= MAX_COUNT:
+        MAX_COUNT = artifacts_count
+    return random.sample(list(similar_artifacts), MAX_COUNT)
 # endregion
 
 # region MONSTERS - most of them should be async and in tasks to speed things up even more
