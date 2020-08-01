@@ -1,0 +1,62 @@
+{{ name|json_script:'rtype-names'}}
+{{ color|json_script:'rtype-colors'}}
+{{ count|json_script:'rtype-count'}}
+
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-artifact-rtype" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-artifact-rtype').getContext('2d');
+    var artifactRtypes = JSON.parse(document.getElementById('rtype-names').textContent);
+    var rtypeColors = JSON.parse(document.getElementById('rtype-colors').textContent);
+    var rtypeCounts = JSON.parse(document.getElementById('rtype-count').textContent);
+
+    var chartArtifactRType = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: artifactRtypes,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: rtypeColors,
+                data: rtypeCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickArtifactRType,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Artifact Quantity Per Type'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false },
+            hover: {
+                onHover: function(e) {
+                    var point = this.getElementAtEvent(e);
+                    if (point.length) e.target.style.cursor = 'pointer';
+                    else e.target.style.cursor = 'default';
+                }
+            }
+        }
+    }
+);
+function handleClickArtifactRType(evt) {   
+    var activeElement = chartArtifactRType.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'rtype', artifactRtypes[index])
+    }
+};
+</script>

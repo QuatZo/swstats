@@ -1,0 +1,62 @@
+{{ name|json_script:'attribute-names'}}
+{{ color|json_script:'attribute-colors'}}
+{{ count|json_script:'attribute-count'}}
+
+<div class='{{ class|default:'chart' }}'>
+    <canvas id="chart-artifact-attribute" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-artifact-attribute').getContext('2d');
+    var artifactAttributes = JSON.parse(document.getElementById('attribute-names').textContent);
+    var attributeColors = JSON.parse(document.getElementById('attribute-colors').textContent);
+    var attributeCounts = JSON.parse(document.getElementById('attribute-count').textContent);
+
+    var chartArtifactAttribute = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: artifactAttributes,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: attributeColors,
+                data: attributeCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickArtifactAttribute,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Artifact Quantity Per Attribute'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false },
+            hover: {
+                onHover: function(e) {
+                    var point = this.getElementAtEvent(e);
+                    if (point.length) e.target.style.cursor = 'pointer';
+                    else e.target.style.cursor = 'default';
+                }
+            }
+        }
+    }
+);
+function handleClickArtifactAttribute(evt) {   
+    var activeElement = chartArtifactAttribute.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'attribute', artifactAttributes[index])
+    }
+};
+</script>

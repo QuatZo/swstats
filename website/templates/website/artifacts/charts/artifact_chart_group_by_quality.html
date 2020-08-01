@@ -1,0 +1,62 @@
+{{ name|json_script:'quality-names'}}
+{{ color|json_script:'quality-colors'}}
+{{ count|json_script:'quality-count'}}
+
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-artifact-quality" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-artifact-quality').getContext('2d');
+    var artifactQualities = JSON.parse(document.getElementById('quality-names').textContent);
+    var qualityColors = JSON.parse(document.getElementById('quality-colors').textContent);
+    var qualityCounts = JSON.parse(document.getElementById('quality-count').textContent);
+
+    var chartArtifactQuality = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: artifactQualities,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: qualityColors,
+                data: qualityCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickArtifactsQuality,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Artifact Quantity Per Quality'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false },
+            hover: {
+                onHover: function(e) {
+                    var point = this.getElementAtEvent(e);
+                    if (point.length) e.target.style.cursor = 'pointer';
+                    else e.target.style.cursor = 'default';
+                }
+            }
+        }
+    }
+);
+function handleClickArtifactsQuality(evt) {   
+    var activeElement = chartArtifactQuality.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'quality', artifactQualities[index])
+    }
+};
+</script>

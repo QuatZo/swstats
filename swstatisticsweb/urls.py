@@ -52,25 +52,21 @@ urlpatterns = [
     path('runes/id/<int:arg_id>/', views.get_rune_by_id, name='rune_by_id'),
     path('runes/id/<int:arg_id>/<str:task_id>/', views.get_rune_by_id_ajax, name='rune_by_id_ajax'),
 
+    path('artifacts/', views.get_artifacts, name='artifacts'),
+    path('artifacts/<str:task_id>/', views.get_artifacts_ajax, name='artifacts_ajax'),
+    # path('artifacts/id/<int:arg_id>/', views.get_artifact_by_id, name='artifact_by_id'),
+    # path('artifacts/id/<int:arg_id>/<str:task_id>/', views.get_artifact_by_id_ajax, name='artifact_by_id_ajax'),
+
     path('monsters/', views.get_monsters, name='monsters'),
     path('monsters/<str:task_id>/', views.get_monsters_ajax, name='monsters_ajax'),
     path('monsters/id/<int:arg_id>/', views.get_monster_by_id, name='monster_by_id'),
     path('monsters/id/<int:arg_id>/<str:task_id>', views.get_monster_by_id_ajax, name='monster_by_id_ajax'),
-
-    path('decks/', views.get_decks, name='decks'),
-    path('decks/<str:task_id>/', views.get_decks_ajax, name='decks_ajax'),
-    path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
-    path('decks/id/<int:arg_id>/<str:task_id>/', views.get_deck_by_id_ajax, name='deck_by_id_ajax'),
     
     path('dungeons/', views.get_dungeons, name='dungeons'),
     path('dungeons/<str:name>/', views.get_rift_dungeon_by_stage, name='rift_dungeon_by_stage'),
     path('dungeons/<str:name>/<int:stage>/', views.get_dungeon_by_stage, name='dungeon_by_stage'),
     path('dungeons/<str:name>/<str:task_id>/', views.get_rift_dungeon_by_stage_ajax, name='rift_dungeon_by_stage_ajax'),
     path('dungeons/<str:name>/<int:stage>/<str:task_id>/', views.get_dungeon_by_stage_ajax, name='dungeon_by_stage_ajax'),
-
-    path('homunculus/', views.get_homunculus, name='homunculus'), # not in Sidebar Menu
-    path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'), # not in Sidebar Menu
-    path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'), # not in Sidebar Menu
 
     path('dimhole/', views.get_dimension_hole, name='dimhole'),
     path('dimhole/<str:task_id>/', views.get_dimension_hole_ajax, name='dimhole_ajax'),
@@ -92,8 +88,19 @@ urlpatterns = [
     path('oldreports/', RedirectView.as_view(url='/reports/old'), name='old_reports'), # old link, before Generate Report Update
     path('reports/old/', views.get_old_reports, name='reports_old'),
 
-    ### BOT
+    ######### NOT IN SIDEBAR MENU
+    path('homunculus/', views.get_homunculus, name='homunculus'),
+    path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
+    path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'),
+    path('decks/', views.get_decks, name='decks'),
+    path('decks/<str:task_id>/', views.get_decks_ajax, name='decks_ajax'),
+    path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
+    path('decks/id/<int:arg_id>/<str:task_id>/', views.get_deck_by_id_ajax, name='deck_by_id_ajax'),
+    #########
+
+    ######### BOT
     path('bot/monsters/<int:monster_id>', views.bot_get_monster_report, name='bot_get_monster_report'),
+    #########
 ]
 
 if settings.DEBUG:

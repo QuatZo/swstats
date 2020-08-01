@@ -342,6 +342,7 @@ def parse_monster(temp_monster, buildings = list(), units_locked = list()):
         monster['eff_hp'] = stats['hp'] * (1140 + (stats['defense'] * 1 * 3.5)) / 1000
         monster['eff_hp_def_break'] = stats['hp'] * (1140 + (stats['defense'] * .3 * 3.5)) / 1000 # defense break = -70% defense
     else:
+        monster_runes = list()
         monster['avg_eff'] = 0.00
     ####################
 
@@ -352,6 +353,7 @@ def parse_monster(temp_monster, buildings = list(), units_locked = list()):
             sum_eff_artifacts += monster_artifact.efficiency
         monster['avg_eff_artifacts'] = round(sum_eff_artifacts / len(monster_artifacts), 2) if len(monster_artifacts) > 0 else 0.00
     else:
+        monster_artifacts = list()
         monster['avg_eff_artifacts'] = 0.00
     
     monster['avg_eff_total'] = 0.00
@@ -379,6 +381,7 @@ def parse_monster(temp_monster, buildings = list(), units_locked = list()):
 
     obj, created = Monster.objects.update_or_create( id=monster['id'], defaults=monster, )
     obj.runes.set(monster_runes)
+    obj.artifacts.set(monster_artifacts)
     obj.save()
 
 def parse_wizard_homunculus(homunculus):
@@ -533,6 +536,9 @@ def get_rune_list_normal_distribution(runes, parts, count):
     max_eff = max(efficiencies)
 
     delta = (max_eff - min_eff) / (parts + 1)
+    if not delta:
+        return { 'distribution': [], 'scope': [], 'interval': parts }
+        
     points = np.arange(min_eff, max_eff + delta, delta)
 
     distribution = np.histogram(efficiencies, bins=points)
@@ -677,6 +683,80 @@ def get_rune_similar(runes, rune):
     if runes_count <= MAX_COUNT:
         MAX_COUNT = runes_count
     return random.sample(list(similar_runes), MAX_COUNT)
+# endregion
+
+# region ARTIFACTS - should be async and in tasks to speed things up even more
+def get_artifact_list_grouped_by_rtype(artifacts):
+    """Return names, amount of rtypes and quantity of artifact in every rtype in given artifacts list."""
+    group_by_rtype = artifacts.values('rtype').annotate(total=Count('rtype')).order_by('-total')
+    rtype_name = list()
+    rtype_count = list()
+
+    for group in group_by_rtype:
+        rtype_name.append(Artifact().get_artifact_rtype(group['rtype']))
+        rtype_count.append(group['total'])
+
+    return { 'name': rtype_name, 'quantity': rtype_count, 'length': len(rtype_name) }
+
+def get_artifact_list_grouped_by_quality(artifacts):
+    """Return names, amount of qualities and quantity of artifacts for every quality in given artifacts list."""
+    group_by_quality = artifacts.values('quality').annotate(total=Count('quality')).order_by('-total')
+    quality_name = list()
+    quality_count = list()
+
+    for group in group_by_quality:
+        quality_name.append(Artifact().get_artifact_quality(group['quality']))
+        quality_count.append(group['total'])
+
+    return { 'name': quality_name, 'quantity': quality_count, 'length': len(quality_name) }
+
+def get_artifact_list_grouped_by_quality_original(artifacts):
+    """Return names, amount of qualities and quantity of artifacts for every original quality in given artifacts list."""
+    group_by_quality_original = artifacts.values('quality_original').annotate(total=Count('quality_original')).order_by('-total')
+    quality_original_name = list()
+    quality_original_count = list()
+
+    for group in group_by_quality_original:
+        quality_original_name.append(Artifact().get_artifact_quality(group['quality_original']))
+        quality_original_count.append(group['total'])
+
+    return { 'name': quality_original_name, 'quantity': quality_original_count, 'length': len(quality_original_name) }
+
+def get_artifact_list_grouped_by_primary(artifacts):
+    """Return names, amount of primary and quantity of artifact in every primary in given artifacts list."""
+    group_by_primary = artifacts.values('primary').annotate(total=Count('primary')).order_by('-total')
+    primary_name = list()
+    primary_count = list()
+
+    for group in group_by_primary:
+        primary_name.append(Artifact().get_artifact_primary(group['primary']))
+        primary_count.append(group['total'])
+
+    return { 'name': primary_name, 'quantity': primary_count, 'length': len(primary_name) }
+
+def get_artifact_list_grouped_by_attribute(artifacts):
+    """Return names, amount of attribute and quantity of artifact in every attribute in given artifacts list."""
+    group_by_attribute = artifacts.exclude(attribute=0).values('attribute').annotate(total=Count('attribute')).order_by('-total')
+    attribute_name = list()
+    attribute_count = list()
+
+    for group in group_by_attribute:
+        attribute_name.append(Artifact().get_artifact_attribute(group['attribute']))
+        attribute_count.append(group['total'])
+
+    return { 'name': attribute_name, 'quantity': attribute_count, 'length': len(attribute_name) }
+
+def get_artifact_list_grouped_by_archetype(artifacts):
+    """Return names, amount of archetype and quantity of artifact in every archetype in given artifacts list."""
+    group_by_archetype = artifacts.exclude(archetype=0).values('archetype').annotate(total=Count('archetype')).order_by('-total')
+    archetype_name = list()
+    archetype_count = list()
+
+    for group in group_by_archetype:
+        archetype_name.append(Artifact().get_artifact_archetype(group['archetype']))
+        archetype_count.append(group['total'])
+
+    return { 'name': archetype_name, 'quantity': archetype_count, 'length': len(archetype_name) }
 # endregion
 
 # region MONSTERS - most of them should be async and in tasks to speed things up even more

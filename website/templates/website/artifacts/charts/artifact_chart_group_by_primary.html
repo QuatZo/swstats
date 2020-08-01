@@ -1,0 +1,62 @@
+{{ name|json_script:'primary-names'}}
+{{ color|json_script:'primary-colors'}}
+{{ count|json_script:'primary-count'}}
+
+<div class='{{ class|default:'chart' }}'>
+        <canvas id="chart-artifact-primary" />
+</div>
+<script>
+    var ctx = document.getElementById('chart-artifact-primary').getContext('2d');
+    var artifactPrimary = JSON.parse(document.getElementById('primary-names').textContent);
+    var primaryColors = JSON.parse(document.getElementById('primary-colors').textContent);
+    var primaryCounts = JSON.parse(document.getElementById('primary-count').textContent);
+
+    var chartArtifactPrimary = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: artifactPrimary,
+            datasets: [{
+                label: "Quantity",
+                type: "bar",
+                backgroundColor: primaryColors,
+                data: primaryCounts,
+            }]
+        },
+        options: {
+        onClick: handleClickArtifactPrimary,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Artifact Quantity Per Primary Stat'
+            },
+            scales: {
+                xAxes: [{
+                    categoryPercentage: 1.0,
+                    barPercentage: 1.0
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        suggestedMin: 0,
+                    }
+                }]
+            },
+            legend: { display: false },
+            hover: {
+                onHover: function(e) {
+                    var point = this.getElementAtEvent(e);
+                    if (point.length) e.target.style.cursor = 'pointer';
+                    else e.target.style.cursor = 'default';
+                }
+            }
+        }
+    }
+);
+function handleClickArtifactPrimary(evt) {   
+    var activeElement = chartArtifactPrimary.getElementAtEvent(evt);
+    if(activeElement.length > 0){
+        var index = activeElement[0]._index;
+        addParam(document.location.href, 'primary', artifactPrimary[index])
+    }
+};
+</script>
