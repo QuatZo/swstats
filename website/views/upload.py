@@ -155,7 +155,7 @@ class UploadViewSet(viewsets.ViewSet):
             elif request.data['command'] == 'GetGuildSiegeRankingInfo':
                 handle_siege_ranking_upload_task.delay(request.data)
 
-            elif request.data['command'] == 'BattleDimensionHoleDungeonResult':
+            elif request.data['command'] == 'BattleDimensionHoleDungeonResult' or request.data['command'] == 'BattleDimensionHoleDungeonResult_v2':
                 handle_dimension_hole_run_upload_task.delay(request.data['response'], request.data['request'])
 
             elif request.data['command'] == 'GetLobbyWizardLog':
