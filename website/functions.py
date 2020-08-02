@@ -740,8 +740,6 @@ def get_artifact_list_grouped_by_attribute(artifacts):
     attribute_name = list()
     attribute_count = list()
 
-    print(group_by_attribute)
-
     for group in group_by_attribute:
         attribute_name.append(Artifact().get_artifact_attribute(group['attribute']))
         attribute_count.append(group['total'])

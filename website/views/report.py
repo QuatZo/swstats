@@ -238,6 +238,8 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     # SETS BAR
     counts = df["sets"].value_counts()
     counts = counts[counts > round(counts[0] / 50)]
+    if len(counts) > 20:
+        counts = counts[:20]
     colors = create_rgb_colors(counts.shape[0], True)
 
     top_sets_temp = counts[:min(len(counts), 3)]
@@ -267,6 +269,8 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
     #################################################
     # 4 SETS BAR
     sets_4 = ['Violent', 'Swift', 'Rage', 'Fatal', 'Despair', 'Vampire']
+    counts = df["sets"].value_counts()
+    counts = counts[counts > round(counts[0] / 50)]
     set_sum = dict()
     for set_4 in sets_4:
         indexes = [val for val in counts.index if set_4 in val]
