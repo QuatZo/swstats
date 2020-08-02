@@ -81,7 +81,13 @@
                     </td>
                     <td>
                         {% if monster.artifacts.count > 0 %}
-                            {{ monster.artifacts.count }}
+                            {% for artifact in monster.artifacts.all %}
+                                {% if artifact.rtype == 1 %}
+                                    <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar-min" />
+                                {% else %}
+                                    <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar-min" />
+                                {% endif %}
+                            {% endfor %}
                         {% else %}
                             -
                         {% endif %}
