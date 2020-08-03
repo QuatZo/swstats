@@ -101,6 +101,9 @@ urlpatterns = [
     ######### BOT
     path('bot/monsters/<int:monster_id>', views.bot_get_monster_report, name='bot_get_monster_report'),
     #########
+
+    # temp
+    path('debug/recarteff', views.recalc_efficiency_artifacts, name='recalc_efficiency_artifact') # recalc artifacts efficiency
 ]
 
 if settings.DEBUG:
