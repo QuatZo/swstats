@@ -149,6 +149,8 @@ def handle_friend_upload_task(data):
                     good = False
                     break
                 parse_rune(rune)
+            for artifact in temp_monster['artifacts']:
+                parse_artifact(artifact)
             if good:
                 parse_monster(temp_monster, temp_wizard['building_list'], )
 
