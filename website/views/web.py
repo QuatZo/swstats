@@ -463,12 +463,3 @@ def get_contribute_info(request):
 
 def get_credits(request):
     return render( request, 'website/credits.html')
-
-def recalc_efficiency_artifacts(request):
-    artifacts = Artifact.objects.all().order_by('-efficiency')
-
-    for artifact in artifacts:
-        artifact.efficiency, artifact.efficiency_max = recalc_efficiency_artifact(artifact)
-        artifact.save()
-
-    return HttpResponse()

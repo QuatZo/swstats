@@ -207,66 +207,6 @@ def calc_efficiency_artifact(artifact):
 
     return round(eff_curr, 2), round(eff_max, 2)
 
-def recalc_efficiency_artifact(artifact):
-    # TYPE: [ 1*, 2*, 3*, 4*, 5*, 6* ]
-    SUBSTAT_MAX = {
-        200: 30,
-        201: 30,
-        202: 30,
-        203: 30,
-        204: 20,
-        205: 20,
-        206: 30,
-        207: 30,
-        208: 15,
-        209: 15,
-        210: 15,
-        211: 15,
-        212: 20,
-        213: 15,
-        214: 15,
-        215: 15,
-        216: 15,
-        217: 15,
-        218: 15,
-        219: 20,
-        220: 20,
-        221: 200,
-
-        300: 20,
-        301: 20,
-        302: 20,
-        303: 20,
-        304: 20,
-        305: 30,
-        306: 30,
-        307: 30,
-        308: 30,
-        309: 30,
-
-        400: 30,
-        401: 30,
-        402: 30,
-        403: 30,
-        404: 30,
-        405: 30,
-        406: 30,
-        407: 30,
-        408: 30,
-        409: 30,
-    }
-
-    ratio = 1.00
-
-    # substats
-    for sub, val in zip(artifact.substats, artifact.substats_values):
-        ratio += val / SUBSTAT_MAX[sub]
-
-    eff_curr = ratio / 2.6 * 100
-    eff_max = eff_curr + max(math.ceil((12 - artifact.level) / 3), 0) * 0.2 / 2.6 * 100
-
-    return round(eff_curr, 2), round(eff_max, 2)
-
 def parse_artifact(temp_artifact):
     com2us_keys = ['rid', 'type', 'attribute', 'unit_style', 'level', 'rank', 'natural_rank', 'locked']
     map_keys = ['id', 'rtype', 'attribute', 'archetype', 'level', 'quality', 'quality_original', 'locked']
