@@ -5,7 +5,6 @@ import logging
 
 from website.models import *
 from website.serializers import CommandSerializer
-from website.exceptions import RecordDoesNotExist
 from website.tasks import *
 
 import copy

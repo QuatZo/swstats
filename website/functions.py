@@ -148,6 +148,8 @@ def parse_runes_rta(rta_runes):
 def calc_efficiency_artifact(artifact):
     substats = artifact['sec_effects']
 
+
+
     # TYPE: [ 1*, 2*, 3*, 4*, 5*, 6* ]
     SUBSTAT_MAX = {
         200: 30,
@@ -226,6 +228,8 @@ def parse_artifact(temp_artifact):
 
     artifact['substats'] = []
     artifact['substats_values'] = []
+    artifact['efficiency'] = 0.0
+    artifact['efficiency_max'] = 0.0
 
     if 'sec_effects' in temp_artifact_keys and temp_artifact['sec_effects']:
         subs = []
@@ -405,7 +409,7 @@ def parse_wizard_homunculus(homunculus):
                 'build': homie['build'],
             }, )
         except HomunculusBuild.DoesNotExist:
-            raise RecordDoesNotExist(f"Homunculus build is missing from Database.")
+            pass
 
 # endregion
 
