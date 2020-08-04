@@ -1372,4 +1372,575 @@ def create_rgb_colors(length, visible=False):
     if visible:
         return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.8) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
     return [ 'rgba(' + str(int(c[0]*255)) + ', ' + str(int(c[1]*255)) + ', ' + str(int(c[2]*255)) + ', ' + str(.35) + ')' for c in cm.rainbow(np.linspace(0, 1, length))]
+
+def get_scoring_system():
+    points = {
+        "wizard": {
+            "active_contributor": {
+                "base": 1000,
+                "count": 0,
+                "total": 0
+            },
+            "mana_100k": {
+                "base": 1,
+                "count": 0,
+                "total": 0
+            },
+            "crystals_10": {
+                "base": 1,
+                "count": 0,
+                "total": 0
+            },
+            "level": {
+                "base": 5,
+                "count": 0,
+                "total": 0
+            },
+            "antibot_count": {
+                "base": 1,
+                "count": 0,
+                "total": 0
+            },
+            "raid": {
+                "base": 100,
+                "count": 0,
+                "total": 0
+            },
+            "storage_capacity": {
+                "base": 1,
+                "count": 0,
+                "total": 0
+            }
+        },
+        "guild": {
+            "gw_rank":  {
+                "base": 10,
+                "count": 0,
+                "total": 0
+            },
+            "siege_rank":  {
+                "base": 10,
+                "count": 0,
+                "total": 0
+            }
+        },
+        "buildings": {
+            "max":  {
+                "base": 50,
+                "count": 0,
+                "total": 0
+            },
+            "max_all":  {
+                "base": 500,
+                "count": 0,
+                "total": 0
+            }
+        },
+        "flags": {
+            "max":  {
+                "base": 100,
+                "count": 0,
+                "total": 0
+            },
+            "max_all":  {
+                "base": 1000,
+                "count": 0,
+                "total": 0
+            }
+        },
+        "runes": {
+            "count": {
+                "base": 0.05,
+                "count": 0,
+                "total": 0
+            },
+            "stars_6": {
+                "base": 1,
+                "count": 0,
+                "total": 0
+            },
+            "stars_5_legend": {
+                "base": 2,
+                "count": 0,
+                "total": 0
+            },
+            "stars_6_hero": {
+                "base": 3.5,
+                "count": 0,
+                "total": 0
+            },
+            "stars_6_legend": {
+                "base": 5,
+                "count": 0,
+                "total": 0
+            },
+            "upgrade_12": {
+                "base": 0.1,
+                "count": 0,
+                "total": 0
+            },
+            "upgrade_15": {
+                "base": 1,
+                "count": 0,
+                "total": 0
+            },
+            "sub_speed": [
+                {
+                    "base": 10,
+                    "threshold": 20,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 28,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 33,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "sub_hp": [
+                {
+                    "base": 10,
+                    "threshold": 27,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 35,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 45,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "sub_def": [
+                {
+                    "base": 10,
+                    "threshold": 27,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 35,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 45,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "sub_atk": [
+                {
+                    "base": 10,
+                    "threshold": 27,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 35,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 45,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "sub_crit_rate": [
+                {
+                    "base": 10,
+                    "threshold": 20,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 28,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 33,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "sub_crit_dmg": [
+                {
+                    "base": 10,
+                    "threshold": 23,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 27,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 33,
+                    "count": 0,
+                    "total": 0
+                }
+            ]
+        },
+        "monsters": {
+            "count": {
+                "base": 0.05,
+                "count": 0,
+                "total": 0
+            },
+            "nat4": {
+                "base": 2,
+                "count": 0,
+                "total": 0
+            },
+            "nat5": {
+                "base": 10,
+                "count": 0,
+                "total": 0
+            },
+            "stars_6": {
+                "base": 5,
+                "count": 0,
+                "total": 0
+            },
+            "transmog": {
+                "base": 0.5,
+                "count": 0,
+                "total": 0
+            },
+            "with_runes": {
+                "base": 0.5,
+                "count": 0,
+                "total": 0
+            },
+            "skillup": {
+                "base": 0.1,
+                "count": 0,
+                "total": 0
+            },
+            "skillups_max": {
+                "base": 10,
+                "count": 0,
+                "total": 0
+            },
+            "speed": [
+                {
+                    "base": 10,
+                    "threshold": 200,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 250,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 300,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "hp": [
+                {
+                    "base": 10,
+                    "threshold": 30000,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 37500,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 45000,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "defense": [
+                {
+                    "base": 10,
+                    "threshold": 1500,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 1875,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 2250,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "attack": [
+                {
+                    "base": 10,
+                    "threshold": 1750,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 2250,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 2500,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "crit_dmg": [
+                {
+                    "base": 10,
+                    "threshold": 180,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 220,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 250,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "crit_rate": [
+                {
+                    "base": 10,
+                    "threshold": 70,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 85,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 100,
+                    "count": 0,
+                    "total": 0
+                }
+            ],    
+            "acc": [
+                {
+                    "base": 10,
+                    "threshold": 45,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 65,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 85,
+                    "count": 0,
+                    "total": 0
+                }
+            ],
+            "res": [
+                {
+                    "base": 10,
+                    "threshold": 70,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 25,
+                    "threshold": 85,
+                    "count": 0,
+                    "total": 0
+                },{
+                    "base": 100,
+                    "threshold": 100,
+                    "count": 0,
+                    "total": 0
+                }
+            ]
+        },
+        "total": {
+            "wizard": 0,
+            "guild": 0,
+            "buildings": 0,
+            "flags": 0,
+            "runes": 0,
+            "monsters": 0,
+            "all": 0
+        }
+    }
+
+    return points
+
+def get_scoring_for_profile(wizard_id):
+    points = get_scoring_system()
+    wiz = Wizard.objects.get(id=wizard_id)
+    runes = Rune.objects.filter(wizard=wiz)
+    monsters = Monster.objects.filter(wizard=wiz).prefetch_related('base_monster', 'runes', 'artifacts')
+    buildings = WizardBuilding.objects.filter(wizard=wiz).prefetch_related('building')
+    
+    #### active contributor
+    dungeons = DungeonRun.objects.filter(wizard=wiz, date__gte=(datetime.datetime.now() - timedelta(days=7))).count()
+    dimhole = DimensionHoleRun.objects.filter(wizard=wiz, date__gte=(datetime.datetime.now() - timedelta(days=7))).count()
+    raids = RaidDungeonRun.objects.filter(wizard=wiz, date__gte=(datetime.datetime.now() - timedelta(days=7))).count()
+    rifts = RiftDungeonRun.objects.filter(wizard=wiz, date__gte=(datetime.datetime.now() - timedelta(days=7))).count()
+
+    points['wizard']['active_contributor']['count'] = 1 if dungeons + dimhole + raids + rifts > 50 else 0
+    ####
+
+    #### guild
+    points['guild']['gw_rank']['count'] = math.floor(wiz.guild.gw_best_ranking / 1000)
+    points['guild']['siege_rank']['count'] = math.floor(wiz.guild.siege_ranking / 1000)
+    ####
+
+    #### wizard
+    points['wizard']['mana_100k']['count'] = math.floor(wiz.mana / 100000)
+    points['wizard']['crystals_10']['count'] = math.floor(wiz.crystals / 10)
+    points['wizard']['level']['count'] = wiz.level
+
+    points['wizard']['antibot_count']['count'] = wiz.antibot_count
+    points['wizard']['raid']['count'] = wiz.raid_level
+    points['wizard']['storage_capacity']['count'] = wiz.storage_capacity
+    ####
+
+    #### buildings
+    a_b_id = Building().get_area_id('Arena')
+    a_b = buildings.filter(building__area=a_b_id)
+    a_b_max_count = a_b.filter(level=10).count()
+    points['buildings']['max']['count'] = a_b_max_count
+    points['buildings']['max_all']['count'] = 1 if a_b_max_count == a_b.count() else 0
+    ####
+
+    #### flags
+    g_b_id = Building().get_area_id('Guild')
+    g_b = buildings.filter(building__area=g_b_id)
+    g_b_max_count = g_b.filter(level=10).count()
+    points['flags']['max']['count'] = g_b_max_count
+    points['flags']['max_all']['count'] = 1 if g_b_max_count == g_b.count() else 0
+    ####
+
+
+    #### runes
+    points['runes']['count']['count'] = runes.count()
+    points['runes']['stars_6']['count'] = runes.filter(stars=6).count()
+    points['runes']['stars_5_legend']['count'] = runes.filter(stars=6, quality_original__in=[5, 15]).count()
+    points['runes']['stars_6_hero']['count'] = runes.filter(stars=6, quality_original__in=[4, 14, 5, 15]).count()
+    points['runes']['stars_6_legend']['count'] = runes.filter(stars=6, quality_original__in=[5, 15]).count()
+    points['runes']['upgrade_12']['count'] = runes.filter(upgrade_curr__gte=12).count()
+    points['runes']['upgrade_15']['count'] = runes.filter(upgrade_curr__gte=15).count()
+
+
+    for rune in runes:
+        spd = sum(rune.sub_speed) if rune.sub_speed is not None else 0
+        hp = sum(rune.sub_hp) if rune.sub_hp is not None else 0
+        atk = sum(rune.sub_atk) if rune.sub_atk is not None else 0
+        defense = sum(rune.sub_def) if rune.sub_def is not None else 0
+        crit_rate = sum(rune.sub_crit_rate) if rune.sub_crit_rate is not None else 0
+        crit_dmg = sum(rune.sub_crit_dmg) if rune.sub_crit_dmg is not None else 0
+        
+        if spd:
+            for pts in points['runes']['sub_speed']:
+                if spd >= pts['threshold']:
+                    pts['count'] += 1
+        
+        if hp:
+            for pts in points['runes']['sub_hp']:
+                if hp >= pts['threshold']:
+                    pts['count'] += 1
+
+        if atk:
+            for pts in points['runes']['sub_atk']:
+                if atk >= pts['threshold']:
+                    pts['count'] += 1
+
+        if defense:
+            for pts in points['runes']['sub_def']:
+                if defense >= pts['threshold']:
+                    pts['count'] += 1
+
+        if crit_rate:
+            for pts in points['runes']['sub_crit_rate']:
+                if crit_rate >= pts['threshold']:
+                    pts['count'] += 1
+
+        if crit_dmg:
+            for pts in points['runes']['sub_crit_dmg']:
+                if crit_dmg >= pts['threshold']:
+                    pts['count'] += 1
+    
+    ####
+
+    #### monsters
+    points['monsters']['count']['count'] = monsters.count()
+    points['monsters']['nat4']['count'] = monsters.filter(base_monster__base_class=4).count()
+    points['monsters']['nat5']['count'] = monsters.filter(base_monster__base_class=5).count()
+    points['monsters']['stars_6']['count'] = monsters.filter(stars=6).count()
+    points['monsters']['transmog']['count'] = monsters.filter(transmog=True).count()
+
+    for monster in monsters:
+        points['monsters']['with_runes']['count'] += 1 if monster.runes.count() == 6 else 0
+        if monster.base_monster.archetype == 5:
+            continue
+        if monster.skills == monster.base_monster.max_skills:
+            points['monsters']['skillups_max']['count'] += 1
+        for skillup in monster.skills:
+            points['monsters']['skillup']['count'] += skillup - 1
+
+    for row in points['monsters']['speed']:
+        row['count'] = monsters.filter(speed__gte=row['threshold']).count()
+    for row in points['monsters']['hp']:
+        row['count'] = monsters.filter(hp__gte=row['threshold']).count()
+    for row in points['monsters']['attack']:
+        row['count'] = monsters.filter(attack__gte=row['threshold']).count()
+    for row in points['monsters']['defense']:
+        row['count'] = monsters.filter(defense__gte=row['threshold']).count()
+    for row in points['monsters']['crit_rate']:
+        row['count'] = monsters.filter(crit_rate__gte=row['threshold']).count()
+    for row in points['monsters']['crit_dmg']:
+        row['count'] = monsters.filter(crit_dmg__gte=row['threshold']).count()
+    for row in points['monsters']['res']:
+        row['count'] = monsters.filter(res__gte=row['threshold']).count()
+    for row in points['monsters']['acc']:
+        row['count'] = monsters.filter(acc__gte=row['threshold']).count()
+    ####
+
+    for key in points.keys():
+        if key == 'total':
+            continue
+        for _, val in points[key].items():
+            if isinstance(val, list):
+                for el in val:
+                    el['total'] = round(el['count'] * el['base'], 2)
+                    points['total'][key] += el['total']
+                    points['total']['all'] += el['total']
+            else:
+                val['total'] = round(val['count'] * val['base'], 2)
+                points['total'][key] += val['total']
+                points['total']['all'] += val['total']
+
+    for key in points['total'].keys():
+        points['total'][key] = round(points['total'][key], 2)
+
+    return points
+
 # endregion

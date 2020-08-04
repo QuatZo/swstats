@@ -389,6 +389,25 @@ def create_monster_report_by_bot(monster_id):
         plot_builds = None
         top_sets = None
 
+    ################## artifact update in bot reports preparation
+    # artifacts = Artifact.objects.filter(equipped_artifacts__base_monster=base_monster)
+    # artifact_substats = {
+    #     'element': dict(),
+    #     'archetype': dict(),
+    # }
+
+    # for artifact in artifacts:
+    #     for substat in artifact.substats:
+    #         if artifact.attribute: 
+    #             if substat not in artifact_substats['element']:
+    #                 artifact_substats['element'][substat] = 0
+    #             artifact_substats['element'][substat] += 1
+    #         else:
+    #             if substat not in artifact_substats['archetype']:
+    #                 artifact_substats['archetype'][substat] = 0
+    #             artifact_substats['archetype'][substat] += 1
+    ##################
+
     context = {
         'base_monster': base_monster,
         'monsters': monsters,

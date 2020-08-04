@@ -1,0 +1,99 @@
+{% load add_num %}
+{% load add_str %}
+
+<div class="col-12 col-lg-12" style="padding: 0;">
+    <div class="card" style="margin-bottom: 25px; margin-top: 10px;">
+        <div class="card-header">
+            <center>
+                <h3><b>Scoring List</b></h3>
+                <br />
+                <h5>If one object (i.e. Rune) falls into few categories, every category is counted
+                    <br />
+                    Let's say you have +15 Legend 6* rune with {{ points.runes.sub_speed.1.threshold|add_num:1 }} speed
+                    <br />
+                    This rune falls into categories: 
+                    <br /><br />Quantity, 6*, 6* Hero+, 6* Legends, +12, +15, Speed (twice)
+                    <br /><br />
+                    Summing everything up, this rune gives 
+                    <br /><br />{{ points.runes.count.base }} + {{ points.runes.stars_6.base }} + {{ points.runes.stars_6_hero.base }} + {{ points.runes.stars_6_legend.base }} + {{ points.runes.upgrade_12.base }} + {{ points.runes.upgrade_15.base }} + {{ points.runes.sub_speed.0.base }} (for +{{ points.runes.sub_speed.0.threshold }} speed) +{{ points.runes.sub_speed.1.base }} (for +{{ points.runes.sub_speed.1.threshold }} speed) = 
+                        {{ points.runes.count.base|add_num:points.runes.stars_6.base|add_num:points.runes.stars_6_hero.base|add_num:points.runes.stars_6_legend.base|add_num:points.runes.upgrade_12.base|add_num:points.runes.upgrade_15.base|add_num:points.runes.sub_speed.0.base|add_num:points.runes.sub_speed.1.base }} points
+            </center>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-12 col-lg-4 border-right ranking-header" style="border-color: #333!important;">
+                    <div class="row">
+                        <div class="col-8 col-lg-8 border-right text-center"><b>Summoner, Guild, Towers, Flags</b></div>
+                        <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
+                    </div>
+                    <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                    <ul class="list-group list-group-flush">
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Active Contributor<br /><small>if contributes to the database</small>' value=points.wizard.active_contributor.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Mana<br /><small>per 100k</small>' value=points.wizard.mana_100k.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Crystals<br /><small>per 10</small>' value=points.wizard.crystals_10.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Level<br /><small>per level</small>' value=points.wizard.level.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Antibot Answers<br /><small>per answer</small>' value=points.wizard.antibot_count.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Raid<br /><small>multiplied by highest cleared raid</small>' value=points.wizard.raid.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Storage Capacity<br /><small>per slot in storage</small>' value=points.wizard.storage_capacity.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Guild War Ranking<br /><small>per rank</small>' value=points.guild.gw_rank.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Siege Ranking<br /><small>per rank</small>' value=points.guild.siege_rank.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Buildings (level 10)<br /><small>per maxed tower</small>' value=points.buildings.max.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='All Buildings (level 10)<br /><small>if all buildings maxed</small>' value=points.buildings.max_all.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Flags (level 10)<br /><small>per maxed flag</small>' value=points.flags.max.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='All Flags (level 10)<br /><small>if all flags maxed</small>' value=points.flags.max_all.base %}
+                    </ul>
+                </div>
+                <div class="col-12 col-lg-4 border-right ranking-header" style="border-color: #333!important;">
+                    <div class="row">
+                        <div class="col-8 col-lg-8 border-right text-center"><b>Monsters</b></div>
+                        <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
+                    </div>
+                    <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                    <ul class="list-group list-group-flush">
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Quantity<br /><small>per monster</small>' value=points.monsters.count.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Nat4<br /><small>per monster</small>' value=points.monsters.nat4.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Nat5<br /><small>per monster</small>' value=points.monsters.nat5.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='6*<br /><small>per monster</small>' value=points.monsters.stars_6.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Transmogrified<br /><small>per monster</small>' value=points.monsters.transmog.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='With 6 Runes<br /><small>per monster, if has equipped 6 runes</small>' value=points.monsters.with_runes.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Skill ups<br /><small>per every skillup point</small>' value=points.monsters.skillup.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Maxed Skills<br /><small>per monster if all skills maxed</small>' value=points.monsters.skillups_max.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Speed<br /><small>respectively for total '|add_str:points.monsters.speed.0.threshold|add_str:', '|add_str:points.monsters.speed.1.threshold|add_str:', '|add_str:points.monsters.speed.2.threshold|add_str:'</small>' value=points.monsters.speed.0.base|add_str:', '|add_str:points.monsters.speed.1.base|add_str:', '|add_str:points.monsters.speed.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Attack<br /><small>respectively for total '|add_str:points.monsters.attack.0.threshold|add_str:', '|add_str:points.monsters.attack.1.threshold|add_str:', '|add_str:points.monsters.attack.2.threshold|add_str:'</small>' value=points.monsters.attack.0.base|add_str:', '|add_str:points.monsters.attack.1.base|add_str:', '|add_str:points.monsters.attack.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='HP<br /><small>respectively for total '|add_str:points.monsters.hp.0.threshold|add_str:', '|add_str:points.monsters.hp.1.threshold|add_str:', '|add_str:points.monsters.hp.2.threshold|add_str:'</small>' value=points.monsters.hp.0.base|add_str:', '|add_str:points.monsters.hp.1.base|add_str:', '|add_str:points.monsters.hp.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Defense<br /><small>respectively for total '|add_str:points.monsters.defense.0.threshold|add_str:', '|add_str:points.monsters.defense.1.threshold|add_str:', '|add_str:points.monsters.defense.2.threshold|add_str:'</small>' value=points.monsters.defense.0.base|add_str:', '|add_str:points.monsters.defense.1.base|add_str:', '|add_str:points.monsters.defense.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Critical Rate<br /><small>respectively for '|add_str:points.monsters.crit_rate.0.threshold|add_str:'%, '|add_str:points.monsters.crit_rate.1.threshold|add_str:'%, '|add_str:points.monsters.crit_rate.2.threshold|add_str:'%</small>' value=points.monsters.crit_rate.0.base|add_str:', '|add_str:points.monsters.crit_rate.1.base|add_str:', '|add_str:points.monsters.crit_rate.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Critical Damage<br /><small>respectively for '|add_str:points.monsters.crit_dmg.0.threshold|add_str:'%, '|add_str:points.monsters.crit_dmg.1.threshold|add_str:'%, '|add_str:points.monsters.crit_dmg.2.threshold|add_str:'%</small>' value=points.monsters.crit_dmg.0.base|add_str:', '|add_str:points.monsters.crit_dmg.1.base|add_str:', '|add_str:points.monsters.crit_dmg.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Accuracy<br /><small>respectively for '|add_str:points.monsters.acc.0.threshold|add_str:'%, '|add_str:points.monsters.acc.1.threshold|add_str:'%, '|add_str:points.monsters.acc.2.threshold|add_str:'%</small>' value=points.monsters.acc.0.base|add_str:', '|add_str:points.monsters.acc.1.base|add_str:', '|add_str:points.monsters.acc.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Resistance<br /><small>respectively for '|add_str:points.monsters.res.0.threshold|add_str:'%, '|add_str:points.monsters.res.1.threshold|add_str:'%, '|add_str:points.monsters.res.2.threshold|add_str:'%</small>' value=points.monsters.res.0.base|add_str:', '|add_str:points.monsters.res.1.base|add_str:', '|add_str:points.monsters.res.2.base %}
+                    </ul>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="row">
+                        <div class="col-8 col-lg-8 border-right text-center"><b>Runes</b></div>
+                        <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
+                    </div>
+                    <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                    <ul class="list-group list-group-flush">
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Quantity<br /><small>per rune</small>' value=points.runes.count.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='5* Legends<br /><small>per rune</small>' value=points.runes.stars_5_legend.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='6*<br /><small>per rune, also Hero+ 6*</small>' value=points.runes.stars_6.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='6* Hero+<br /><small>per rune, also Legend 6*</small>' value=points.runes.stars_6_hero.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='6* Legend<br /><small>per rune</small>' value=points.runes.stars_6_legend.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='+12 or higher<br /><small>per rune, also +15</small>' value=points.runes.upgrade_12.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='+15<br /><small>per rune</small>' value=points.runes.upgrade_15.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Speed<br /><small>respectively for +'|add_str:points.runes.sub_speed.0.threshold|add_str:', +'|add_str:points.runes.sub_speed.1.threshold|add_str:', +'|add_str:points.runes.sub_speed.2.threshold|add_str:'</small>' value=points.runes.sub_speed.0.base|add_str:', '|add_str:points.runes.sub_speed.1.base|add_str:', '|add_str:points.runes.sub_speed.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Attack<br /><small>respectively for +'|add_str:points.runes.sub_atk.0.threshold|add_str:'%, +'|add_str:points.runes.sub_atk.1.threshold|add_str:'%, +'|add_str:points.runes.sub_atk.2.threshold|add_str:'%</small>' value=points.runes.sub_atk.0.base|add_str:', '|add_str:points.runes.sub_atk.1.base|add_str:', '|add_str:points.runes.sub_atk.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='HP<br /><small>respectively for +'|add_str:points.runes.sub_hp.0.threshold|add_str:'%, +'|add_str:points.runes.sub_hp.1.threshold|add_str:'%, +'|add_str:points.runes.sub_hp.2.threshold|add_str:'%</small>' value=points.runes.sub_hp.0.base|add_str:', '|add_str:points.runes.sub_hp.1.base|add_str:', '|add_str:points.runes.sub_hp.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Defense<br /><small>respectively for +'|add_str:points.runes.sub_def.0.threshold|add_str:'%, +'|add_str:points.runes.sub_def.1.threshold|add_str:'%, +'|add_str:points.runes.sub_def.2.threshold|add_str:'%</small>' value=points.runes.sub_def.0.base|add_str:', '|add_str:points.runes.sub_def.1.base|add_str:', '|add_str:points.runes.sub_def.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Critical Rate<br /><small>respectively for +'|add_str:points.runes.sub_crit_rate.0.threshold|add_str:'%, +'|add_str:points.runes.sub_crit_rate.1.threshold|add_str:'%, +'|add_str:points.runes.sub_crit_rate.2.threshold|add_str:'%</small>' value=points.runes.sub_crit_rate.0.base|add_str:', '|add_str:points.runes.sub_crit_rate.1.base|add_str:', '|add_str:points.runes.sub_crit_rate.2.base %}
+                        {% include 'website/upload/upload_ranking_cell.html' with text='Critical Damage<br /><small>respectively for +'|add_str:points.runes.sub_crit_dmg.0.threshold|add_str:'%, +'|add_str:points.runes.sub_crit_dmg.1.threshold|add_str:'%, +'|add_str:points.runes.sub_crit_dmg.2.threshold|add_str:'%</small>' value=points.runes.sub_crit_dmg.0.base|add_str:', '|add_str:points.runes.sub_crit_dmg.1.base|add_str:', '|add_str:points.runes.sub_crit_dmg.2.base %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class='card-footer'>
+            <center>If you have an idea for optimizing this list, please contact me through <a href='http://reddit.com/u/quatzo'>Reddit</a></center>
+        </div>
+    </div>
+</div>

@@ -32,7 +32,7 @@ def get_homepage_ajax(request, task_id):
 
 def handle_www_profile(request):
     """Return the Compare Page."""
-    return render( request, 'website/upload/upload_index.html', {'task_id': None})
+    return render( request, 'website/upload/upload_index.html', {'task_id': None, 'points': get_scoring_system()})
 
 def handle_www_profile_upload(request):
     data = json.loads(request.body)

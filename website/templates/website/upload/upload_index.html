@@ -6,10 +6,27 @@
 {% endblock %}
 
 {% block content_title %}
-    Upload & rank your profile
+    Compare profile with others
 {% endblock %}
 
 {% block ajax_container %} 
+    <div class="alert alert-primary alert-dismissible fade show" style="margin-top: 10px;">
+        Report consists of 2 parts:
+        <ul>
+            <li>
+                Scoring system - an 'algorithm', which evaluates quality of your account based on your progression. It takes into account currency,
+                buildings, monsters, runes, even your guild rank. After I get enough data, Artifacts will be implemented.<br />
+                It shows the overall score and also detailed information. <b>Keep in mind it's early version and scoring may change</b>
+            </li>
+            <li>
+                Direct comparison - it compares every monster and every rune to others of the same type, showing you how good your stats are in comparison to
+                average stats and others (i.e. Lushen's ATK higher than average by 233 ATK; better than 79% Lushens)
+            </li>
+        </ul>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
     <form method="POST" id="profile-upload">
         {% csrf_token %}
         <label for="profile-json" class="btn btn-light profile-json-upload-button">
@@ -18,10 +35,17 @@
         <input id="profile-json" name='profile-json-upload-button' type="file" style="display:none;">
         <input type="submit" value="Upload Profile" class="btn btn-secondary">
     </form>
-    <p>
-        <br /><b>Disclaimer:</b> If you upload your profile on this page, it <b>WILL BE</b> saved in server database. 
-        It means that it <b>WILL BE</b> accessible for other people <b>anonymously</b>.
-    </p>
+    <div class="alert alert-warning alert-dismissible fade show" style="margin-top: 10px;">
+        If you upload your profile on this page, it <b>WILL BE</b> saved in server database. 
+        It means that its content (monsters, runes etc) <b>WILL BE</b> accessible for other people <b>anonymously</b>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div id='loading'></div>
+    <div id='scoring-system'>
+        {% include 'website/upload/upload_ranking_system.html' with points=points %}
+    </div>
     <div id='row'>
         {% csrf_token %}
     </div>
@@ -50,11 +74,12 @@
                     success: function(response) {
                         if(response){
                             $('#row').html(response);
+                            $('#loading').html('<center><h3>Report under scoring list, thanks for using this tool!</h3></center>');
                             clearInterval(checkDataInterval);
                         }
                     },
                     error: function(xhr) {
-                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
+                        $('#loading').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
                         clearInterval(checkDataInterval);
                     }
                 });
@@ -69,12 +94,12 @@
                     headers: { "X-CSRFToken": "{{ csrf_token }}" },
                     data: evt.target.result,
                     success: function(response) {
-                        $('#row').html("<h1>File sent to the server. Creating profile and calculating points...<div class='loader'>Loading...</div>");
+                        $('#loading').html("<h1>File sent to the server. Creating profile and calculating points...<div class='loader'>Loading...</div>");
                         task_id = response.task_id;
                         checkDataInterval = setInterval(function() { checkData(task_id); }, 500);
                     },
                     error: function(xhr) {
-                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
+                        $('#loading').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
                     }
                 });
                 $('#profile-json').val('');
