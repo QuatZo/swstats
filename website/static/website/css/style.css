@@ -552,6 +552,11 @@ h1.h2
   }
 }
 /* /////// /////// */
+@media (max-width: 992px){
+    .card .border-right.ranking-header{
+        border-right: none!important;
+    }
+}
 
 @media (max-width: 768px) {
     .report-button{

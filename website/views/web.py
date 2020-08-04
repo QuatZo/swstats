@@ -38,7 +38,7 @@ def handle_www_profile_upload(request):
     data = json.loads(request.body)
     if data['command'] != 'HubUserLogin':
         return HttpResponse({'task_id': None})
-    task = handle_profile_upload_task.delay(data)
+    task = handle_profile_upload_and_rank_task.delay(data)
     
     return HttpResponse(json.dumps({'task_id': task.id}), content_type="application/json")
 
@@ -47,7 +47,10 @@ def handle_www_profile_upload_ajax(request, task_id):
         data = handle_profile_upload_task.AsyncResult(task_id) 
 
         if data.ready():
-            return HttpResponse('Done')
+            context = data.get()
+
+            html = render_to_string('website/upload/upload_ranking.html', context) # return JSON/Dict like during Desktop Upload
+            return HttpResponse(html)
 
     return HttpResponse('')
 

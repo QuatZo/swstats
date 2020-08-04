@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content_title %}
-    Upload profile
+    Upload & rank your profile
 {% endblock %}
 
 {% block ajax_container %} 
@@ -49,12 +49,12 @@
                     type: "GET",
                     success: function(response) {
                         if(response){
-                            $('#row').html("<h1>Profile created!</h1>");
+                            $('#row').html(response);
                             clearInterval(checkDataInterval);
                         }
                     },
                     error: function(xhr) {
-                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
+                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
                         clearInterval(checkDataInterval);
                     }
                 });
@@ -69,12 +69,12 @@
                     headers: { "X-CSRFToken": "{{ csrf_token }}" },
                     data: evt.target.result,
                     success: function(response) {
-                        $('#row').html("<h1>File sent to the server. Creating profile...<div class='loader'>Loading...</div>");
+                        $('#row').html("<h1>File sent to the server. Creating profile and calculating points...<div class='loader'>Loading...</div>");
                         task_id = response.task_id;
                         checkDataInterval = setInterval(function() { checkData(task_id); }, 500);
                     },
                     error: function(xhr) {
-                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
+                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
                     }
                 });
                 $('#profile-json').val('');
