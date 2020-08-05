@@ -49,6 +49,11 @@ def handle_www_profile_upload_ajax(request, task_id):
         if data.ready():
             context = data.get()
 
+            for mon in context['comparison']['monsters']:
+                mon['obj'] = Monster.objects.get(id=mon['id'])
+            for rune in context['comparison']['runes']:
+                rune['obj'] = Rune.objects.get(id=rune['id'])
+
             html = render_to_string('website/upload/upload_ranking.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 

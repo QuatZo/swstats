@@ -14,13 +14,13 @@
         Report consists of 2 parts:
         <ul>
             <li>
-                Scoring system - an 'algorithm', which evaluates quality of your account based on your progression. It takes into account currency,
-                buildings, monsters, runes, even your guild rank. After I get enough data, Artifacts will be implemented.<br />
+                <b>Scoring system</b> - an 'algorithm', which evaluates quality of your account based on your progression. It takes into account currency,
+                buildings, monsters, runes, even your guild rank. After I get enough data, Artifacts will be implemented.
                 It shows the overall score and also detailed information. <b>Keep in mind it's early version and scoring may change</b>
             </li>
             <li>
-                Direct comparison - it compares every monster and every rune to others of the same type, showing you how good your stats are in comparison to
-                average stats and others (i.e. Lushen's ATK higher than average by 233 ATK; better than 79% Lushens)
+                <b>Direct comparison</b> - it compares every monster and every rune to others of the same type, showing you how good your stats are in comparison to
+                average stats and others (i.e. Lushen's ATK higher than average by 233 ATK; TOP 21% Lushen [~21% of Lushens are better than yours])
             </li>
         </ul>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -43,6 +43,9 @@
         </button>
     </div>
     <div id='loading'></div>
+    <div id='upload-menu'>
+        {% include "website/upload/upload_menu.html" %}
+    </div>
     <div id='scoring-system'>
         {% include 'website/upload/upload_ranking_system.html' with points=points %}
     </div>
@@ -53,17 +56,50 @@
 
 {% block jquery %}
 <script>
+    function changeView(view_id){
+        $('#scoring-system').css('display', 'none');
+        $('#system-button').removeClass('active');
+
+        $('#ranking-result').css('display', 'none');
+        $('#score-button').removeClass('active');
+
+        $('#comparison-monsters').css('display', 'none');
+        $('#monsters-button').removeClass('active');
+
+        $('#comparison-runes').css('display', 'none');
+        $('#runes-button').removeClass('active');
+
+        if(view_id == 0){
+            $('#scoring-system').css('display', 'unset');
+            $('#system-button').addClass('active');
+        }
+        
+        else if(view_id == 1){
+            $('#ranking-result').css('display', 'unset');
+            $('#score-button').addClass('active');
+        }
+
+        else if(view_id == 2){
+            $('#comparison-monsters').css('display', 'unset');
+            $('#monsters-button').addClass('active');
+        }
+
+        else if(view_id == 3){
+            $('#comparison-runes').css('display', 'unset');
+            $('#runes-button').addClass('active');
+        }
+    }
+
     $('#profile-json').change(function() {
         var i = $(this).prev('label').clone();
         var file = $('#profile-json')[0].files[0];
-        var name = "Choose JSON File";
+        var name = "<i class='fa fa-cloud-upload'></i> Choose JSON File";
         if(file != undefined){ name = file.name; }
         $(this).prev('label').text(name);
     });
-    var task_id,  checkDataInterval;
+    var task_id;
 
     $("#profile-upload").submit(function(e) {
-        $("#row").html("<h1>Uploading file to the server...</h1><div class='loader'>Loading...</div>")
         e.preventDefault();
         var profile = document.getElementById("profile-json").files[0];
         if (profile) {
@@ -74,17 +110,20 @@
                     success: function(response) {
                         if(response){
                             $('#row').html(response);
-                            $('#loading').html('<center><h3>Report under scoring list, thanks for using this tool!</h3></center>');
-                            clearInterval(checkDataInterval);
+                            $('#loading').html('<center><h3>Done! Thanks for using this tool!</h3></center>');
+                            changeView(1);
+                        }
+                        else{
+                            setTimeout(checkData, 1000, task_id);
                         }
                     },
                     error: function(xhr) {
                         $('#loading').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
-                        clearInterval(checkDataInterval);
                     }
                 });
             }
 
+            $('#loading').html("<h1>Sending file to the server...<div class='loader'>Loading...</div>");
             var reader = new FileReader();
             reader.readAsText(profile, "UTF-8");
             reader.onload = function (evt) {
@@ -94,9 +133,9 @@
                     headers: { "X-CSRFToken": "{{ csrf_token }}" },
                     data: evt.target.result,
                     success: function(response) {
-                        $('#loading').html("<h1>File sent to the server. Creating profile and calculating points...<div class='loader'>Loading...</div>");
+                        $('#loading').html("<h1>Creating profile, calculating points and comparing monsters & runes... It may take a while<div class='loader'>Loading...</div>");
                         task_id = response.task_id;
-                        checkDataInterval = setInterval(function() { checkData(task_id); }, 500);
+                        checkData(task_id);
                     },
                     error: function(xhr) {
                         $('#loading').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");

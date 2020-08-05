@@ -1484,10 +1484,11 @@ def handle_profile_upload_and_rank_task(data):
     handle_profile_upload_task.s(data).apply()
     
     content = {
-        'points': get_scoring_for_profile(data['wizard_info']['wizard_id'])
+        'points': get_scoring_for_profile(data['wizard_info']['wizard_id']),
+        'comparison': get_profile_comparison_with_database(data['wizard_info']['wizard_id'])
     }
     
-    return points
+    return content
 # endregion
 
 ########################### BOT ###########################

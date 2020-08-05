@@ -1,5 +1,5 @@
 from .models import *
-from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField
+from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
 
 import copy
 import math
@@ -12,6 +12,7 @@ import traceback
 import json
 import random
 import time
+
 from datetime import timedelta
 
 ########################################################## UPLOAD #########################################################
@@ -1946,5 +1947,151 @@ def get_scoring_for_profile(wizard_id):
         points['total'][key] = round(points['total'][key], 2)
 
     return points
+
+def get_avg_monster_stat(monsters):
+    avgs = monsters.aggregate(
+        Avg('hp'),
+        Avg('attack'),
+        Avg('defense'),
+        Avg('speed'),
+        Avg('res'),
+        Avg('acc'),
+        Avg('crit_rate'),
+        Avg('crit_dmg'),
+        Avg('avg_eff_total'),
+        Avg('eff_hp'),
+        Avg('eff_hp_def_break'),
+    )
+    
+    avg_stats = {
+        "hp": round(avgs['hp__avg']),
+        "attack": round(avgs['attack__avg']),
+        "defense": round(avgs['defense__avg']),
+        "speed": round(avgs['speed__avg']),
+        "res": round(avgs['res__avg']),
+        "acc": round(avgs['acc__avg']),
+        "crit_rate": round(avgs['crit_rate__avg']),
+        "crit_dmg": round(avgs['crit_dmg__avg']),
+        "avg_eff_total": round(avgs['avg_eff_total__avg']),
+        "eff_hp": round(avgs['eff_hp__avg']),
+        "eff_hp_def_break": round(avgs['eff_hp_def_break__avg']),
+    }
+
+    return avg_stats
+
+def get_profile_comparison_with_database(wizard_id):
+    wiz = Wizard.objects.get(id=wizard_id)
+
+    monsters = Monster.objects.exclude(base_monster__archetype=5).exclude(base_monster__archetype=0).filter(stars=6) # w/o material, unknown; only 6*
+    wiz_monsters = Monster.objects.filter(wizard=wiz, stars=6).exclude(base_monster__archetype=5).exclude(base_monster__archetype=0) # w/o material, unknown; only 6*
+
+    runes = Rune.objects.filter(upgrade_curr__gte=12) # only +12-+15
+    wiz_runes = Rune.objects.filter(wizard=wiz, upgrade_curr__gte=12).values_list('id', flat=True) # only +12-+15
+
+    runes_kw = {
+        'sub_hp_flat_sum': Func(F('sub_hp_flat'), function='unnest'),
+        'sub_hp_sum': Func(F('sub_hp'), function='unnest'),
+        'sub_atk_flat_sum': Func(F('sub_atk_flat'), function='unnest'),
+        'sub_atk_sum': Func(F('sub_atk'), function='unnest'),
+        'sub_def_flat_sum': Func(F('sub_def_flat'), function='unnest'),
+        'sub_def_sum': Func(F('sub_def'), function='unnest'),
+        'sub_speed_sum': Func(F('sub_speed'), function='unnest'),
+        'sub_res_sum': Func(F('sub_res'), function='unnest'),
+        'sub_acc_sum': Func(F('sub_acc'), function='unnest'),
+        'sub_crit_rate_sum': Func(F('sub_crit_rate'), function='unnest'),
+        'sub_crit_dmg_sum': Func(F('sub_crit_dmg'), function='unnest'),
+    }
+    runes = runes.annotate(**runes_kw)
+
+    runes_cols = ['id', 'slot', 'rune_set__id', 'primary', 'efficiency',
+        'sub_hp_sum', 'sub_hp_flat_sum', 'sub_atk_sum', 'sub_atk_flat_sum', 'sub_def_sum', 'sub_def_flat_sum', 'sub_speed_sum',
+        'sub_res_sum', 'sub_acc_sum', 'sub_crit_rate_sum', 'sub_crit_dmg_sum']
+
+    df_runes = pd.DataFrame(runes.values_list(*runes_cols), columns=[runes_col.replace('_sum', '') for runes_col in runes_cols]).drop_duplicates(subset=['id']).fillna(0)
+
+    comparison = {
+        "monsters": [],
+        "runes": [],
+        "artifacts": [],
+    }
+
+    for wiz_monster in wiz_monsters:
+        kw = {
+            "hp": {
+                "hp__gte": wiz_monster.hp,
+            },
+            "attack": {
+                "attack__gte": wiz_monster.attack,
+            },
+            "defense": {
+                "defense__gte": wiz_monster.defense,
+            },
+            "speed": {
+                "speed__gte": wiz_monster.speed,
+            },
+            "res": {
+                "res__gte": wiz_monster.res,
+            },
+            "acc": {
+                "acc__gte": wiz_monster.acc,
+            },
+            "crit_rate": {
+                "crit_rate__gte": wiz_monster.crit_rate,
+            },
+            "crit_dmg": {
+                "crit_dmg__gte": wiz_monster.crit_dmg,
+            },
+            "avg_eff_total": {
+                "avg_eff_total__gte": wiz_monster.avg_eff_total,
+            },
+            "eff_hp": {
+                "eff_hp__gte": wiz_monster.eff_hp,
+            },
+            "eff_hp_def_break": {
+                "eff_hp_def_break__gte": wiz_monster.eff_hp_def_break,
+            },
+        }
+        wiz_base = dict()
+        wiz_monster_base = monsters.filter(base_monster=wiz_monster.base_monster)
+        wiz_monster_avg_base = get_avg_monster_stat(wiz_monster_base)
+
+        for key in kw.keys():
+            wiz_base[key] = {
+                "top": round(wiz_monster_base.filter(**(kw[key])).count() / wiz_monster_base.count() * 100, 2),
+                "avg": getattr(wiz_monster, key) - wiz_monster_avg_base[key]
+            }
+
+        comparison["monsters"].append({
+            "id": wiz_monster.id,
+            "rank": wiz_base,
+        })
+
+    for r_id in wiz_runes:
+        kw = ['sub_hp_flat', 'sub_hp', 'sub_atk_flat', 'sub_atk', 'sub_def_flat', 'sub_def', 'sub_speed', 'sub_res', 'sub_acc', 'sub_crit_rate', 'sub_crit_dmg', 'efficiency']
+
+        df_r = df_runes.loc[df_runes[df_runes['id'] == r_id].index[0]]
+        wiz_base = dict()
+
+        df_wiz_rune = df_runes[(df_runes['slot'] == df_r['slot']) & (df_runes['rune_set__id'] == df_r['rune_set__id']) & (df_runes['primary'] == df_r['primary'])]
+        df_wiz_runes_means = df_wiz_rune.mean(axis=0)
+
+        for key in kw:
+            r_top = df_wiz_rune[df_wiz_rune[key] > df_r[key]][key].sum()
+            wiz_base[key] = {
+                "top": math.ceil(r_top / len(df_wiz_rune) * 100) if df_r[key] else None,
+                "avg": df_r[key] - df_wiz_runes_means[key] if df_r[key] else None,
+            }
+
+        comparison["runes"].append({
+            "id": r_id,
+            "rank": wiz_base,
+        })
+    
+    ######## Future Artifact Update
+    # artifacts = Artifact.objects.all()
+    # wiz_artifacts = Artifact.objects.filter(wizard=wiz)
+    ########
+
+    return comparison
 
 # endregion
