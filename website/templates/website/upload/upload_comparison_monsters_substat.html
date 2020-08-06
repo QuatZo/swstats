@@ -1,5 +1,12 @@
 <td>{{ value }}</td>
-<td>{{ top }}%</td>
+<td>{% if top and value %}
+        {{ top }}%
+    {% elif value and value != '-' and not top %}
+        <span style='color: #00aa00'>Best</span>
+    {% else %}
+        -
+    {% endif %}
+</td>
 <td>
     {% if avg > 0.00 %}
         <span style='color: #00aa00'>+{{ avg }}</span>
