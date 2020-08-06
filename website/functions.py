@@ -1455,7 +1455,7 @@ def get_scoring_system():
         },
         "runes": {
             "count": {
-                "base": 0.05,
+                "base": 0.1,
                 "count": 0,
                 "total": 0
             },
@@ -1470,7 +1470,7 @@ def get_scoring_system():
                 "total": 0
             },
             "stars_6_hero": {
-                "base": 3.5,
+                "base": 1.5,
                 "count": 0,
                 "total": 0
             },
@@ -1600,7 +1600,7 @@ def get_scoring_system():
         },
         "monsters": {
             "count": {
-                "base": 0.05,
+                "base": 0.1,
                 "count": 0,
                 "total": 0
             },
@@ -1610,7 +1610,7 @@ def get_scoring_system():
                 "total": 0
             },
             "nat5": {
-                "base": 10,
+                "base": 15,
                 "count": 0,
                 "total": 0
             },
@@ -1714,12 +1714,12 @@ def get_scoring_system():
             "crit_dmg": [
                 {
                     "base": 10,
-                    "threshold": 180,
+                    "threshold": 150,
                     "count": 0,
                     "total": 0
                 },{
                     "base": 25,
-                    "threshold": 220,
+                    "threshold": 200,
                     "count": 0,
                     "total": 0
                 },{
@@ -1983,10 +1983,10 @@ def get_profile_comparison_with_database(wizard_id):
     wiz = Wizard.objects.get(id=wizard_id)
 
     monsters = Monster.objects.exclude(base_monster__archetype=5).exclude(base_monster__archetype=0).filter(stars=6) # w/o material, unknown; only 6*
-    wiz_monsters = Monster.objects.filter(wizard=wiz, stars=6).exclude(base_monster__archetype=5).exclude(base_monster__archetype=0) # w/o material, unknown; only 6*
+    wiz_monsters = Monster.objects.filter(wizard=wiz, stars=6).exclude(base_monster__archetype=5).exclude(base_monster__archetype=0).order_by('base_monster__name') # w/o material, unknown; only 6*
 
     runes = Rune.objects.filter(upgrade_curr__gte=12) # only +12-+15
-    wiz_runes = Rune.objects.filter(wizard=wiz, upgrade_curr__gte=12).values_list('id', flat=True) # only +12-+15
+    wiz_runes = Rune.objects.filter(wizard=wiz, upgrade_curr__gte=12).order_by('slot', 'rune_set', '-quality', '-quality_original').values_list('id', flat=True) # only +12-+15
 
     runes_kw = {
         'sub_hp_flat_sum': Func(F('sub_hp_flat'), function='unnest'),
@@ -2060,6 +2060,8 @@ def get_profile_comparison_with_database(wizard_id):
                 "top": round(wiz_monster_base.filter(**(kw[key])).count() / wiz_monster_base.count() * 100, 2),
                 "avg": getattr(wiz_monster, key) - wiz_monster_avg_base[key]
             }
+            if key == 'avg_eff_total':
+                wiz_base[key]['avg'] = round(wiz_base[key]['avg'], 2)
 
         comparison["monsters"].append({
             "id": wiz_monster.id,
@@ -2076,11 +2078,15 @@ def get_profile_comparison_with_database(wizard_id):
         df_wiz_runes_means = df_wiz_rune.mean(axis=0)
 
         for key in kw:
-            r_top = df_wiz_rune[df_wiz_rune[key] > df_r[key]][key].sum()
+            r_top = len(df_wiz_rune[df_wiz_rune[key] > df_r[key]][key])
             wiz_base[key] = {
                 "top": math.ceil(r_top / len(df_wiz_rune) * 100) if df_r[key] else None,
                 "avg": df_r[key] - df_wiz_runes_means[key] if df_r[key] else None,
             }
+            if key == 'efficiency':
+                wiz_base[key]['avg'] = round(wiz_base[key]['avg'], 2)
+            elif wiz_base[key]['avg']:
+                wiz_base[key]['avg'] = round(wiz_base[key]['avg'])
 
         comparison["runes"].append({
             "id": r_id,
@@ -2093,5 +2099,4 @@ def get_profile_comparison_with_database(wizard_id):
     ########
 
     return comparison
-
 # endregion

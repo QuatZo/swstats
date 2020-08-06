@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content_title %}
-    Compare profile with others
+    Rank & Compare Profile
 {% endblock %}
 
 {% block ajax_container %} 
@@ -49,7 +49,7 @@
     <div id='scoring-system'>
         {% include 'website/upload/upload_ranking_system.html' with points=points %}
     </div>
-    <div id='row'>
+    <div id='row' style='margin-bottom: 25px;'>
         {% csrf_token %}
     </div>
 {% endblock %}
@@ -57,35 +57,35 @@
 {% block jquery %}
 <script>
     function changeView(view_id){
-        $('#scoring-system').css('display', 'none');
+        $('#scoring-system').fadeOut('slow');
         $('#system-button').removeClass('active');
 
-        $('#ranking-result').css('display', 'none');
+        $('#ranking-result').fadeOut('slow');
         $('#score-button').removeClass('active');
 
-        $('#comparison-monsters').css('display', 'none');
+        $('#comparison-monsters').fadeOut('slow');
         $('#monsters-button').removeClass('active');
 
-        $('#comparison-runes').css('display', 'none');
+        $('#comparison-runes').fadeOut('slow');
         $('#runes-button').removeClass('active');
 
         if(view_id == 0){
-            $('#scoring-system').css('display', 'unset');
+            $('#scoring-system').fadeIn('slow');
             $('#system-button').addClass('active');
         }
         
         else if(view_id == 1){
-            $('#ranking-result').css('display', 'unset');
+            $('#ranking-result').fadeIn('slow');
             $('#score-button').addClass('active');
         }
 
         else if(view_id == 2){
-            $('#comparison-monsters').css('display', 'unset');
+            $('#comparison-monsters').fadeIn('slow');
             $('#monsters-button').addClass('active');
         }
 
         else if(view_id == 3){
-            $('#comparison-runes').css('display', 'unset');
+            $('#comparison-runes').fadeIn('slow');
             $('#runes-button').addClass('active');
         }
     }

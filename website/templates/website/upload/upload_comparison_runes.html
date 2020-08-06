@@ -1,1 +1,98 @@
-{{ runes }}
+{% load static %}
+{% load add_str %}
+{% load ancient_to_normal %}
+{% load rune_grinded_val %}
+
+<div class='comparison-table'>
+    <table class='table table-striped table-bordered table-responsive table-hover'>
+        <thead>
+            <tr style='border: 1px solid #dee2e6;'>
+                <th scope='col' rowspan='2' colspan='2' class='first' >Rune</th>
+                <th scope='col' colspan='3' class='first'>HP Flat</th>
+                <th scope='col' colspan='3' class='first'>HP [%]</th>
+                <th scope='col' colspan='3' class='first'>Defense Flat</th>
+                <th scope='col' colspan='3' class='first'>Defense [%]</th>
+                <th scope='col' colspan='3' class='first'>Attack Flat</th>
+                <th scope='col' colspan='3' class='first'>Attack [%]</th>
+                <th scope='col' colspan='3' class='first'>Speed</th>
+                <th scope='col' colspan='3' class='first'>Critical Rate [%]</th>
+                <th scope='col' colspan='3' class='first'>Critical Damage [%]</th>
+                <th scope='col' colspan='3' class='first'>Resistance [%]</th>
+                <th scope='col' colspan='3' class='first'>Accuracy [%]</th>
+                <th scope='col' colspan='3' class='first'>Efficiency [%]</th>
+            </tr>
+            <tr>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rune in runes %}
+                <tr>
+                    <th class='first'>
+                        <a href="{% url 'rune_by_id' arg_id=rune.obj.id %}" style="text-decoration: none;">
+                            <div class="{{"rune-background "|add_str:rune.obj.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.obj.get_quality_original_display|ancient_to_normal }}" >
+                                <div class="{{ "rune-slot"|add_str:rune.obj.slot }}">
+                                    <div class="rune">
+                                        <img src="{% static 'website/images/runes/'|add_str:rune.obj.rune_set|lower|add_str:".png" %}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </th>
+                    <th class='second'>{{ rune.obj.get_primary_display }}</th>
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_hp_flat|rune_grinded_val top=rune.rank.sub_hp_flat.top avg=rune.rank.sub_hp_flat.avg percentage=False %}
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_hp|rune_grinded_val top=rune.rank.sub_hp.top avg=rune.rank.sub_hp.avg percentage=True %}
+
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_atk_flat|rune_grinded_val top=rune.rank.sub_atk_flat.top avg=rune.rank.sub_atk_flat.avg percentage=False %}
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_atk|rune_grinded_val top=rune.rank.sub_atk.top avg=rune.rank.sub_atk.avg percentage=True %}
+
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_def_flat|rune_grinded_val top=rune.rank.sub_def_flat.top avg=rune.rank.sub_def_flat.avg percentage=False %}
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_def|rune_grinded_val top=rune.rank.sub_def.top avg=rune.rank.sub_def.avg percentage=True %}
+
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_speed|rune_grinded_val top=rune.rank.sub_speed.top avg=rune.rank.sub_speed.avg percentage=False %}
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_crit_rate|rune_grinded_val top=rune.rank.sub_crit_rate.top avg=rune.rank.sub_crit_rate.avg percentage=True %}
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_crit_dmg|rune_grinded_val top=rune.rank.sub_crit_dmg.top avg=rune.rank.sub_crit_dmg.avg percentage=True %}
+
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_res|rune_grinded_val top=rune.rank.sub_res.top avg=rune.rank.sub_res.avg percentage=True %}
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_acc|rune_grinded_val top=rune.rank.sub_acc.top avg=rune.rank.sub_acc.avg percentage=True %}
+                    {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.efficiency top=rune.rank.efficiency.top avg=rune.rank.efficiency.avg percentage=True %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
