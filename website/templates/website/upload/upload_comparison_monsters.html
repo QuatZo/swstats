@@ -1,0 +1,80 @@
+{% load static %}
+{% load get_monster_avatar %}
+<div class='comparison-table'>
+    <table class='table table-striped table-bordered table-responsive table-hover'>
+        <thead>
+            <tr style='border: 1px solid #dee2e6;'>
+                <th scope='col' rowspan='2' class='first'>Monster</th>
+                <th scope='col' colspan='3' class='first'>HP</th>
+                <th scope='col' colspan='3' class='first'>Defense</th>
+                <th scope='col' colspan='3' class='first'>Speed</th>
+                <th scope='col' colspan='3' class='first'>Attack</th>
+                <th scope='col' colspan='3' class='first'>Critical Rate [%]</th>
+                <th scope='col' colspan='3' class='first'>Critical Damage [%]</th>
+                <th scope='col' colspan='3' class='first'>Resistance [%]</th>
+                <th scope='col' colspan='3' class='first'>Accuracy [%]</th>
+                <th scope='col' colspan='3' class='first'>Effective HP</th>
+                <th scope='col' colspan='3' class='first'>Eff. HP Def Break</th>
+                <th scope='col' colspan='3' class='first'>Avg Rune Efficiency [%]</th>
+            </tr>
+            <tr>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+                <th scope='col' class='second'>Value</th>
+                <th scope='col' class='second'>Top</th>
+                <th scope='col' class='second'>Average</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for monster in monsters %}
+                <tr>
+                    <th class='first'>
+                        <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">        
+                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster.obj %}" class="table-monster-avatar"/>
+                        </a>
+                    </th>
+                
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.hp top=monster.rank.hp.top avg=monster.rank.hp.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.defense top=monster.rank.defense.top avg=monster.rank.defense.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.speed top=monster.rank.speed.top avg=monster.rank.speed.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.attack top=monster.rank.attack.top avg=monster.rank.attack.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.crit_rate top=monster.rank.crit_rate.top avg=monster.rank.crit_rate.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.crit_dmg top=monster.rank.crit_dmg.top avg=monster.rank.crit_dmg.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.res top=monster.rank.res.top avg=monster.rank.res.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.acc top=monster.rank.acc.top avg=monster.rank.acc.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.eff_hp top=monster.rank.eff_hp.top avg=monster.rank.eff_hp.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.eff_hp_def_break top=monster.rank.eff_hp_def_break.top avg=monster.rank.eff_hp_def_break.avg %}
+                    {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.avg_eff_total top=monster.rank.avg_eff_total.top avg=monster.rank.avg_eff_total.avg %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

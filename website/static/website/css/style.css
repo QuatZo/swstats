@@ -484,6 +484,93 @@ h1.h2
     height: 735px;
 }
 
+#upload-menu{
+    margin-top: 10px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+#upload-menu button{
+    border-radius: 0;
+}
+
+#upload-menu button:first-child{
+    border-top-left-radius: .25rem;
+    border-bottom-left-radius: .25rem;
+}
+
+#upload-menu button:last-child{
+    border-top-right-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+}
+
+.comparison-table,
+.comparison-table table
+{
+    max-height: 750px;
+}
+
+.comparison-table th{
+    border: 1px solid #dee2e6 !important; 
+    vertical-align: middle !important; 
+    text-align: center;
+    background-color: white;
+}
+
+.comparison-table thead th.first {
+    position: -webkit-sticky; /* for Safari */
+    position: sticky;
+    top: -1px;
+}
+.comparison-table thead th.second {
+    position: -webkit-sticky; /* for Safari */
+    position: sticky;
+    top: 47px;
+}
+  
+.comparison-table tbody th{
+    background-color: rgba(0, 0, 0, .15);
+}
+
+.comparison-table tbody th.first {
+    position: -webkit-sticky; /* for Safari */
+    position: sticky;
+    left: -1px;
+}
+
+.comparison-table tbody th.second {
+    position: -webkit-sticky; /* for Safari */
+    position: sticky;
+    left: 73px;
+}
+
+.comparison-table thead th.first:first-child
+{
+    left: -1px;
+    z-index: 1;
+}
+
+.comparison-table .rune-slot1 img{
+    top: 7px;
+    left: -4px;
+}
+
+.comparison-table .rune-slot2 img,
+.comparison-table .rune-slot3 img,
+.comparison-table .rune-slot4 img
+{
+    left: -4px;
+}
+
+.comparison-table .rune-slot5 img,
+.comparison-table .rune-slot6 img
+{
+    left: 0px;
+}
+
+
 /* Loading Spinner */
 #secs{
     position: relative;
@@ -552,6 +639,11 @@ h1.h2
   }
 }
 /* /////// /////// */
+@media (max-width: 992px){
+    .card .border-right.ranking-header{
+        border-right: none!important;
+    }
+}
 
 @media (max-width: 768px) {
     .report-button{

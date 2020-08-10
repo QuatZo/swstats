@@ -6,10 +6,27 @@
 {% endblock %}
 
 {% block content_title %}
-    Upload profile
+    Rank & Compare Profile
 {% endblock %}
 
 {% block ajax_container %} 
+    <div class="alert alert-primary alert-dismissible fade show" style="margin-top: 10px;">
+        Report consists of 2 parts:
+        <ul>
+            <li>
+                <b>Scoring system</b> - an 'algorithm', which evaluates quality of your account based on your progression. It takes into account currency,
+                buildings, monsters, runes, even your guild rank. After I get enough data, Artifacts will be implemented.
+                It shows the overall score and also detailed information. <b>Keep in mind it's early version and scoring may change</b>
+            </li>
+            <li>
+                <b>Direct comparison</b> - it compares every monster and every rune to others of the same type, showing you how good your stats are in comparison to
+                average stats and others (i.e. Lushen's ATK higher than average by 233 ATK; TOP 21% Lushen [~21% of Lushens are better than yours])
+            </li>
+        </ul>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
     <form method="POST" id="profile-upload">
         {% csrf_token %}
         <label for="profile-json" class="btn btn-light profile-json-upload-button">
@@ -18,28 +35,71 @@
         <input id="profile-json" name='profile-json-upload-button' type="file" style="display:none;">
         <input type="submit" value="Upload Profile" class="btn btn-secondary">
     </form>
-    <p>
-        <br /><b>Disclaimer:</b> If you upload your profile on this page, it <b>WILL BE</b> saved in server database. 
-        It means that it <b>WILL BE</b> accessible for other people <b>anonymously</b>.
-    </p>
-    <div id='row'>
+    <div class="alert alert-warning alert-dismissible fade show" style="margin-top: 10px;">
+        If you upload your profile on this page, it <b>WILL BE</b> saved in server database. 
+        It means that its content (monsters, runes etc) <b>WILL BE</b> accessible for other people <b>anonymously</b>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div id='loading'></div>
+    <div id='upload-menu'>
+        {% include "website/upload/upload_menu.html" %}
+    </div>
+    <div id='scoring-system'>
+        {% include 'website/upload/upload_ranking_system.html' with points=points %}
+    </div>
+    <div id='row' style='margin-bottom: 25px;'>
         {% csrf_token %}
     </div>
 {% endblock %}
 
 {% block jquery %}
 <script>
+    function changeView(view_id){
+        $('#scoring-system').fadeOut('slow');
+        $('#system-button').removeClass('active');
+
+        $('#ranking-result').fadeOut('slow');
+        $('#score-button').removeClass('active');
+
+        $('#comparison-monsters').fadeOut('slow');
+        $('#monsters-button').removeClass('active');
+
+        $('#comparison-runes').fadeOut('slow');
+        $('#runes-button').removeClass('active');
+
+        if(view_id == 0){
+            $('#scoring-system').fadeIn('slow');
+            $('#system-button').addClass('active');
+        }
+        
+        else if(view_id == 1){
+            $('#ranking-result').fadeIn('slow');
+            $('#score-button').addClass('active');
+        }
+
+        else if(view_id == 2){
+            $('#comparison-monsters').fadeIn('slow');
+            $('#monsters-button').addClass('active');
+        }
+
+        else if(view_id == 3){
+            $('#comparison-runes').fadeIn('slow');
+            $('#runes-button').addClass('active');
+        }
+    }
+
     $('#profile-json').change(function() {
         var i = $(this).prev('label').clone();
         var file = $('#profile-json')[0].files[0];
-        var name = "Choose JSON File";
+        var name = "<i class='fa fa-cloud-upload'></i> Choose JSON File";
         if(file != undefined){ name = file.name; }
         $(this).prev('label').text(name);
     });
-    var task_id,  checkDataInterval;
+    var task_id;
 
     $("#profile-upload").submit(function(e) {
-        $("#row").html("<h1>Uploading file to the server...</h1><div class='loader'>Loading...</div>")
         e.preventDefault();
         var profile = document.getElementById("profile-json").files[0];
         if (profile) {
@@ -49,17 +109,21 @@
                     type: "GET",
                     success: function(response) {
                         if(response){
-                            $('#row').html("<h1>Profile created!</h1>");
-                            clearInterval(checkDataInterval);
+                            $('#row').html(response);
+                            $('#loading').html('<center><h3>Done! Thanks for using this tool!</h3></center>');
+                            changeView(1);
+                        }
+                        else{
+                            setTimeout(checkData, 1000, task_id);
                         }
                     },
                     error: function(xhr) {
-                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
-                        clearInterval(checkDataInterval);
+                        $('#loading').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
                     }
                 });
             }
 
+            $('#loading').html("<h1>Sending file to the server...<div class='loader'>Loading...</div>");
             var reader = new FileReader();
             reader.readAsText(profile, "UTF-8");
             reader.onload = function (evt) {
@@ -69,12 +133,12 @@
                     headers: { "X-CSRFToken": "{{ csrf_token }}" },
                     data: evt.target.result,
                     success: function(response) {
-                        $('#row').html("<h1>File sent to the server. Creating profile...<div class='loader'>Loading...</div>");
+                        $('#loading').html("<h1>Creating profile, calculating points and comparing monsters & runes... It may take a while<div class='loader'>Loading...</div>");
                         task_id = response.task_id;
-                        checkDataInterval = setInterval(function() { checkData(task_id); }, 500);
+                        checkData(task_id);
                     },
                     error: function(xhr) {
-                        $('#row').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
+                        $('#loading').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>" + task_id + "</center></h2>");
                     }
                 });
                 $('#profile-json').val('');

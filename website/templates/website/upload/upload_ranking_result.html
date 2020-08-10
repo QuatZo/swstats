@@ -1,0 +1,92 @@
+{% load add_num %}
+{% load add_str %}
+
+<div class="card">
+    <div class="card-header">
+        <center>
+            <h3><b>Your account has got</b></h3>
+            <br />
+            <h1>{{ points.total.all }} points</h1>
+            <br />
+            <h5>Details below
+        </center>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 col-lg-4 border-right ranking-header" style="border-color: #333!important;">
+                <div class="row">
+                    <div class="col-8 col-lg-8 border-right text-center"><b>Summoner, Guild, Towers, Flags</b></div>
+                    <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
+                </div>
+                <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                <ul class="list-group list-group-flush">
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Active Contributor' value=points.wizard.active_contributor.total contribute=True %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Mana' value=points.wizard.mana_100k.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Crystals' value=points.wizard.crystals_10.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Level' value=points.wizard.level.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Antibot Answers' value=points.wizard.antibot_count.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Raid' value=points.wizard.raid.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Storage Capacity' value=points.wizard.storage_capacity.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Guild War Ranking' value=points.guild.gw_rank.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Siege Ranking' value=points.guild.siege_rank.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Buildings (level 10)' value=points.buildings.max.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='All Buildings (level 10)' value=points.buildings.max_all.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Flags (level 10)' value=points.flags.max.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='All Flags (level 10)' value=points.flags.max_all.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with value=points.total.guild|add_num:points.total.buildings|add_num:points.total.flags|add_num:points.total.wizard bold=True %}
+                </ul>
+            </div>
+            <div class="col-12 col-lg-4 border-right ranking-header" style="border-color: #333!important;">
+                <div class="row">
+                    <div class="col-8 col-lg-8 border-right text-center"><b>Monsters</b></div>
+                    <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
+                </div>
+                <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                <ul class="list-group list-group-flush">
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Quantity' value=points.monsters.count.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Nat4' value=points.monsters.nat4.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Nat5' value=points.monsters.nat5.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='6*' value=points.monsters.stars_6.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Transmogrified' value=points.monsters.transmog.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='With 6 runes' value=points.monsters.with_runes.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Skill ups' value=points.monsters.skillup.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Maxed Skills' value=points.monsters.skillups_max.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Speed' value=points.monsters.speed.0.total|add_num:points.monsters.speed.1.total|add_num:points.monsters.speed.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Attack' value=points.monsters.attack.0.total|add_num:points.monsters.attack.1.total|add_num:points.monsters.attack.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='HP' value=points.monsters.hp.0.total|add_num:points.monsters.hp.1.total|add_num:points.monsters.hp.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Defense' value=points.monsters.defense.0.total|add_num:points.monsters.defense.1.total|add_num:points.monsters.defense.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Critical Rate' value=points.monsters.crit_rate.0.total|add_num:points.monsters.crit_rate.1.total|add_num:points.monsters.crit_rate.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Critical Damage' value=points.monsters.crit_dmg.0.total|add_num:points.monsters.crit_dmg.1.total|add_num:points.monsters.crit_dmg.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Accuracy' value=points.monsters.acc.0.total|add_num:points.monsters.acc.1.total|add_num:points.monsters.acc.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Resistance' value=points.monsters.res.0.total|add_num:points.monsters.res.1.total|add_num:points.monsters.res.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with value=points.total.monsters bold=True %}
+                </ul>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="row">
+                    <div class="col-8 col-lg-8 border-right text-center"><b>Runes</b></div>
+                    <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
+                </div>
+                <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                <ul class="list-group list-group-flush">
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Quantity' value=points.runes.count.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='5* Legends' value=points.runes.stars_5_legend.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='6* Hero+' value=points.runes.stars_6_hero.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='6* Legend' value=points.runes.stars_6_legend.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='+12 or higher' value=points.runes.upgrade_12.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='+15' value=points.runes.upgrade_15.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Speed' value=points.runes.sub_speed.0.total|add_num:points.runes.sub_speed.1.total|add_num:points.runes.sub_speed.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Attack' value=points.runes.sub_atk.0.total|add_num:points.runes.sub_atk.1.total|add_num:points.runes.sub_atk.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='HP' value=points.runes.sub_hp.0.total|add_num:points.runes.sub_hp.1.total|add_num:points.runes.sub_hp.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Defense' value=points.runes.sub_def.0.total|add_num:points.runes.sub_def.1.total|add_num:points.runes.sub_def.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Critical Rate' value=points.runes.sub_crit_rate.0.total|add_num:points.runes.sub_crit_rate.1.total|add_num:points.runes.sub_crit_rate.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with text='Critical Damage' value=points.runes.sub_crit_dmg.0.total|add_num:points.runes.sub_crit_dmg.1.total|add_num:points.runes.sub_crit_dmg.2.total %}
+                    {% include 'website/upload/upload_ranking_cell.html' with value=points.total.runes bold=True %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class='card-footer'>
+        <center>If you have an idea for optimizing this list, please contact me through <a href='http://reddit.com/u/quatzo'>Reddit</a></center>
+    </div>
+</div>

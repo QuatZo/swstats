@@ -614,6 +614,12 @@ class Building(models.Model):
     def __str__(self):
         return self.name + ' [ ' + str(self.get_area_display()) + ' ]'
 
+    @classmethod
+    def get_area_id(cls, name):
+        for key, val in dict(cls.AREA_TYPE).items():
+            if val == name:
+                return key
+
     class Meta:
         ordering = ['area', 'name']
 
