@@ -1962,7 +1962,7 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
     }
     for key, val in kw.items():
         m_stats['rank'][key] = {
-            'top': math.ceil(len(df_group[df_group[key] > val]) / df_group_len * 100),
+            'top': round(len(df_group[df_group[key] > val]) / df_group_len * 100, 2),
             'avg': val - df_means[key],
         }
 
@@ -1994,7 +1994,7 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
     }
     for key, val in kw.items():
         r_stats['rank'][key] = {
-            'top': math.ceil(len(df_group[df_group[key] > val]) / df_group_len * 100) if val else None,
+            'top': round(len(df_group[df_group[key] > val]) / df_group_len * 100, 2) if val else None,
             'avg': val - df_means[key] if val else None,
         }
         if key == 'efficiency':
