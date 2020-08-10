@@ -1809,8 +1809,12 @@ def get_scoring_for_profile(wizard_id):
     ####
 
     #### guild
-    points['guild']['gw_rank']['count'] = math.floor(wiz.guild.gw_best_ranking / 1000)
-    points['guild']['siege_rank']['count'] = math.floor(wiz.guild.siege_ranking / 1000)
+    try:
+        points['guild']['gw_rank']['count'] = math.floor(wiz.guild.gw_best_ranking / 1000)
+        points['guild']['siege_rank']['count'] = math.floor(wiz.guild.siege_ranking / 1000)
+    except TypeError:
+        points['guild']['gw_rank']['count'] = 0
+        points['guild']['siege_rank']['count'] = 0
     ####
 
     #### wizard
