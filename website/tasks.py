@@ -63,12 +63,17 @@ def handle_profile_upload_task(data):
         temp_wizard = data['wizard_info']
 
         temp_runes = data['runes']
-        temp_artifacts = data['artifacts']
+        has_artifacts = False
+        temp_artifacts = list()
+        if 'artifacts' in data.keys():
+            has_artifacts = True
+            temp_artifacts = data['artifacts']
         for monster in data['unit_list']:
             for rune in monster['runes']:
                 temp_runes.append(rune)
-            for artifact in monster['artifacts']:
-                temp_artifacts.append(artifact)
+            if has_artifacts:
+                for artifact in monster['artifacts']:
+                    temp_artifacts.append(artifact)
 
         ########################################
         # Wizard Model
