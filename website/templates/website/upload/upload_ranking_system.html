@@ -12,11 +12,11 @@
                     Let's say you have +15 Legend 6* rune with {{ points.runes.sub_speed.1.threshold|add_num:1 }} speed
                     <br />
                     This rune falls into categories: 
-                    <br /><br />Quantity, 6*, 6* Hero+, 6* Legends, +12, +15, Speed (twice)
+                    <br /><br />Quantity, 6* Hero+, 6* Legends, +12, +15, Speed (twice)
                     <br /><br />
                     Summing everything up, this rune gives 
-                    <br /><br />{{ points.runes.count.base }} + {{ points.runes.stars_6.base }} + {{ points.runes.stars_6_hero.base }} + {{ points.runes.stars_6_legend.base }} + {{ points.runes.upgrade_12.base }} + {{ points.runes.upgrade_15.base }} + {{ points.runes.sub_speed.0.base }} (for +{{ points.runes.sub_speed.0.threshold }} speed) +{{ points.runes.sub_speed.1.base }} (for +{{ points.runes.sub_speed.1.threshold }} speed) = 
-                        {{ points.runes.count.base|add_num:points.runes.stars_6.base|add_num:points.runes.stars_6_hero.base|add_num:points.runes.stars_6_legend.base|add_num:points.runes.upgrade_12.base|add_num:points.runes.upgrade_15.base|add_num:points.runes.sub_speed.0.base|add_num:points.runes.sub_speed.1.base }} points
+                    <br /><br />{{ points.runes.count.base }} + {{ points.runes.stars_6_hero.base }} + {{ points.runes.stars_6_legend.base }} + {{ points.runes.upgrade_12.base }} + {{ points.runes.upgrade_15.base }} + {{ points.runes.sub_speed.0.base }} (for +{{ points.runes.sub_speed.0.threshold }} speed) +{{ points.runes.sub_speed.1.base }} (for +{{ points.runes.sub_speed.1.threshold }} speed) = 
+                        {{ points.runes.count.base|add_num:points.runes.stars_6_hero.base|add_num:points.runes.stars_6_legend.base|add_num:points.runes.upgrade_12.base|add_num:points.runes.upgrade_15.base|add_num:points.runes.sub_speed.0.base|add_num:points.runes.sub_speed.1.base }} points
             </center>
         </div>
         <div class="card-body">
@@ -77,7 +77,6 @@
                     <ul class="list-group list-group-flush">
                         {% include 'website/upload/upload_ranking_cell.html' with text='Quantity<br /><small>per rune</small>' value=points.runes.count.base %}
                         {% include 'website/upload/upload_ranking_cell.html' with text='5* Legends<br /><small>per rune</small>' value=points.runes.stars_5_legend.base %}
-                        {% include 'website/upload/upload_ranking_cell.html' with text='6*<br /><small>per rune, also Hero+ 6*</small>' value=points.runes.stars_6.base %}
                         {% include 'website/upload/upload_ranking_cell.html' with text='6* Hero+<br /><small>per rune, also Legend 6*</small>' value=points.runes.stars_6_hero.base %}
                         {% include 'website/upload/upload_ranking_cell.html' with text='6* Legend<br /><small>per rune</small>' value=points.runes.stars_6_legend.base %}
                         {% include 'website/upload/upload_ranking_cell.html' with text='+12 or higher<br /><small>per rune, also +15</small>' value=points.runes.upgrade_12.base %}

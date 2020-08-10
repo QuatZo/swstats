@@ -1407,60 +1407,55 @@ def get_scoring_system():
                 "total": 0
             },
             "raid": {
-                "base": 100,
+                "base": 20,
                 "count": 0,
                 "total": 0
             },
             "storage_capacity": {
-                "base": 1,
+                "base": .25,
                 "count": 0,
                 "total": 0
             }
         },
         "guild": {
             "gw_rank":  {
-                "base": 10,
+                "base": 50,
                 "count": 0,
                 "total": 0
             },
             "siege_rank":  {
-                "base": 10,
+                "base": 50,
                 "count": 0,
                 "total": 0
             }
         },
         "buildings": {
             "max":  {
-                "base": 50,
+                "base": 20,
                 "count": 0,
                 "total": 0
             },
             "max_all":  {
-                "base": 500,
+                "base": 250,
                 "count": 0,
                 "total": 0
             }
         },
         "flags": {
             "max":  {
-                "base": 100,
+                "base": 50,
                 "count": 0,
                 "total": 0
             },
             "max_all":  {
-                "base": 1000,
+                "base": 200,
                 "count": 0,
                 "total": 0
             }
         },
         "runes": {
             "count": {
-                "base": 0.1,
-                "count": 0,
-                "total": 0
-            },
-            "stars_6": {
-                "base": 1,
+                "base": .1,
                 "count": 0,
                 "total": 0
             },
@@ -1470,7 +1465,7 @@ def get_scoring_system():
                 "total": 0
             },
             "stars_6_hero": {
-                "base": 1.5,
+                "base": 2,
                 "count": 0,
                 "total": 0
             },
@@ -1480,28 +1475,28 @@ def get_scoring_system():
                 "total": 0
             },
             "upgrade_12": {
-                "base": 0.1,
+                "base": .1,
                 "count": 0,
                 "total": 0
             },
             "upgrade_15": {
-                "base": 1,
+                "base": .5,
                 "count": 0,
                 "total": 0
             },
             "sub_speed": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 20,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 28,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 33,
                     "count": 0,
                     "total": 0
@@ -1509,17 +1504,17 @@ def get_scoring_system():
             ],
             "sub_hp": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 27,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 35,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 45,
                     "count": 0,
                     "total": 0
@@ -1527,17 +1522,17 @@ def get_scoring_system():
             ],
             "sub_def": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 27,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 35,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 45,
                     "count": 0,
                     "total": 0
@@ -1545,17 +1540,17 @@ def get_scoring_system():
             ],
             "sub_atk": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 27,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 35,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 45,
                     "count": 0,
                     "total": 0
@@ -1563,17 +1558,17 @@ def get_scoring_system():
             ],
             "sub_crit_rate": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 20,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 28,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 33,
                     "count": 0,
                     "total": 0
@@ -1581,17 +1576,17 @@ def get_scoring_system():
             ],
             "sub_crit_dmg": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 23,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 27,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 33,
                     "count": 0,
                     "total": 0
@@ -1600,7 +1595,7 @@ def get_scoring_system():
         },
         "monsters": {
             "count": {
-                "base": 0.1,
+                "base": .1,
                 "count": 0,
                 "total": 0
             },
@@ -1610,7 +1605,7 @@ def get_scoring_system():
                 "total": 0
             },
             "nat5": {
-                "base": 15,
+                "base": 5,
                 "count": 0,
                 "total": 0
             },
@@ -1620,38 +1615,38 @@ def get_scoring_system():
                 "total": 0
             },
             "transmog": {
-                "base": 0.5,
+                "base": 1,
                 "count": 0,
                 "total": 0
             },
             "with_runes": {
-                "base": 0.5,
+                "base": 1,
                 "count": 0,
                 "total": 0
             },
             "skillup": {
-                "base": 0.1,
+                "base": .1,
                 "count": 0,
                 "total": 0
             },
             "skillups_max": {
-                "base": 10,
+                "base": 5,
                 "count": 0,
                 "total": 0
             },
             "speed": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 200,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 250,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 300,
                     "count": 0,
                     "total": 0
@@ -1659,17 +1654,17 @@ def get_scoring_system():
             ],
             "hp": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 30000,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 37500,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 45000,
                     "count": 0,
                     "total": 0
@@ -1677,17 +1672,17 @@ def get_scoring_system():
             ],
             "defense": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 1500,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 1875,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 2250,
                     "count": 0,
                     "total": 0
@@ -1695,17 +1690,17 @@ def get_scoring_system():
             ],
             "attack": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 1750,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 2250,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 2500,
                     "count": 0,
                     "total": 0
@@ -1713,17 +1708,17 @@ def get_scoring_system():
             ],
             "crit_dmg": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 150,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 200,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 250,
                     "count": 0,
                     "total": 0
@@ -1731,17 +1726,17 @@ def get_scoring_system():
             ],
             "crit_rate": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 70,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 85,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 100,
                     "count": 0,
                     "total": 0
@@ -1749,17 +1744,17 @@ def get_scoring_system():
             ],    
             "acc": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 45,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 65,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 85,
                     "count": 0,
                     "total": 0
@@ -1767,17 +1762,17 @@ def get_scoring_system():
             ],
             "res": [
                 {
-                    "base": 10,
+                    "base": 5,
                     "threshold": 70,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 25,
+                    "base": 15,
                     "threshold": 85,
                     "count": 0,
                     "total": 0
                 },{
-                    "base": 100,
+                    "base": 50,
                     "threshold": 100,
                     "count": 0,
                     "total": 0
@@ -1847,7 +1842,6 @@ def get_scoring_for_profile(wizard_id):
 
     #### runes
     points['runes']['count']['count'] = runes.count()
-    points['runes']['stars_6']['count'] = runes.filter(stars=6).count()
     points['runes']['stars_5_legend']['count'] = runes.filter(stars=6, quality_original__in=[5, 15]).count()
     points['runes']['stars_6_hero']['count'] = runes.filter(stars=6, quality_original__in=[4, 14, 5, 15]).count()
     points['runes']['stars_6_legend']['count'] = runes.filter(stars=6, quality_original__in=[5, 15]).count()

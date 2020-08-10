@@ -71,7 +71,6 @@
                 <ul class="list-group list-group-flush">
                     {% include 'website/upload/upload_ranking_cell.html' with text='Quantity' value=points.runes.count.total %}
                     {% include 'website/upload/upload_ranking_cell.html' with text='5* Legends' value=points.runes.stars_5_legend.total %}
-                    {% include 'website/upload/upload_ranking_cell.html' with text='6*' value=points.runes.stars_6.total %}
                     {% include 'website/upload/upload_ranking_cell.html' with text='6* Hero+' value=points.runes.stars_6_hero.total %}
                     {% include 'website/upload/upload_ranking_cell.html' with text='6* Legend' value=points.runes.stars_6_legend.total %}
                     {% include 'website/upload/upload_ranking_cell.html' with text='+12 or higher' value=points.runes.upgrade_12.total %}
