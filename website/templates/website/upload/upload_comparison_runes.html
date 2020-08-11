@@ -4,15 +4,16 @@
 {% load rune_grinded_val %}
 
 <div class='comparison-table'>
-    <table class='table table-striped table-bordered table-responsive table-hover'>
+    <table class='table table-striped table-bordered table-hover' id='table-comparison-runes' style="width: 100%;">
         <thead>
             <tr style='border: 1px solid #dee2e6;'>
-                <th scope='col' rowspan='2' colspan='2' class='first' >Rune</th>
-                <th scope='col' colspan='3' class='first'>HP Flat</th>
+                <th scope='col' rowspan='2' class='first'>Rune</th>
+                <th scope='col' rowspan='2' class='first double'>Main Stat</th>
+                <th scope='col' colspan='3' class='first'>HP [+]</th>
                 <th scope='col' colspan='3' class='first'>HP [%]</th>
-                <th scope='col' colspan='3' class='first'>Defense Flat</th>
+                <th scope='col' colspan='3' class='first'>Defense [+]</th>
                 <th scope='col' colspan='3' class='first'>Defense [%]</th>
-                <th scope='col' colspan='3' class='first'>Attack Flat</th>
+                <th scope='col' colspan='3' class='first'>Attack [+]</th>
                 <th scope='col' colspan='3' class='first'>Attack [%]</th>
                 <th scope='col' colspan='3' class='first'>Speed</th>
                 <th scope='col' colspan='3' class='first'>Critical Rate [%]</th>
@@ -63,7 +64,7 @@
         <tbody>
             {% for rune in runes %}
                 <tr>
-                    <th class='first'>
+                    <td class='first' data-order="{{ rune.obj.slot }}">
                         <a href="{% url 'rune_by_id' arg_id=rune.obj.id %}" style="text-decoration: none;">
                             <div class="{{"rune-background "|add_str:rune.obj.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.obj.get_quality_original_display|ancient_to_normal }}" >
                                 <div class="{{ "rune-slot"|add_str:rune.obj.slot }}">
@@ -73,8 +74,8 @@
                                 </div>
                             </div>
                         </a>
-                    </th>
-                    <th class='second'>{{ rune.obj.get_primary_display }}</th>
+                    </td>
+                    <td class='second' data-order="{{ rune.obj.get_primary_display }}">{{ rune.obj.get_primary_display }}</td>
                     {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_hp_flat|rune_grinded_val top=rune.rank.sub_hp_flat.top avg=rune.rank.sub_hp_flat.avg percentage=False %}
                     {% include 'website/upload/upload_comparison_runes_substat.html' with value=rune.obj.sub_hp|rune_grinded_val top=rune.rank.sub_hp.top avg=rune.rank.sub_hp.avg percentage=True %}
 
@@ -95,4 +96,11 @@
             {% endfor %}
         </tbody>
     </table>
+    <script>
+        $('#table-comparison-runes').DataTable({
+            scrollY: window.innerHeight - 200,
+            scrollX: true,
+            scrollCollapse: true,
+        });
+    </script>
 </div>

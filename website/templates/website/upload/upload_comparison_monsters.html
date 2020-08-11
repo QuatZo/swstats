@@ -1,7 +1,8 @@
 {% load static %}
 {% load get_monster_avatar %}
+
 <div class='comparison-table'>
-    <table class='table table-striped table-bordered table-responsive table-hover'>
+    <table class='table table-striped table-bordered table-hover' id='table-comparison-monsters' style="width: 100%;">
         <thead>
             <tr style='border: 1px solid #dee2e6;'>
                 <th scope='col' rowspan='2' class='first'>Monster</th>
@@ -56,11 +57,11 @@
         <tbody>
             {% for monster in monsters %}
                 <tr>
-                    <th class='first'>
+                    <td class='first' data-order="{{ monster.obj.base_monster.name }}">
                         <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">        
                             <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster.obj %}" class="table-monster-avatar"/>
                         </a>
-                    </th>
+                    </td>
                 
                     {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.hp top=monster.rank.hp.top avg=monster.rank.hp.avg %}
                     {% include 'website/upload/upload_comparison_monsters_substat.html' with value=monster.obj.defense top=monster.rank.defense.top avg=monster.rank.defense.avg %}
@@ -77,4 +78,11 @@
             {% endfor %}
         </tbody>
     </table>
+    <script>
+        $('#table-comparison-monsters').DataTable({
+            scrollY: window.innerHeight - 200,
+            scrollX: true,
+            scrollCollapse: true,
+        });
+    </script>
 </div>

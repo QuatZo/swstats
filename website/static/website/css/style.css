@@ -518,56 +518,50 @@ h1.h2
     text-align: center;
     background-color: white;
 }
-
-.comparison-table thead th.first {
-    position: -webkit-sticky; /* for Safari */
-    position: sticky;
-    top: -1px;
-}
-.comparison-table thead th.second {
-    position: -webkit-sticky; /* for Safari */
-    position: sticky;
-    top: 47px;
-}
   
-.comparison-table tbody th{
+.comparison-table tbody tr td:first-child,
+.comparison-table tbody tr td.second
+{
     background-color: rgba(0, 0, 0, .15);
 }
 
-.comparison-table tbody th.first {
-    position: -webkit-sticky; /* for Safari */
+.comparison-table tbody tr td:first-child {
+    position: -webkit-sticky;
     position: sticky;
     left: -1px;
 }
 
-.comparison-table tbody th.second {
-    position: -webkit-sticky; /* for Safari */
+.comparison-table tbody tr td.second {
+    position: -webkit-sticky;
     position: sticky;
-    left: 73px;
+    left: 81px;
 }
 
 .comparison-table thead th.first:first-child
 {
+    position: -webkit-sticky;
+    position: sticky;
     left: -1px;
     z-index: 1;
 }
-
-.comparison-table .rune-slot1 img{
-    top: 7px;
-    left: -4px;
+.comparison-table thead th.first.double
+{
+    position: -webkit-sticky;
+    position: sticky;
+    left: 81px;
+    z-index: 1;
 }
 
-.comparison-table .rune-slot2 img,
-.comparison-table .rune-slot3 img,
-.comparison-table .rune-slot4 img
+.comparison-table .page-link,
+.comparison-table .page-link:hover
 {
-    left: -4px;
+    color: #6c757d !important;
 }
 
-.comparison-table .rune-slot5 img,
-.comparison-table .rune-slot6 img
-{
-    left: 0px;
+.comparison-table .page-item.active .page-link{
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #fff !important;
 }
 
 
