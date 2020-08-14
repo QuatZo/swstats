@@ -347,8 +347,10 @@ def get_report_menu(request):
 
 def get_report(request):
     """Return the Report page."""
-    monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0)).prefetch_related('monster_set').values('id', 'name').annotate(count=Count('monster__id'))) # archetype=5 -> Material Monsters, awaken=0 -> Unawakened
+    monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0) & Q(monster__stars=6)).prefetch_related('monster_set').values('id', 'name').annotate(count=Count('monster__id'))) # archetype=5 -> Material Monsters, awaken=0 -> Unawakened, monster__stars=6 -> 6*
     monsters_base = sorted(monsters_base, key=itemgetter('count'), reverse = True)
+
+
 
     context = {
         'base': monsters_base,

@@ -22,7 +22,7 @@
 {% block ajax_container %} 
     <form method="POST" id="report-upload" class="form-group">
         {% csrf_token %}
-        <label for="base-monster">Select Monster</label>
+        <label for="base-monster">Select Monster (6*)</label>
         <select name="base-monster" id="base-monster" class="form-control">
             {% for el in base %}
                 <option value="{{ el.id }}">{{ el.name }} ({{ el.count }})
