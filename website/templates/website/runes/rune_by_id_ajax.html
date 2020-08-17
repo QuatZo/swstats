@@ -1,7 +1,5 @@
-{% load add_str %}
-{% load add_reverse_str %}
-{% load to_list %}
-{% load rune_grinded_val %}
+{% load other %}
+{% load runes %}
 
 {% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune (ID: "|add_str:rune.id|add_str:")" collapse_id="rune-"|add_str:rune.id collapsed="show"%}
 <div class="title-container">

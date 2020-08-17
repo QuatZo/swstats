@@ -1,12 +1,6 @@
 {% load static %}
-{% load add_str %}
-{% load add_reverse_str %}
-{% load to_list %}
-{% load get_dungeon_avatar %}
-{% load is_dungeon %}
-{% load is_rift_beast %}
-{% load dungeon_to_div_id %}
-{% load concat_arrays %}
+{% load other %}
+{% load dungeons %}
 
 {% include "website/monsters/monster_table.html" with monsters=monster|to_list text="Monster's Stats" collapse_id="monster-"|add_str:monster.id collapsed="show"%}
 <div class="title-container">

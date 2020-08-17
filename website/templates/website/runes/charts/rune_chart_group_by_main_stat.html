@@ -57,7 +57,7 @@ function handleClickRunesMainStat(evt) {
     if(activeElement.length > 0){
         var index = activeElement[0]._index;
         var stat = runeMainStats[index].replace('+', 'plus').replace('%', 'percent')
-        addParam(document.location.href, 'main-stat', stat)
+        addParam(document.location.href, 'main_stat', stat)
     }
 };
 </script>

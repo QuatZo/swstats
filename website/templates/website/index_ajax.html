@@ -1,93 +1,122 @@
 {% load static %}
-{% load dungeon_to_div_id %}
-{% load random_id %}
-{% load val_minus_one %}
+{% load dungeons %}
+{% load other %}
 
 <div class="content">
-    {% with ids|random_id as be_active %}
-        <div id="carouselCaptions" class="carousel slide" data-ride="carousel">
-            <ul class="carousel-indicators">
-            {% for msg_id in ids %}
-                <li data-target="#carouselCaptions" data-slide-to="{{ msg_id|val_minus_one }}" {% if msg_id == be_active %}class="active"{% endif %}></li>
-            {% endfor %}
-            </ul>
-            <div class="carousel-inner">
-                {% for message in messages %}
-                    <div class="carousel-item {% if message.id == be_active %}active{% endif %}">
-                        <img src="{% static 'website/carousel.png' %}" class="d-block w-100" alt="...">
-                        <div class="carousel-caption">
-                            <h5>{{ message.title }}</h5>
-                            <p>{{ message.text }}</p>
-                            {% if message.arg %}
-                                <div class="button-container">
-                                    {% if message.type == 'rune' %}
-                                        <a class="btn btn-outline-light nav-link" href="{% url 'rune_by_id' arg_id=message.arg %}">Check this out!</a>
-                                    {% elif message.type == 'monster' %}
-                                        <a class="btn btn-outline-light nav-link" href="{% url 'monster_by_id' arg_id=message.arg %}">Check this out!</a>
-                                    {% elif message.type == 'dungeon' %}
-                                        <a class="btn btn-outline-light nav-link" href="{% url 'dungeon_by_stage' name=message.arg.dungeon|dungeon_to_div_id stage=message.arg.stage %}">Check this out!</a>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                        </div>
+    <div class='content-menu'>
+        <button class="btn btn-secondary btn-compare active" type="button" onclick="changeView(0)" id='view-1-button'>Milestones</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(1)" id='view-2-button'>Introduction</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(2)" id='view-3-button'>Data Collection</button>
+    </div>
+
+    <div id='view-1' class='row'>
+        {% for message in messages %}
+            <div class='col-12 col-md-3 col-lg-2'>
+                <div class='card-custom'>
+                    {% if message.type == 'rune' %}<a href="{% url 'rune_by_id' arg_id=message.arg %}">
+                        {% elif message.type == 'monster' %}<a href="{% url 'monster_by_id' arg_id=message.arg %}">
+                        {% elif message.type == 'dungeon' %}<a href="{% url 'dungeon_by_stage' name=message.arg.dungeon|dungeon_to_div_id stage=message.arg.stage %}">
+                    {% endif %}
+                    <div class='card-custom-header'>
+                        <h5>{{ message.title }}</h5>
                     </div>
-                {% endfor %}
-                <a class="carousel-control-prev" href="#carouselCaptions" role="button" data-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="sr-only">Previous</span>
-                </a>
-                <a class="carousel-control-next" href="#carouselCaptions" role="button" data-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="sr-only">Next</span>
-                </a>
+                    <div class='card-custom-body'>
+                        {{ message.text }}
+                    </div>
+                    {% if message.type %}</a>{% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div id='view-2' class='row' style='display: none;'>
+        <div class='col-12 col-md-4'>
+            <div class='card-custom big'>
+                <div class='card-custom-header'>
+                    <h5>What’s Summoners War Statistics Web</h5>
+                </div>
+                <div class='card-custom-body'>
+                    Summoners War Statistics Web is a website which stores, analyse and shows in a friendly way contributors data but also implements the most important features from 
+                    Summoners War Statistics Windows App which had been discontinued because of technology limits.
+                </div>
             </div>
         </div>
-    {% endwith %}
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Summoners War Statistics - Introduction</h1>
+        <div class='col-12 col-md-4'>
+            <div class='card-custom big'>
+                <div class='card-custom-header'>
+                    <h5>Data Logs Section</h5>
+                </div>
+                <div class='card-custom-body'>
+                    In Data Logs Section you can find analysis, charts, tables and reports which uses whole data stored in database, i.e.:
+                    <ul>
+                        <li>Wizard (Summoner)</li>
+                        <li>Guild</li>
+                        <li>Monsters</li>
+                        <li>Runes</li>
+                        <li>Decks</li>
+                        <li>Monster builds</li>
+                        <li>RTA Monster builds</li>
+                        <li>Dungeon runs</li>
+                        <li>Rift runs</li>
+                        <li>Raid runs</li>
+                    </ul>
+                    Data send through Data Logs Section IS stored in our database.
+                </div>
+            </div>
+        </div>
+        <div class='col-12 col-md-4'>
+            <div class='card-custom big'>
+                <div class='card-custom-header'>
+                    <h5>Personal Section</h5>
+                </div>
+                <div class='card-custom-body'>
+                    In Personal Section you can find towers & flags calculator, dimension hole calculator (2A monsters) and graphic representation of your profile:
+                    <ul>
+                        <li>Wizard (Summoner)</li>
+                        <li>Monsters (with details)</li>
+                        <li>Runes (with details)</li>
+                        <li>Guild</li>
+                        <li>Guild members activity</li>
+                        <li>Friends activity</li>
+                    </ul>
+                    Data send through Personal Section IS NOT stored in our database.
+                </div>
+            </div>
+        </div>
     </div>
-    <p>
-        On this website you can check things like <b>fastest dungeon comp</b>, <b>toughest monster</b>, <b>the most efficient rune</b>, <b>different builds for certain units</b> or even <b>comps used to beat certain dungeon</b>. 
-        Data is stored anonymously and everyone can contribute. There is no hard-coded data (like builds for monster on wikia), everything is from people who decided to contribute.
-        If you want to be part of this project, check <a href="{% url 'contribute' %}">Contribute</a> page (heart icon on the menu).
-    </p>
-
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Plots</h1>
+    <div id='view-3' class='row' style='display: none;'>
+        <div class='col-12 col-md-4'>
+            <div class='card-custom big'>
+                <div class='card-custom-header'>
+                    <h5>Data Logs Section</h5>
+                </div>
+                <div class='card-custom-body'>
+                    Every data used in Data Logs Section is being collected annonymously by using website built-in Upload Functionality (together with Rank & Compare) or by using 
+                    SWEX Plugin. More information in Contribute page.
+                </div>
+            </div>
+        </div>
+        <div class='col-12 col-md-4'>
+            <div class='card-custom big'>
+                <div class='card-custom-header'>
+                    <h5>Personal Section</h5>
+                </div>
+                <div class='card-custom-body'>
+                    Every data used in Personal Section is not anonymous but it’s not stored in Summoners War Statistics Database. It works similar to all known SWOP - locally. 
+                    Data is stored in Browser Local Storage to not force you to upload your profile in Personal Section everytime you visit it.
+                </div>
+            </div>
+        </div>
+        <div class='col-12 col-md-4'>
+            <div class='card-custom big'>
+                <div class='card-custom-header'>
+                    <h5>I don't want my data to be there</h5>
+                </div>
+                <div class='card-custom-body'>
+                    I can assure you that no user will be able to tell if specific monster, rune, artifact or dungeon run is yours or not. However, if you want your data to be deleted,
+                     please contact me through Reddit (as for now the only form of contact) and we will see what can be done.
+                    Be prepare to give me some additional info I ask (most of the time example JSON file from your profile is enough), no personal data involved. 
+                </div>
+            </div>
+        </div>
     </div>
-    <p>
-        Almost every plot is clickable, which means that it will redirect you to different page (i.e. when you click on monster it can redirect you to its page) or filter existing records.
-        In addition, if you hover on specific point/bar, it will display more information about specific record.
-    </p>
-
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Tables</h1>
-    </div>
-    <p>
-        Every table is (on default) collapsed to minimize the amount of information website throws to you when you enter specific Page.<br />
-        Every row is clickable, which means that it will redirect you to corresponding Page, i.e. for Monsters if you click on row in table, it will redirect you to specific Monster Build.<br />
-        If row is not clickable, then there should be some icons or images, which are clickable. Check them!
-    </p>
-
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Reports & Data Download</h1>
-    </div>
-    <p>
-        You can generate new monste report or download monster data in <b>CSV</b>/<b>Excel</b>/<b>PDF</b> format under <a href="{% url 'reports' %}">Reports</a> page. Also, old reports made by me are visible there.
-    </p>
-
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">More...</h1>
-    </div>
-    <p>
-        I'm pretty bad at describing functionality, so all I can do in this situation is invite you to give it a try. Have fun!
-    </p>
-
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">I don't want my data to be here</h1>
-    </div>
-    <p>
-        I can assure you that no user will be able to tell if specific monster/rune/dungeon run is yours or not. However, if you want your data to be deleted, 
-        please contact me through <a href="https://reddit.com/u/quatzo">Reddit</a> (as for now the only form of contact) and we will see what can be done.
-    </p>
 </div>

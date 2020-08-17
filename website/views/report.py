@@ -19,7 +19,7 @@ import plotly.graph_objects as go
 from website.models import *
 from website.serializers import CommandSerializer
 from website.functions import create_rgb_colors
-from website.templatetags import get_sets
+from website.templatetags.runes import get_sets
 
 # HELPFUL FUNCTIONS
 def get_monster_info(base_monster):
@@ -147,7 +147,7 @@ def generate_plots(monsters, monsters_runes, base_monster, bot=False):
             else:
                 df.loc[result['monster'].id, "rune #" + str(i + 1)] = rune
 
-        set_names, broken = get_sets.get_sets(result['runes'], True)
+        set_names, broken = get_sets(result['runes'], True)
         set_names = [str(set_name) for set_name in set_names]
         set_names.sort()
         

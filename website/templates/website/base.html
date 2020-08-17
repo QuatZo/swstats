@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   {% load static %}
-  {% load is_active %}
+  {% load other %}
   <head>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161013694-1"></script>
@@ -25,6 +25,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" charset="utf-8">
     <meta name="title" content="Summoners War Statistics Web">
     <meta name="description" content="Big Data Analysis for Summoners War">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
     {% block custom_script %} {% endblock %}
     <title>
         {% block title %}
@@ -119,7 +120,7 @@
                         </li>
                     </ul>
                     <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted" style="padding: 0 !important;">
-                        <span>Desktop App</span>
+                        <span>Personal</span>
                     </h6>
                     <ul class="nav flex-column mb-2">
                         <li class="nav-item">
@@ -159,5 +160,27 @@
         </div>
     </div>
     {% block jquery %}{% endblock %}
+    <script>
+        jQuery.expr[':'].regex = function(elem, index, match) {
+            var matchParams = match[3].split(','),
+                validLabels = /^(data|css):/,
+                attr = {
+                    method: matchParams[0].match(validLabels) ? 
+                                matchParams[0].split(':')[0] : 'attr',
+                    property: matchParams.shift().replace(validLabels,'')
+                },
+                regexFlags = 'ig',
+                regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
+            return regex.test(jQuery(elem)[attr.method](attr.property));
+        }
+
+        function changeView(view_id){
+            $('div:regex(id, view-[0-9]$)').fadeOut('slow');
+            $('button:regex(id, view-[0-9]-button)').removeClass('active');
+
+            $('#view-' + (view_id + 1)).fadeIn('slow');
+            $('#view-' + (view_id + 1) + '-button').addClass('active');
+        }
+    </script>
   </body>
 </html>

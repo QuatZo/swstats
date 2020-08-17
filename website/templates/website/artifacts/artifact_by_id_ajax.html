@@ -1,6 +1,4 @@
-{% load add_str %}
-{% load add_reverse_str %}
-{% load to_list %}
+{% load other %}
 
 {% include "website/artifacts/artifact_table.html" with artifacts=artifact|to_list text="Artifact (ID: "|add_str:artifact.id|add_str:")" collapse_id="artifact-"|add_str:artifact.id collapsed="show"%}
 <div class="title-container">

@@ -215,6 +215,12 @@ class Rune(models.Model):
                 return key
 
     @classmethod
+    def get_rune_effects(cls):
+        rune_effects = list(dict(cls.RUNE_EFFECTS).values())
+        rune_effects.sort()
+        return rune_effects
+
+    @classmethod
     def get_rune_primary(cls, number):
         return dict(cls.RUNE_EFFECTS)[number]
 
@@ -224,6 +230,11 @@ class Rune(models.Model):
             stat = name.replace('plus', '+').replace('percent', '%')
             if primary == stat:
                 return key
+
+    @classmethod
+    def get_rune_qualities(cls):
+        return list(dict(cls.RUNE_QUALITIES).values())
+    
 
 class Artifact(models.Model):
     ARTIFACT_QUALITIES = (

@@ -458,11 +458,11 @@ def get_runes_task(request_get):
     if request_get:
         is_filter = True
 
-    if 'set' in request_get.keys() and request_get['set']:
+    if 'set' in request_get.keys() and request_get['set'] and request_get['set'][0] != '0':
         filters.append('Set: ' + request_get['set'][0])
         runes = runes.filter(rune_set__name=request_get['set'][0])
 
-    if 'slot' in request_get.keys() and request_get['slot']:
+    if 'slot' in request_get.keys() and request_get['slot'] and request_get['slot'][0] != '0':
         try:
             slot = int(request_get['slot'][0])
         except ValueError:
@@ -470,29 +470,37 @@ def get_runes_task(request_get):
         filters.append('Slot: ' + str(slot))
         runes = runes.filter(slot=slot)
     
-    if 'quality' in request_get.keys() and request_get['quality']:
+    if 'quality' in request_get.keys() and request_get['quality'] and request_get['quality'][0] != '0':
         filters.append('Quality: ' + request_get['quality'][0])
         quality_id = Rune().get_rune_quality_id(request_get['quality'][0])
         runes = runes.filter(quality=quality_id)
     
-    if 'quality-original' in request_get.keys() and request_get['quality-original']:
-        filters.append('Original Quality: ' + request_get['quality-original'][0])
-        quality_original_id = Rune().get_rune_quality_id(request_get['quality-original'][0])
+    if 'quality_original' in request_get.keys() and request_get['quality_original'] and request_get['quality_original'][0] != '0':
+        filters.append('Original Quality: ' + request_get['quality_original'][0])
+        quality_original_id = Rune().get_rune_quality_id(request_get['quality_original'][0])
         runes = runes.filter(quality_original=quality_original_id)
 
-    if 'main-stat' in request_get.keys() and request_get['main-stat']:
-        main_stat = request_get['main-stat'][0].replace('plus', '+').replace('percent', '%')
+    if 'main_stat' in request_get.keys() and request_get['main_stat'] and request_get['main_stat'][0] != '0':
+        main_stat = request_get['main_stat'][0].replace('plus', '+').replace('percent', '%')
         filters.append('Main Stat: ' + main_stat)
         main_stat_id = Rune().get_rune_primary_id(main_stat)
         runes = runes.filter(primary=main_stat_id)
     
-    if 'stars' in request_get.keys() and request_get['stars']:
+    if 'stars' in request_get.keys() and request_get['stars'] and request_get['stars'][0] != '0':
         try:
             stars = int(request_get['stars'][0]) % 10
         except ValueError:
             stars = 0
         filters.append('Stars: ' + str(stars))
         runes = runes.filter(Q(stars=stars) | Q(stars=stars + 10)) # since ancient runes have 11-16
+
+    if 'eff_min' in request_get.keys() and request_get['eff_min'] and request_get['eff_min'][0] != '0':
+        filters.append('Efficiency Minimum: ' + request_get['eff_min'][0])
+        runes = runes.filter(efficiency__gte=request_get['eff_min'][0])
+
+    if 'eff_max' in request_get.keys() and request_get['eff_max'] and request_get['eff_max'][0] != '0':
+        filters.append('Efficiency Maximum: ' + request_get['eff_max'][0])
+        runes = runes.filter(efficiency__lte=request_get['eff_max'][0])
 
     runes_count = runes.count()
     
@@ -509,11 +517,23 @@ def get_runes_task(request_get):
     fastest_runes = get_rune_list_fastest(runes, 100, runes_count)
     best_runes_ids = [rune.id for rune in best_runes]
     fastest_runes_ids = [rune.id for rune in fastest_runes]
+
+    filter_qualities = Rune().get_rune_qualities()
+    filter_options = {
+        'sets': list(RuneSet.objects.all().values_list('name', flat=True)),
+        'slots': [1, 2, 3, 4, 5, 6],
+        'qualities': filter_qualities,
+        'qualities_original': filter_qualities,
+        'main_stats': Rune().get_rune_effects(),
+        'stars': [1, 2 , 3, 4, 5, 6],
+    }
     
     context = {
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
+        'filter_options': filter_options,
+        'request': request_get,
 
         # chart distribution
         'all_distribution': normal_distribution_runes['distribution'],
@@ -1328,64 +1348,118 @@ def get_homepage_task():
     monster_cdmg = monsters.order_by('-crit_dmg').first()
     monster_speed = monsters.order_by('-speed').first()
     
+    artifacts = Artifact.objects.all()
+    
     giants_fastest = DungeonRun.objects.filter(dungeon=8001, stage=10).order_by('clear_time').first()
     dragons_fastest = DungeonRun.objects.filter(dungeon=9001, stage=10).order_by('clear_time').first()
     necropolis_fastest = DungeonRun.objects.filter(dungeon=6001, stage=10).order_by('clear_time').first()
+    steel_fastest = DungeonRun.objects.filter(dungeon=9501, stage=10).order_by('clear_time').first()
+    punisher_fastest = DungeonRun.objects.filter(dungeon=9502, stage=10).order_by('clear_time').first()
+
+    giants_fastest_b12 = DungeonRun.objects.filter(dungeon=8001, stage=12).order_by('clear_time').first()
+    dragons_fastest_b12 = DungeonRun.objects.filter(dungeon=9001, stage=12).order_by('clear_time').first()
+    necropolis_fastest_b12 = DungeonRun.objects.filter(dungeon=6001, stage=12).order_by('clear_time').first()
 
     MESSAGES = [
         {
             'id': 1,
             'title': 'Highest rune efficiency',
-            'text': f'The most efficient rune stored in database has {rune_best.efficiency if rune_best else 0}% efficiency.',
+            'text': f'The most efficient rune has {rune_best.efficiency if rune_best else 0}% efficiency.',
             'type': 'rune',
             'arg': rune_best.id if rune_best else 0,
         },
         {
             'id': 2,
-            'title': 'Database',
-            'text': f'Our database contains {runes.count()} runes and {monsters.count()} monsters.',
+            'title': 'Runes',
+            'text': f'Our database contains {runes.count()} runes',
         },
         {
             'id': 3,
+            'title': 'Monsters',
+            'text': f'Our database contains {monsters.count()} monsters',
+        },
+        {
+            'id': 4,
+            'title': 'Artifacts',
+            'text': f'Our database contains {artifacts.count()} artifacts',
+        },
+        {
+            'id': 5,
             'title': 'Highest average efficiency',
-            'text': f'{str(monster_best)} has the highest average efficiency, amounting to {monster_best.avg_eff if monster_best else 0}%',
+            'text': f'{str(monster_best)} has the highest average efficiency -> {monster_best.avg_eff if monster_best else 0}%',
             'type': 'monster',
             'arg': monster_best.id if monster_best else 0,
         },
         {
-            'id': 4,
+            'id': 6,
             'title': 'Highest critical damage value',
-            'text': f'Highest Critical Damage value has {str(monster_cdmg)} with an amazing {monster_cdmg.crit_dmg if monster_cdmg else 0}%',
+            'text': f'Highest Critical Damage value ({monster_cdmg.crit_dmg if monster_cdmg else 0}%) has {str(monster_cdmg)}',
             'type': 'monster',
             'arg': monster_cdmg.id if monster_best else 0,
         },
         {
-            'id': 5,
+            'id': 7,
             'title': 'Fastest monster',
-            'text': f'Can something be faster than Flash? Yes! Such a monster is {str(monster_speed)} with an amazing {monster_speed.speed if monster_speed else 0} SPD',
+            'text': f'{str(monster_speed)} has an amazing {monster_speed.speed if monster_speed else 0} SPD',
             'type': 'monster',
             'arg': monster_speed.id if monster_speed else 0,
         },
         {
-            'id': 6,
-            'title': 'Fastest Giant\'s Keep B10 Run',
-            'text': f'You don\'t believe it! Someone beat Giant\'s Keep B10 in {int(giants_fastest.clear_time.total_seconds())} seconds!',
+            'id': 8,
+            'title': 'Fastest GB10 Run',
+            'text': f'Someone beat Giant\'s Keep B10 in {int(giants_fastest.clear_time.total_seconds())} seconds!',
             'type': 'dungeon',
             'arg': {'dungeon': DungeonRun.get_dungeon_name(giants_fastest.dungeon), 'stage': 10},
         },
         {
-            'id': 7,
-            'title': 'Fastest Dragon\'s Lair B10 Run',
-            'text': f'Wait, what!? Someone set up Dragon B10 on fire in just {int(dragons_fastest.clear_time.total_seconds())} seconds. Incredible!',
+            'id': 9,
+            'title': 'Fastest DB10 Run',
+            'text': f'Someone beat Dragon\'s Lair B10 in {int(dragons_fastest.clear_time.total_seconds())} seconds!',
             'type': 'dungeon',
             'arg': {'dungeon': DungeonRun.get_dungeon_name(dragons_fastest.dungeon), 'stage': 10},
         },
         {
-            'id': 8,
-            'title': 'Fastest Necropolis B10 Run',
-            'text': f'The Ancient Lich King was alive only for {int(necropolis_fastest.clear_time.total_seconds())} seconds after resurrection!',
+            'id': 10,
+            'title': 'Fastest NB10 Run',
+            'text': f'Someone beat Necropolis B10 in {int(necropolis_fastest.clear_time.total_seconds())} seconds!',
             'type': 'dungeon',
             'arg': {'dungeon': DungeonRun.get_dungeon_name(necropolis_fastest.dungeon), 'stage': 10},
+        },
+        
+        {
+            'id': 11,
+            'title': 'Fastest SB10 Run',
+            'text': f'Someone beat Steel Fortress B10 in {int(steel_fastest.clear_time.total_seconds())} seconds!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(steel_fastest.dungeon), 'stage': 10},
+        },
+        {
+            'id': 12,
+            'title': 'Fastest PB10 Run',
+            'text': f'Someone beat Punisher\'s Crypt B10 in {int(punisher_fastest.clear_time.total_seconds())} seconds!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(punisher_fastest.dungeon), 'stage': 10},
+        },
+        {
+            'id': 13,
+            'title': 'Fastest GB12 Run',
+            'text': f'Someone beat Giant\'s Keep B12 in {int(giants_fastest_b12.clear_time.total_seconds())} seconds!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(giants_fastest_b12.dungeon), 'stage': 12},
+        },
+        {
+            'id': 14,
+            'title': 'Fastest DB12 Run',
+            'text': f'Someone beat Dragon B12 in {int(dragons_fastest_b12.clear_time.total_seconds())} seconds!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(dragons_fastest_b12.dungeon), 'stage': 12},
+        },
+        {
+            'id': 15,
+            'title': 'Fastest NB12 Run',
+            'text': f'Someone beat Necropolis B12 in {int(necropolis_fastest_b12.clear_time.total_seconds())} seconds!',
+            'type': 'dungeon',
+            'arg': {'dungeon': DungeonRun.get_dungeon_name(necropolis_fastest_b12.dungeon), 'stage': 12},
         },
     ]
 
