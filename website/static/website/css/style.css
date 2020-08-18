@@ -5,10 +5,6 @@ body {
     font-weight: 300;
 }
 
-td{
-    vertical-align: middle !important;
-}
-
 .feather {
     width: 25px;
     height: 25px;
@@ -173,13 +169,25 @@ td{
     flex: 0 0 calc(100% - 80px);
 }
 
-/*          NAV-, SIDE-BAR END       */
-/*          CONTENT START            */
+/*          NAV-, SIDE-BAR END          */
+/*          CONTENT START               */
 
 .content{
     max-width: 1500px;
     margin: auto;
 }
+
+.rune-content{
+    display: flex;
+}
+
+.row.ranks{
+    margin: 0;
+    width: 100%;
+}
+
+/*          CONTENT END                 */
+/*          CARD START                  */
 
 .card-custom{
     border-radius: 7px;
@@ -208,7 +216,7 @@ td{
     border-radius: 7px 7px 0 0;
     text-align: center;
     padding: 10px;
-    height: 50px;
+    min-height: 50px;
     word-wrap: break-word;
     display: flex;
     justify-content: center;
@@ -228,6 +236,16 @@ td{
     justify-content: center;
     align-content: center;
     flex-direction: column;
+}
+
+.card-custom-body .monster-info{
+    border-bottom: 1px solid rgba(255, 255, 255, .25);
+    margin: 0;
+    margin-bottom: 10px;
+}
+.card-custom-body .monster-runes{
+    margin: 0;
+    margin-top: 10px;
 }
 
 .card-custom.big{
@@ -305,6 +323,31 @@ td{
     color: #cdb775;
 }
 
+.rune-card-compressed{
+    min-width: 300px;
+    width: 300px;
+}
+
+
+.monster-info-row,
+.monster-runes-row
+{
+    width: 100%;
+    display: inline-block;
+    display: -webkit-inline-box;
+    padding: 2px 0;
+}
+
+.width-min-200{
+    min-width: 200px;
+}
+
+.monster-runes-row .flex-right{
+    width: calc(100% - 200px);
+}
+/*              CARD END                */
+/*              TITLE START             */
+
 .title-container{
     overflow: auto;
 }
@@ -325,65 +368,8 @@ td{
     border-color: #007bff;
 }
 
-tr.orig-quality-Legend,
-tr.orig-quality-Ancient.Legend
-{
-    background-color: rgb(255, 173, 73, .25);
-}
-
-tr.orig-quality-Hero,
-tr.orig-quality-Ancient.Hero
-{
-    background-color: rgb(255, 0, 255, .25);
-}
-
-tr.orig-quality-Rare,
-tr.orig-quality-Ancient.Rare
-{
-    background-color: rgb(0, 0, 255, .25);
-}
-
-tr.orig-quality-Magic,
-tr.orig-quality-Ancient.Magic
-{
-    background-color: rgb(0, 255, 0, .25);
-}
-
-.chart{
-    width: 100%;
-    height: 25vh;
-    min-height: 180px;
-    display: flex;
-}
-
-.chart-2{
-    width: 45%;
-    height: 25vh;
-    min-height: 180px;
-}
-
-.chart-2.right{
-    margin-left: 10%;
-}
-
-h2.title,
-h1.h2
-{
-    -webkit-user-select: none;
-    -moz-user-select: -moz-none;
-    -ms-user-select: none;
-    user-select: none
-}
-
-.rank{
-    min-height: 10vh;
-    padding: 15px 0;
-}
-
-.rank .card{
-    height: 100%;
-}
-
+/*              TITLE END               */
+/*              RUNES START             */
 .rune-background{
     width: 50px;
     height: 50px;
@@ -514,7 +500,49 @@ h1.h2
     background-size: 45px auto;
     top: 5px;
 }
+/*              RUNES END               */
+/*              CHARTS START            */
+.chart{
+    width: 100%;
+    height: 25vh;
+    min-height: 180px;
+    display: flex;
+}
 
+.chart-2{
+    width: 45%;
+    height: 25vh;
+    min-height: 180px;
+}
+
+.chart-2.right{
+    margin-left: 10%;
+}
+
+/*              CHARTS END              */
+/*              HEADLINES START         */
+h2.title,
+h1.h2
+{
+    -webkit-user-select: none;
+    -moz-user-select: -moz-none;
+    -ms-user-select: none;
+    user-select: none
+}
+/*              HEADLINES END           */
+/*              RANK START              */
+
+.rank{
+    min-height: 10vh;
+    padding: 15px 0;
+}
+
+.rank .card{
+    height: 100%;
+}
+
+/*              RANK END                */
+/*              TABLE START             */
 .table-monster-href:hover{
     text-decoration: none;
 }
@@ -526,103 +554,13 @@ h1.h2
 }
 
 .table-monster-avatar-min{
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
 }
 
-.card-body.inner{
-    padding: 0;
-    flex: none;
-}
-
-.card-body.inner div{
-    margin: 0;
-}
-
-.dungeon-header{
-    padding: 0 !important;
-}
-
-.dungeon-header-img{
-    border-top-left-radius: inherit;
-}
-
-.img-center{
-    display: block;
-    margin: auto;
-    max-width: 100%;
-}
-
-.profile-json-upload-button {
-    border: 1px solid #1112 !important;
-    height: 100% !important;
-    margin-bottom: 0;
-}
-
-.building-done{
-    background-color: rgba(255, 0, 0, 0.35);
-}
-
-.calc-input{
-    width: 100%;
-}
-
-.homunculus-card-link{
-    position: relative; 
-    float: right; 
-    top: 40%;
-    right: 10px;
-}
-
-.old-report-image{
-    width: 100%;
-}
-
-.row.cards{
-    visibility: hidden;
-}
-
-.btn-primary.left{
-    float: left;
-    margin: 2px;
-}
-
-.report-button{
-    width: 100%;
-    height: 735px;
-}
-
-#upload-menu,
-.content-menu
-{
-    margin-top: 10px;
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    margin-bottom: 50px;
-}
-
-#upload-menu button,
-.content-menu button
-{
-    border-radius: 0;
-    width: 300px;
-    min-width: 150px;
-}
-
-#upload-menu button:first-child,
-.content-menu button:first-child
-{
-    border-top-left-radius: .25rem;
-    border-bottom-left-radius: .25rem;
-}
-
-#upload-menu button:last-child,
-.content-menu button:last-child
-{
-    border-top-right-radius: .25rem;
-    border-bottom-right-radius: .25rem;
+td{
+    vertical-align: middle !important;
 }
 
 .comparison-table,
@@ -683,6 +621,117 @@ h1.h2
     color: #fff !important;
 }
 
+/*              TABLE END               */
+/*              OTHER START             */
+.tooltip > .tooltip-inner {
+    background: unset;
+    border: none;
+    margin: 0;
+}
+
+.tooltip.show {
+    opacity: 1!important;
+}
+
+.tooltip .card-custom{
+    margin: 0;
+}
+
+.tooltip .width-min-200{
+    min-width: 125px;
+}
+
+.tooltip .monster-runes-row .flex-right{
+    width: calc(100% - 125px);
+}
+
+.bs-tooltip-auto[x-placement^=top] .arrow::before,
+.bs-tooltip-top .arrow::before 
+{     
+    border: none!important;
+    display: none;
+}
+
+.dungeon-header{
+    padding: 0 !important;
+}
+
+.dungeon-header-img{
+    border-top-left-radius: inherit;
+}
+
+.img-center{
+    display: block;
+    margin: auto;
+    max-width: 100%;
+}
+
+.profile-json-upload-button {
+    border: 1px solid #1112 !important;
+    height: 100% !important;
+    margin-bottom: 0;
+}
+
+.building-done{
+    background-color: rgba(255, 0, 0, 0.35);
+}
+
+.calc-input{
+    width: 100%;
+}
+
+.homunculus-card-link{
+    position: relative; 
+    float: right; 
+    top: 40%;
+    right: 10px;
+}
+
+.old-report-image{
+    width: 100%;
+}
+
+.btn-primary.left{
+    float: left;
+    margin: 2px;
+}
+
+.report-button{
+    width: 100%;
+    height: 735px;
+}
+
+#upload-menu,
+.content-menu
+{
+    margin-top: 10px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+#upload-menu button,
+.content-menu button
+{
+    border-radius: 0;
+    width: 300px;
+    min-width: 150px;
+}
+
+#upload-menu button:first-child,
+.content-menu button:first-child
+{
+    border-top-left-radius: .25rem;
+    border-bottom-left-radius: .25rem;
+}
+
+#upload-menu button:last-child,
+.content-menu button:last-child
+{
+    border-top-right-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+}
 
 /* Loading Spinner */
 #secs{
@@ -752,6 +801,8 @@ h1.h2
   }
 }
 /* /////// /////// */
+
+/*              MOBILE START            */
 @media (max-width: 992px){
     .card .border-right.ranking-header{
         border-right: none!important;
@@ -759,6 +810,20 @@ h1.h2
 }
 
 @media (max-width: 768px) {
+    .rune-card-compressed{
+        width: 100%;
+    }
+    .tooltip > .tooltip-inner {
+        max-width: 100%;
+    }
+
+    .rune-content{
+        display: block;
+    }
+    .rune-content .col-12{
+        padding: 0;
+    }
+
     #upload-menu,
     .content-menu
     {
@@ -854,3 +919,4 @@ h1.h2
         right: unset;
     }
 }
+/*              MOBILE END              */

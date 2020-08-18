@@ -60,8 +60,9 @@ def get_monster(obj, rta=False):
             rta_mons = RuneRTA.objects.filter(rune=obj)
             for rta_mon in rta_mons:
                 return rta_mon.monster
-        for monster in obj.equipped_runes.all():
-            return monster
+        else:
+            for monster in obj.equipped_runes.all():
+                return monster
     
     if isinstance(obj, Artifact):
         for monster in obj.equipped_artifacts.all():

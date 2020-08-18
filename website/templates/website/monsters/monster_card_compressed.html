@@ -3,136 +3,150 @@
 {% load runes %}
 {% load monsters %}
 
-<div class="col-12 col-sm-6 rank">
-    <div class="card">
-        <div class="card-header" onClick="goToMonster('{% url "monster_by_id" arg_id=monster.id %}')" style="cursor: pointer;">
-            {{ name }}
+<div class='card-custom bordered standard'  onClick="moveTo('{% url 'monster_by_id' arg_id=monster.id %}')" style='cursor: pointer;'>
+    <div class='card-custom-header'>
+        {{ monster.base_monster.name }}{% if rta_runes %} (RTA Build){% endif %}
+    </div>
+    <div class='card-custom-body standard'>
+        <div class='monster-info'>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Base Monster</div>
+                <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster.base_monster %}" class="table-monster-avatar-min" style="cursor: initial;" />
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Level</div>
+                {{ monster.level }}
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>HP</div>
+                {{ monster.hp }}
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Attack</div>
+                {{ monster.attack }}
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Defense</div>
+                {{ monster.defense }}
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Speed</div>
+                {{ monster.speed }}
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Critical Rate</div>
+                {{ monster.crit_rate }}
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Critical Damage</div>
+                {{ monster.crit_dmg }}
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Resistance</div>
+                {% if monster.res >= 100 %}<span class='#ff0000'>{{ monster.res }}</span>{% else %}{{ monster.res }}{% endif %}<br />
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Accuracy</div>
+                {% if monster.acc >= 100 %}<span class='#ff0000'>{{ monster.acc }}</span>{% else %}{{ monster.acc }}{% endif %}<br />
+            </div>            
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Family</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.base_monster.family }} </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Base Monster</b></div>
-                <div class="col-6 col-sm-6"> 
-                    <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
-                        <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster.base_monster %}" class="table-monster-avatar"/>
-                    </a> 
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Stars</b></div>
-                <div class="col-6 col-sm-6"> 
-                    {% with ''|center:monster.stars as range %}
-                        {% for _ in range %}
-                            <img src="{% static 'website/images/stars/'|get_star_avatar:monster %}" class="table-monster-avatar-min"/>
-                        {% endfor %}
-                    {% endwith %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Base Class</b></div>
-                <div class="col-6 col-sm-6">
-                    {% with ''|center:monster.base_monster.base_class as range %}
-                        {% for _ in range %}
-                            <img src="{% static 'website/images/stars/'|get_star_base_avatar:monster %}" class="table-monster-avatar-min"/>
-                        {% endfor %}
-                    {% endwith %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Type</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.base_monster.get_archetype_display }} </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Attribute</b></div>
-                <div class="col-6 col-sm-6"> 
-                    <img src="{% static 'website/images/attributes/'|get_attribute_avatar:monster %}" class="table-monster-avatar-min"/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Level</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.level }} </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Runes Efficiency</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.avg_eff|add_str:"%" }}</div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Runes</b></div>
-                <div class="col-6 col-sm-6"> 
-                    {% if rta_runes %}
-                        {% for rune in rta_runes %}
-                            <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
-                                <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }}" >
-                                    <div class="{{ "rune-slot"|add_str:rune.slot }}">
-                                        <div class="rune">
-                                            <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        {% endfor %} 
-                    {% else %}
+
+        <div class='monster-runes'>
+            {% if not deep %}
+                <div class='monster-runes-row'>
+                    <div class='substat width-min-200'>Runes</div> 
+                    <div class='flex-right'>
                         {% for rune in monster.runes.all %}
                             <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
-                                <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }}" >
+                                <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }} {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="rune-{{ rune.id }}"{% endif %}>
                                     <div class="{{ "rune-slot"|add_str:rune.slot }}">
                                         <div class="rune">
                                             <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
                                         </div>
                                     </div>
                                 </div>
+                                {% if not deep %}
+                                    <div id="rune-{{ rune.id }}" class="tip-content" style='display: none;'>
+                                        {% include "website/runes/rune_card_compressed.html" with rune=rune deep=True %}
+                                    </div>
+                                {% endif %}
                             </a>
-                        {% endfor %} 
-                    {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Rune Sets</b></div>
-                <div class="col-6 col-sm-6">
-                    {% if monster.runes.count > 0%}
-                        {% with monster.runes.all|get_sets as sets %}
-                            {% if not sets %}
-                                Full Broken
-                            {% else %}
+            {% endif %}
+            <div class='monster-runes-row'>
+                <div class='substat width-min-200'>Sets</div> 
+                <div class='flex-right'>
+                    {% if monster.runes.count > 0 %}
+                            {% with monster.runes.all|get_sets as sets %}
                                 {% for set in sets %}
-                                    <img src="{% static 'website/images/runes/'|add_str:set|lower|add_str:".png" %}" class="table-monster-avatar" />
+                                    <img src="{% static 'website/images/runes/'|add_str:set|lower|add_str:".png" %}" class="table-monster-avatar-min" />
                                 {% endfor %}
-                            {% endif %}
-                        {% endwith %}
+                            {% endwith %}
                     {% else %}
-                        <span data-feather="slash" style="color: red;"></span>
+                        Broken
                     {% endif %}
                 </div>
             </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Artifacts</b></div>
-                <div class="col-6 col-sm-6">
+            <div class='monster-runes-row'>
+                <div class='substat width-min-200'>Artifacts</div>
+                <div class='flex-right'> 
                     {% if monster.artifacts.count %}
                         {% for artifact in monster.artifacts.all %}
-                                {% if artifact.rtype == 1 %}
-                                    <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar" />
-                                {% else %}
-                                    <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar" />
-                                {% endif %}
+                                <a href="{% url 'artifact_by_id' arg_id=artifact.id %}">
+                                    {% if artifact.rtype == 1 %}
+                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar" />
+                                    {% else %}
+                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar" />
+                                    {% endif %}
+                                </a>
                             {% endfor %}
                     {% else %}
                         -
                     {% endif %}
                 </div>
             </div>
-            <div class="row">
-                <div class="col-6 col-sm-6"><b>Recommendation text ({{ monster.base_monster.recommendation_votes }} votes)</b></div>
-                <div class="col-6 col-sm-6"> {{ monster.base_monster.recommendation_text }} </div>
-            </div>
+
+            {% if rta_runes %}
+                {% if not deep %}
+                    <div class='monster-runes-row'>
+                        <div class='substat width-min-200'>RTA Runes</div>
+                        <div class='flex-right'>
+                            {% for rune in rta_runes %}
+                                <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
+                                    <div class="{% if not deep %}tip{% endif %} {{'rune-background '|add_str:rune.get_quality_display|ancient_to_normal }} {{ 'rune-border-'|add_str:rune.get_quality_original_display|ancient_to_normal }}" {% if not deep %}data-tip="rune-{{ rune.id }}"{% endif %}>
+                                        <div class="{{ "rune-slot"|add_str:rune.slot }}">
+                                            <div class="rune">
+                                                <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if not deep %}
+                                        <div id="rune-{{ rune.id }}" class="tip-content" style='display: none;'>
+                                            {% include "website/runes/rune_card_compressed.html" with rune=rune deep=True %}
+                                        </div>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                <div class='monster-runes-row'>
+                    <div class='substat width-min-200'>RTA Sets</div> 
+                    <div class='flex-right'>
+                        {% if rta_runes|length > 0 %}
+                            {% with rta_runes|get_sets as sets %}
+                                {% for set in sets %}
+                                    <img src="{% static 'website/images/runes/'|add_str:set|lower|add_str:".png" %}" class="table-monster-avatar-min" />
+                                {% endfor %}
+                            {% endwith %}
+                        {% else %}
+                            Broken
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
-
-<script>
-    function goToMonster(href){
-        document.location.href = document.location.origin + href;
-    }
-</script>

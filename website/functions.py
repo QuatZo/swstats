@@ -635,52 +635,11 @@ def get_rune_list_grouped_by_stars(runes):
 
     return { 'number': stars_number, 'quantity': stars_count, 'length': len(stars_number) }
 
-def get_rune_rank_eff(runes, rune):
-    """Return place of rune based on efficiency."""
-    return runes.filter(efficiency__gte=rune.efficiency).count()
-
-def get_rune_rank_substat(runes, rune, substat, filters=None):
-    """Return place of rune based on given substat."""
-    filters_sub = {
-        'sub_hp_flat': [runes.filter(sub_hp_flat__isnull=False), rune.sub_hp_flat],
-        'sub_hp': [runes.filter(sub_hp__isnull=False), rune.sub_hp],
-        'sub_atk_flat': [runes.filter(sub_atk_flat__isnull=False), rune.sub_atk_flat],
-        'sub_atk': [runes.filter(sub_atk__isnull=False), rune.sub_atk],
-        'sub_def_flat': [runes.filter(sub_def_flat__isnull=False), rune.sub_def_flat],
-        'sub_def': [runes.filter(sub_def__isnull=False), rune.sub_def],
-        'sub_speed': [runes.filter(sub_speed__isnull=False), rune.sub_speed],
-        'sub_crit_rate': [runes.filter(sub_crit_rate__isnull=False), rune.sub_crit_rate],
-        'sub_crit_dmg': [runes.filter(sub_crit_dmg__isnull=False), rune.sub_crit_dmg],
-        'sub_res': [runes.filter(sub_res__isnull=False), rune.sub_res],
-        'sub_acc': [runes.filter(sub_acc__isnull=False), rune.sub_acc],
-    }
-
-    if filters_sub[substat][1] is None:
-        return None
-
-    runes = filters_sub[substat][0]
-
-    if filters:
-        if 'slot' in filters:
-            runes = runes.filter(slot=rune.slot)
-        if 'set' in filters:
-            runes = runes.filter(slot=rune.rune_set.id)
-
-    value = sum(filters_sub[substat][1])
-
-    ranks = np.array([1 if temp_substat is not None and sum(temp_substat) > value else None for temp_substat in runes.values_list(substat, flat=True)], dtype=np.float64)
-    ranks = ranks[~np.isnan(ranks)]
-
-    return len(ranks) + 1
-
 def get_rune_similar(runes, rune):
     """Return runes similar to the given one."""
-    similar_runes = runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary).exclude(id=rune.id).values_list('id', flat=True)
-    MAX_COUNT = 50
-    runes_count = len(similar_runes)
-    if runes_count <= MAX_COUNT:
-        MAX_COUNT = runes_count
-    return random.sample(list(similar_runes), MAX_COUNT)
+    similar_runes = runes.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary, upgrade_curr__gte=rune.upgrade_curr).exclude(id=rune.id).values_list('id', flat=True)
+    max_count = min(50, len(similar_runes))
+    return random.sample(list(similar_runes), max_count)
 # endregion
 
 # region ARTIFACTS - should be async and in tasks to speed things up even more

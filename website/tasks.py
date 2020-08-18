@@ -584,43 +584,48 @@ def get_runes_task(request_get):
 @shared_task
 def get_rune_by_id_task(request_get, arg_id):
     rune = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
-    runes = Rune.objects.all()
+    runes = Rune.objects.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary)
 
     try:
         rta_monster_id = RuneRTA.objects.filter(rune=rune.id).prefetch_related('monster', 'monster__base_monster', 'rune', 'rune__rune_set').first().monster.id
     except AttributeError:
         rta_monster_id = None
 
-    runes_category_slot = runes.filter(slot=rune.slot)
-    runes_category_set = runes.filter(rune_set=rune.rune_set)
-    runes_category_both = runes.filter(slot=rune.slot, rune_set=rune.rune_set)
-
     similar_ids = get_rune_similar(runes, rune)
 
-    ranks = {
-        'normal': {
-            'efficiency': get_rune_rank_eff(runes, rune),
-            'hp_flat': get_rune_rank_substat(runes, rune, 'sub_hp_flat'),
-            'hp': get_rune_rank_substat(runes, rune, 'sub_hp'),
-            'atk_flat': get_rune_rank_substat(runes, rune, 'sub_atk_flat'),
-            'atk': get_rune_rank_substat(runes, rune, 'sub_atk'),
-            'def_flat': get_rune_rank_substat(runes, rune, 'sub_def_flat'),
-            'def': get_rune_rank_substat(runes, rune, 'sub_def'),
-            'speed': get_rune_rank_substat(runes, rune, 'sub_speed'),
-            'crit_rate': get_rune_rank_substat(runes, rune, 'sub_crit_rate'),
-            'crit_dmg': get_rune_rank_substat(runes, rune, 'sub_crit_dmg'),
-            'res': get_rune_rank_substat(runes, rune, 'sub_res'),
-            'acc': get_rune_rank_substat(runes, rune, 'sub_acc'),
-        },
-        'categorized': {
-            'efficiency_slot': get_rune_rank_eff(runes_category_slot, rune),
-            'efficiency_set': get_rune_rank_eff(runes_category_set, rune),
-            'efficiency_both': get_rune_rank_eff(runes_category_both, rune),
-            'speed_slot': get_rune_rank_substat(runes_category_slot, rune, 'sub_speed', ['slot']),
-            'speed_set': get_rune_rank_substat(runes_category_set, rune, 'sub_speed', ['set']),
-            'speed_both': get_rune_rank_substat(runes_category_both, rune, 'sub_speed', ['slot', 'set']),
-        }
+    runes_kw = {
+        'sub_hp_flat_sum': Func(F('sub_hp_flat'), function='unnest'),
+        'sub_hp_sum': Func(F('sub_hp'), function='unnest'),
+        'sub_atk_flat_sum': Func(F('sub_atk_flat'), function='unnest'),
+        'sub_atk_sum': Func(F('sub_atk'), function='unnest'),
+        'sub_def_flat_sum': Func(F('sub_def_flat'), function='unnest'),
+        'sub_def_sum': Func(F('sub_def'), function='unnest'),
+        'sub_speed_sum': Func(F('sub_speed'), function='unnest'),
+        'sub_res_sum': Func(F('sub_res'), function='unnest'),
+        'sub_acc_sum': Func(F('sub_acc'), function='unnest'),
+        'sub_crit_rate_sum': Func(F('sub_crit_rate'), function='unnest'),
+        'sub_crit_dmg_sum': Func(F('sub_crit_dmg'), function='unnest'),
     }
+    runes = runes.annotate(**runes_kw)
+    runes_cols = ['id', 'slot', 'rune_set__id', 'primary', 'efficiency',
+        'sub_hp_sum', 'sub_hp_flat_sum', 'sub_atk_sum', 'sub_atk_flat_sum', 'sub_def_sum', 'sub_def_flat_sum', 'sub_speed_sum',
+        'sub_res_sum', 'sub_acc_sum', 'sub_crit_rate_sum', 'sub_crit_dmg_sum']
+    df_runes = pd.DataFrame(runes.values_list(*runes_cols), columns=[runes_col.replace('_sum', '') for runes_col in runes_cols]).drop_duplicates(subset=['id']).fillna(0)
+    df_means = df_runes.mean()
+    rune_temp = {
+        'hp_flat': sum(rune.sub_hp_flat) if rune.sub_hp_flat is not None else 0,
+        'hp': sum(rune.sub_hp) if rune.sub_hp is not None else 0,
+        'atk_flat': sum(rune.sub_atk_flat) if rune.sub_atk_flat is not None else 0,
+        'atk': sum(rune.sub_atk) if rune.sub_atk is not None else 0,
+        'def_flat': sum(rune.sub_def_flat) if rune.sub_def_flat is not None else 0,
+        'def': sum(rune.sub_def) if rune.sub_def is not None else 0,
+        'speed': sum(rune.sub_speed) if rune.sub_speed is not None else 0,
+        'acc': sum(rune.sub_acc) if rune.sub_acc is not None else 0,
+        'res': sum(rune.sub_res) if rune.sub_res is not None else 0,
+        'crit_rate': sum(rune.sub_crit_rate) if rune.sub_crit_rate is not None else 0,
+        'crit_dmg': sum(rune.sub_crit_dmg) if rune.sub_crit_dmg is not None else 0,
+    }
+    ranks = calc_rune_comparison_stats(rune.id, rune_temp['hp_flat'], rune_temp['hp'], rune_temp['atk_flat'], rune_temp['atk'], rune_temp['def_flat'], rune_temp['def'], rune_temp['speed'], rune_temp['res'], rune_temp['acc'], rune_temp['crit_rate'], rune_temp['crit_dmg'], rune.efficiency, df_runes, len(df_runes), df_means)['rank']
 
     context = {
         'rta_monster_id': rta_monster_id,
@@ -746,14 +751,14 @@ def get_artifact_by_id_task(request_get, arg_id):
     similar_ids = get_artifact_similar(artifacts, artifact)
 
     ranks = {
-        'normal': {
-            'efficiency': get_rune_rank_eff(artifacts, artifact),
-        },
-        'categorized': {
-            'efficiency_type': get_rune_rank_eff(artifact_category_rtype, artifact),
-            'efficiency_attribute': get_rune_rank_eff(artifact_category_attribute, artifact),
-            'efficiency_archetype': get_rune_rank_eff(artifact_category_archetype, artifact),
-        }
+        # 'normal': {
+        #     'efficiency': get_rune_rank_eff(artifacts, artifact),
+        # },
+        # 'categorized': {
+        #     'efficiency_type': get_rune_rank_eff(artifact_category_rtype, artifact),
+        #     'efficiency_attribute': get_rune_rank_eff(artifact_category_attribute, artifact),
+        #     'efficiency_archetype': get_rune_rank_eff(artifact_category_archetype, artifact),
+        # }
     }
 
     context = {

@@ -94,10 +94,12 @@ def get_rune_by_id_ajax(request, task_id, arg_id):
 
             context['rune'] = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
             if context['rta_monster_id']:
-                context['rta_monster'] = RuneRTA.objects.get(id=context['rta_monster_id']).prefetch_related('monster', 'monster__base_monster', 'rune', 'rune__rune_set')
+                context['rta_runes'] = Rune.objects.filter(id__in=RuneRTA.objects.filter(monster__id=context['rta_monster_id']).values_list('rune__id', flat=True))
+                context['rta_monster'] = Monster.objects.filter(id=context['rta_monster_id']).prefetch_related('base_monster', 'runes').first()
             else:
+                context['rta_runes'] = None
                 context['rta_monster'] = None
-            
+
             context['similar_runes'] = Rune.objects.filter(id__in=context['similar_ids']).order_by('-efficiency').prefetch_related('equipped_runes', 'equipped_runes__base_monster', 'rune_set')
 
             html = render_to_string('website/runes/rune_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
