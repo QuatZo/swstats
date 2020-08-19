@@ -1,147 +1,92 @@
 {% load static %}
 {% load other %}
+{% load monsters %}
 {% load dungeons %}
 
-{% include "website/monsters/monster_table.html" with monsters=monster|to_list text="Monster's Stats" collapse_id="monster-"|add_str:monster.id collapsed="show"%}
-<div class="title-container">
-	<h2 class="title">
-		Monster's Cards
-	</h2>
-	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-row" aria-expanded="true" aria-controls="#monster-row"> 
-		Show/Hide 
-	</button>
-</div>
-<div class="row collapse" id="monster-row">
-	{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.normal.avg_eff value=monster.avg_eff|add_str:"%" %}
-	{% include "website/monsters/monster_card.html" with header="HP" rank=ranks.normal.hp value=monster.hp %}
-	{% include "website/monsters/monster_card.html" with header="Attack" rank=ranks.normal.attack value=monster.attack %}
-	{% include "website/monsters/monster_card.html" with header="Defense" rank=ranks.normal.defense value=monster.defense %}
-	{% include "website/monsters/monster_card.html" with header="Speed" rank=ranks.normal.speed value=monster.speed %}
-	{% include "website/monsters/monster_card.html" with header="Critical Rate" rank=ranks.normal.crit_rate value=monster.crit_rate|add_str:"%" %}
-	{% include "website/monsters/monster_card.html" with header="Critical Damage" rank=ranks.normal.crit_dmg value=monster.crit_dmg|add_str:"%" %}
-	{% include "website/monsters/monster_card.html" with header="Resistance" rank=ranks.normal.res value=monster.res|add_str:"%" %}
-	{% include "website/monsters/monster_card.html" with header="Accuracy" rank=ranks.normal.acc value=monster.acc|add_str:"%" %}
-	{% include "website/monsters/monster_card.html" with header="Effective HP" rank=ranks.normal.eff_hp value=monster.eff_hp %}
-	{% include "website/monsters/monster_card.html" with header="Effective HP While Def Broken" rank=ranks.normal.eff_hp_def_break value=monster.eff_hp_def_break %}
-</div>
-<div class="title-container">
-	<h2 class="title">
-		Monster's Categorized Cards
-	</h2>
-	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-categorized-row" aria-expanded="true" aria-controls="#monster-categorized-row"> 
-		Show/Hide 
-	</button>
-</div>
-<div class="row collapse" id="monster-categorized-row">
-	{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_base value=monster.avg_eff|add_str:"%" categorized=True category="base monster "|add_str:monster.base_monster %}
-	{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_family value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.family|add_str:" family" %}
-	{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_attribute value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.get_attribute_display|add_str:" attribute" %}
-	{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_type value=monster.avg_eff|add_str:"%" categorized=True category=" "|add_str:monster.base_monster.get_archetype_display|add_str:" type" %}
-	{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_attr_type value=monster.avg_eff|add_str:"%" categorized=True category="attribute "|add_str:monster.base_monster.get_attribute_display|add_str:" and "|add_str:monster.base_monster.get_archetype_display|add_str:" type" %}
-	{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_base_class value=monster.avg_eff|add_str:"%" categorized=True category="nat"|add_str:monster.base_monster.base_class|add_str:"'s" %}
-	{% include "website/monsters/monster_card.html" with header="Average Efficiency" rank=ranks.categorized.avg_eff_all value=monster.avg_eff|add_str:"%" categorized=True category="nat"|add_str:monster.base_monster.base_class|add_str:"'s of "|add_str:monster.base_monster.get_attribute_display|add_str:" attribute "|add_str:" and "|add_str:monster.base_monster.get_archetype_display|add_str:" type" %}
-</div>
+<div class='content'>
+    <div class='content-menu'>
+        <button class="btn btn-secondary btn-compare active" type="button" onclick="changeView(0)" id='view-1-button'>Summary</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(1)" id='view-2-button'>Similar</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(2)" id='view-3-button'>Similar RTA</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(3)" id='view-4-button'>Records</button>
+    </div>
+	<div id='view-1'>
+		<div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body'>
+                Each place is determined by using only monsters of the same base type ({{ monster.base_monster.name }})
+            </div>
+        </div>
 
-{% include "website/runes/rune_table.html" with runes=monster.runes.all text=monster.base_monster|add_str:"'s Runes" collapse_id="monster-"|add_str:monster.id|add_str:"-runes" collapsed="collapse"%}
-
-{% if rta.build %}
-	{% include "website/runes/rune_table.html" with runes=rta.build text=monster.base_monster|add_str:"'s RTA Runes (Avg. Eff: "|add_str:rta.eff|add_str:"%)" collapse_id="monster-rta-"|add_str:monster.id|add_str:"-runes" collapsed="collapse"%}
-{% endif %}
-
-{% include "website/artifacts/artifact_table.html" with artifacts=monster.artifacts.all text=monster.base_monster|add_str:"'s Artifacts" collapse_id="monster-"|add_str:monster.id|add_str:"-artifacts" collapsed="collapse"%}
-
-
-{% if decks %}
-	<div class="title-container">
-		<h2 class="title">
-			Monster's Decks
-		</h2>
-		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-decks-row" aria-expanded="true" aria-controls="#monster-decks-row"> 
-			Show/Hide 
-		</button>
-	</div>
-	<div class="row collapse" id="monster-decks-row">
-		{% for deck in decks %}
-			{% include "website/decks/deck_card_compressed.html" with name=deck deck=deck %}
-		{% endfor %}
-	</div>
-{% endif %}
-
-{% if similar %}
-	<div class="title-container">
-		<h2 class="title">
-			Other Builds for {{ monster.base_monster.name }} (up to 20 randomly chosen)
-		</h2>
-		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-other-row" aria-expanded="true" aria-controls="#monster-other-row"> 
-			Show/Hide 
-		</button>
-	</div>
-	<div class="row collapse" id="monster-other-row">
-		{% for similar_monster in similar %}
-			{% if similar_monster.runes.count %}
-				{% include "website/monsters/monster_card_compressed.html" with name=similar_monster|add_str:" (Normal Build)" monster=similar_monster %}
-			{% endif %}
-		{% endfor %}
-	</div>
-{% endif %}
-
-{% if rta_similar %}
-	<div class="title-container">
-		<h2 class="title">
-			Other RTA Builds for {{ monster.base_monster.name }} (up to 20 randomly chosen)
-		</h2>
-		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-other-rta-row" aria-expanded="true" aria-controls="#monster-other-rta-row"> 
-			Show/Hide 
-		</button>
-	</div>
-	<div class="row collapse" id="monster-other-rta-row">
-		{% for rta_similar_monster, rta_similar_build in rta_similar.items %}
-			{% include "website/monsters/monster_card_compressed.html" with name=rta_similar_monster|add_str:" (RTA Build)" monster=rta_similar_monster rta_runes=rta_similar_build %}
-		{% endfor %}
-	</div>
-{% endif %}
-
-{% if records.has %}
-	<div class="title-container">
-		<h2 class="title">
-			Monster Records
-		</h2>
-		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-records-row" aria-expanded="true" aria-controls="#monster-records-row"> 
-			Show/Hide 
-		</button>
-	</div>
-	<div class="collapse" id="monster-records-row">
-		{% if records.siege %}
-			<div class="title-container">
-				<h4 class="title">
-					Siege
-				</h4>
+		<div class='rune-content'>
+			<div class='monster-card-compressed'>
+				{% include 'website/monsters/monster_card_compressed.html' with monster=monster rta_runes=rta_runes %}
 			</div>
-			{% include "website/siege/siege_table.html" with records=records.siege text="" only_table=True %}
-		{% endif %}
-		{% if records.dungeons or records.rifts or records.raids_has %}
-			<div class="title-container">
-				<h4 class="title">
-					Dungeons
-				</h4>
+			<div class='row ranks'>
+				{% include "website/monsters/monster_card.html" with header='Efficiency [%]' rank=ranks.avg_eff_total value=monster.avg_eff_total eff=True %}
+				{% include "website/monsters/monster_card.html" with header='HP' rank=ranks.hp value=monster.hp %}
+				{% include "website/monsters/monster_card.html" with header='Attack' rank=ranks.attack value=monster.attack %}
+				{% include "website/monsters/monster_card.html" with header='Defense' rank=ranks.defense value=monster.defense %}
+				{% include "website/monsters/monster_card.html" with header='Speed' rank=ranks.speed value=monster.speed %}
+				{% include "website/monsters/monster_card.html" with header='Resistance [%]' rank=ranks.res value=monster.res percentage=True %}
+				{% include "website/monsters/monster_card.html" with header='Accuracy [%]' rank=ranks.acc value=monster.acc percentage=True %}
+				{% include "website/monsters/monster_card.html" with header='Critical Rate [%]' rank=ranks.crit_rate value=monster.crit_rate percentage=True %}
+				{% include "website/monsters/monster_card.html" with header='Critical Damage [%]' rank=ranks.crit_dmg value=monster.crit_dmg percentage=True %}
+				{% include "website/monsters/monster_card.html" with header='Effective HP' rank=ranks.eff_hp value=monster.eff_hp %}
 			</div>
-			<div>
-				{% for dungeon in records.dungeons %}
-					<a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=dungeon.stage %}">
-						<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
-					</a>
-				{% endfor %}
-				{% for rift in records.rifts %}
-					<a href="{% url 'rift_dungeon_by_stage' name=rift|dungeon_to_div_id %}">
-						<img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:rift %} />
-					</a>
-				{% endfor %}
-				{% if records.raids %}
-					<a href="{% url 'dungeon_by_stage' name='rift of worlds' stage=5 %}">
-						<img class="table-monster-avatar" src={% static 'website/images/dungeons/dungeon_rift_of_worlds.png' %} />
-					</a>
-				{% endif %}
-			</div>
-		{% endif %}
+		</div>
 	</div>
-{% endif %}
+    <div id='view-2' style='display: none;'>
+		<div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body'>
+                This page shows up to 50 randomly chosen {{ monster.base_monster.name }} builds. Every card is clickable and will redirect to other monster.
+            </div>
+        </div>
+		
+		<div class='row'>
+			{% for similar in similar_monsters %}
+				<div class='col-12 col-md-3'>
+					{% include 'website/monsters/monster_card_compressed.html' with monster=similar deep=False %}
+				</div>
+			{% endfor %}
+		</div>
+    </div>
+    <div id='view-3' style='display: none;'>
+        <div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body'>
+                This page shows up to 50 randomly chosen {{ monster.base_monster.name }} with RTA builds. Every card is clickable and will redirect to other monster.
+            </div>
+        </div>
+		
+		<div class='row'>
+			{% for similar, r_runes in rta_similar.items %}
+				<div class='col-12 col-md-3'>
+					{% include 'website/monsters/monster_card_compressed.html' with monster=similar deep=False rta_runes=r_runes %}
+				</div>
+			{% endfor %}
+		</div>
+    </div>    
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.tip').each(function () {
+            $(this).tooltip(
+            {
+                html: true,
+				placement: 'top',
+                title: $('#' + $(this).data('tip')).html()
+            });
+        });
+		$(this).data('bs.tooltip').config.placement = 'top';// For dynamic position
+  		$(this).data('bs.tooltip').config.boundary= 'top'; // Used for tooltip boundary range
+    });
+</script>

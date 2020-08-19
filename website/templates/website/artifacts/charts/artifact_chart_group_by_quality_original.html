@@ -62,7 +62,7 @@ function handleClickArtifactsQualityOriginal(evt) {
     var activeElement = chartArtifactQualityOriginal.getElementAtEvent(evt);
     if(activeElement.length > 0){
         var index = activeElement[0]._index;
-        addParam(document.location.href, 'quality-original', artifactQualitiesOriginal[index])
+        addParam(document.location.href, 'quality_original', artifactQualitiesOriginal[index])
     }
 };
 </script>

@@ -48,3 +48,7 @@ def add_reverse_str(arg1, arg2):
 @register.filter
 def add_num(arg1, arg2):
     return arg1 + arg2
+
+@register.filter
+def space_to_(arg1):
+    return arg1.replace(' ', '_')

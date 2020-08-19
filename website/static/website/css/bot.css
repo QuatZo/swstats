@@ -1,3 +1,14 @@
+.body{
+    background-color: #ffffff!important;
+    color: #000!important;
+}
+
+.table-monster-avatar{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
 .report-generator{
     width: 80%;
     height: calc(100vh - 50px);

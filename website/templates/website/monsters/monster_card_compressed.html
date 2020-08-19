@@ -35,20 +35,32 @@
             </div>
             <div class='monster-info-row'>
                 <div class='substat width-min-200'>Critical Rate</div>
-                {{ monster.crit_rate }}
+                {{ monster.crit_rate }}%
             </div>
             <div class='monster-info-row'>
                 <div class='substat width-min-200'>Critical Damage</div>
-                {{ monster.crit_dmg }}
+                {{ monster.crit_dmg }}%
             </div>
             <div class='monster-info-row'>
                 <div class='substat width-min-200'>Resistance</div>
-                {% if monster.res >= 100 %}<span class='#ff0000'>{{ monster.res }}</span>{% else %}{{ monster.res }}{% endif %}<br />
+                {% if monster.res >= 100 %}<span class='#ff0000'>{{ monster.res }}%</span>{% else %}{{ monster.res }}%{% endif %}<br />
             </div>
             <div class='monster-info-row'>
                 <div class='substat width-min-200'>Accuracy</div>
-                {% if monster.acc >= 100 %}<span class='#ff0000'>{{ monster.acc }}</span>{% else %}{{ monster.acc }}{% endif %}<br />
-            </div>            
+                {% if monster.acc >= 100 %}<span class='#ff0000'>{{ monster.acc }}%</span>{% else %}{{ monster.acc }}%{% endif %}<br />
+            </div>
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Avg Efficiency</div>
+                {{ monster.avg_eff_total }}%
+            </div>   
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>Effective HP</div>
+                {{ monster.eff_hp }}
+            </div>   
+            <div class='monster-info-row'>
+                <div class='substat width-min-200'>E. HP Def Break</div>
+                {{ monster.eff_hp_def_break }}
+            </div>   
         </div>
 
         <div class='monster-runes'>

@@ -358,6 +358,11 @@ body {
     width: 300px;
 }
 
+.monster-card-compressed{
+    min-width: 400px;
+    width: 400px;
+}
+
 .monster-info-row,
 .monster-runes-row
 {
@@ -447,7 +452,7 @@ body {
     background-image: url('/static/website/images/runes/bg_magic.png');
 }
 
-.rune-background.Magic{
+.rune-background.Common{
     background-image: url('/static/website/images/runes/bg_normal.png');
 }
 
@@ -854,9 +859,11 @@ td{
 
 @media (max-width: 768px) {
     .rune-card-compressed,
-    .artifact-card-compressed
+    .artifact-card-compressed,
+    .monster-card-compressed
     {
         width: 100%;
+        min-width: unset;
     }
 
     .tooltip > .tooltip-inner {

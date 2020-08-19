@@ -494,11 +494,11 @@ def get_runes_task(request_get):
         filters.append('Stars: ' + str(stars))
         runes = runes.filter(Q(stars=stars) | Q(stars=stars + 10)) # since ancient runes have 11-16
 
-    if 'eff_min' in request_get.keys() and request_get['eff_min'] and request_get['eff_min'][0] != '0':
+    if 'eff_min' in request_get.keys() and request_get['eff_min'][0] and request_get['eff_min'][0] != '0':
         filters.append('Efficiency Minimum: ' + request_get['eff_min'][0])
         runes = runes.filter(efficiency__gte=request_get['eff_min'][0])
 
-    if 'eff_max' in request_get.keys() and request_get['eff_max'] and request_get['eff_max'][0] != '0':
+    if 'eff_max' in request_get.keys() and request_get['eff_max'][0] and request_get['eff_max'][0] != '0':
         filters.append('Efficiency Maximum: ' + request_get['eff_max'][0])
         runes = runes.filter(efficiency__lte=request_get['eff_max'][0])
 
@@ -677,11 +677,11 @@ def get_artifacts_task(request_get):
         archetype_id = Artifact().get_artifact_archetype_id(request_get['archetype'][0])
         artifacts = artifacts.filter(archetype=archetype_id)
     
-    if 'eff_min' in request_get.keys() and request_get['eff_min'] and request_get['eff_min'][0] != '0':
+    if 'eff_min' in request_get.keys() and request_get['eff_min'][0] and request_get['eff_min'][0] != '0':
         filters.append('Efficiency Minimum: ' + request_get['eff_min'][0])
         artifacts = artifacts.filter(efficiency__gte=request_get['eff_min'][0])
 
-    if 'eff_max' in request_get.keys() and request_get['eff_max'] and request_get['eff_max'][0] != '0':
+    if 'eff_max' in request_get.keys() and request_get['eff_max'][0] and request_get['eff_max'][0] != '0':
         filters.append('Efficiency Maximum: ' + request_get['eff_max'][0])
         artifacts = artifacts.filter(efficiency__lte=request_get['eff_max'][0])
 
@@ -773,48 +773,140 @@ def get_artifact_by_id_task(request_get, arg_id):
 # region MONSTERS
 @shared_task
 def get_monsters_task(request_get):
-    monsters = Monster.objects.order_by('-avg_eff')   
+    monsters = Monster.objects.order_by('-avg_eff')
     is_filter = False 
     filters = list()
 
     if request_get:
         is_filter = True
 
-    if 'family' in request_get.keys() and request_get['family']:
+    if 'family' in request_get.keys() and request_get['family'] and request_get['family'][0] != '0':
         family = request_get['family'][0].replace('_', ' ')
         filters.append('Family: ' + family)
         monsters = monsters.filter(base_monster__family__name=family)
-
-    if 'attribute' in request_get.keys() and request_get['attribute']:
-        filters.append('Attribute: ' + request_get['attribute'][0])
+    
+    if 'attribute' in request_get.keys() and request_get['attribute'] and request_get['attribute'][0] != '0':
+        filters.append('Element: ' + request_get['attribute'][0])
         monsters = monsters.filter(base_monster__attribute=MonsterBase().get_attribute_id(request_get['attribute'][0]))
-
-    if 'type' in request_get.keys() and request_get['type']:
-        filters.append('Type: ' + request_get['type'][0])
-        monsters = monsters.filter(base_monster__archetype=MonsterBase().get_archetype_id(request_get['type'][0]))
     
-    if 'base-class' in request_get.keys() and request_get['base-class']:
-        filters.append('Base Class: ' + request_get['base-class'][0])
-        monsters = monsters.filter(base_monster__base_class=request_get['base-class'][0])
+    if 'archetype' in request_get.keys() and request_get['archetype'] and request_get['archetype'][0] != '0':
+        filters.append('Archetype: ' + request_get['archetype'][0])
+        monsters = monsters.filter(base_monster__archetype=MonsterBase().get_archetype_id(request_get['archetype'][0]))
     
-    if 'storage' in request_get.keys() and request_get['storage']:
+    if 'stars' in request_get.keys() and request_get['stars'][0] and request_get['stars'][0] != '0':
+        filters.append('Stars: ' + request_get['stars'][0])
+        monsters = monsters.filter(stars=request_get['stars'][0])
+    
+    if 'base_class' in request_get.keys() and request_get['base_class'][0] and request_get['base_class'][0] != '0':
+        filters.append('Natural Stars: ' + request_get['base_class'][0])
+        monsters = monsters.filter(base_monster__base_class=request_get['base_class'][0])
+    
+    if 'eff_min' in request_get.keys() and request_get['eff_min'][0] and request_get['eff_min'][0] != '0':
+        filters.append('Efficiency Minimum: ' + request_get['eff_min'][0])
+        monsters = monsters.filter(avg_eff_total__gte=request_get['eff_min'][0])
+    
+    if 'eff_max' in request_get.keys() and request_get['eff_max'][0] and request_get['eff_max'][0] != '0':
+        filters.append('Efficiency Maximum: ' + request_get['eff_max'][0])
+        monsters = monsters.filter(avg_eff_total__lte=request_get['eff_max'][0])
+    
+    if 'hp_min' in request_get.keys() and request_get['hp_min'][0] and request_get['hp_min'][0] != '0':
+        filters.append('HP Minimum: ' + request_get['hp_min'][0])
+        monsters = monsters.filter(hp__gte=request_get['hp_min'][0])
+    
+    if 'hp_max' in request_get.keys() and request_get['hp_max'][0] and request_get['hp_max'][0] != '0':
+        filters.append('HP Maximum: ' + request_get['hp_max'][0])
+        monsters = monsters.filter(hp__lte=request_get['hp_max'][0])
+    
+    if 'atk_min' in request_get.keys() and request_get['atk_min'][0] and request_get['atk_min'][0] != '0':
+        filters.append('Attack Minimum: ' + request_get['atk_min'][0])
+        monsters = monsters.filter(attack__gte=request_get['atk_min'][0])
+    
+    if 'atk_max' in request_get.keys() and request_get['atk_max'][0] and request_get['atk_max'][0] != '0':
+        filters.append('Attack Maximum: ' + request_get['atk_max'][0])
+        monsters = monsters.filter(attack__lte=request_get['atk_max'][0])
+    
+    if 'def_min' in request_get.keys() and request_get['def_min'][0] and request_get['def_min'][0] != '0':
+        filters.append('Defense Minimum: ' + request_get['def_min'][0])
+        monsters = monsters.filter(defense__gte=request_get['def_min'][0])
+    
+    if 'def_max' in request_get.keys() and request_get['def_max'][0] and request_get['def_max'][0] != '0':
+        filters.append('Defense Maximum: ' + request_get['def_max'][0])
+        monsters = monsters.filter(defense__lte=request_get['def_max'][0])
+    
+    if 'spd_min' in request_get.keys() and request_get['spd_min'][0] and request_get['spd_min'][0] != '0':
+        filters.append('Speed Minimum: ' + request_get['spd_min'][0])
+        monsters = monsters.filter(speed__gte=request_get['spd_min'][0])
+    
+    if 'spd_max' in request_get.keys() and request_get['spd_max'][0] and request_get['spd_max'][0] != '0':
+        filters.append('Speed Maximum: ' + request_get['spd_max'][0])
+        monsters = monsters.filter(speed__lte=request_get['spd_max'][0])
+    
+    if 'res_min' in request_get.keys() and request_get['res_min'][0] and request_get['res_min'][0] != '0':
+        filters.append('Resistance Minimum: ' + request_get['res_min'][0])
+        monsters = monsters.filter(res__gte=request_get['res_min'][0])
+    
+    if 'res_max' in request_get.keys() and request_get['res_max'][0] and request_get['res_max'][0] != '0':
+        filters.append('Resistance Maximum: ' + request_get['res_max'][0])
+        monsters = monsters.filter(res__lte=request_get['res_max'][0])
+    
+    if 'acc_min' in request_get.keys() and request_get['acc_min'][0] and request_get['acc_min'][0] != '0':
+        filters.append('Accuracy Minimum: ' + request_get['acc_min'][0])
+        monsters = monsters.filter(acc__gte=request_get['acc_min'][0])
+    
+    if 'acc_max' in request_get.keys() and request_get['acc_max'][0] and request_get['acc_max'][0] != '0':
+        filters.append('Accuracy Maximum: ' + request_get['acc_max'][0])
+        monsters = monsters.filter(acc__lte=request_get['acc_max'][0])
+    
+    if 'crit_rate_min' in request_get.keys() and request_get['crit_rate_min'][0] and request_get['crit_rate_min'][0] != '0':
+        filters.append('Critical Rate Minimum: ' + request_get['crit_rate_min'][0])
+        monsters = monsters.filter(crit_rate__gte=request_get['crit_rate_min'][0])
+    
+    if 'crit_rate_max' in request_get.keys() and request_get['crit_rate_max'][0] and request_get['crit_rate_max'][0] != '0':
+        filters.append('Critical Rate Maximum: ' + request_get['crit_rate_max'][0])
+        monsters = monsters.filter(crit_rate__lte=request_get['crit_rate_max'][0])
+    
+    if 'crit_dmg_min' in request_get.keys() and request_get['crit_dmg_min'][0] and request_get['crit_dmg_min'][0] != '0':
+        filters.append('Critical Damage Minimum: ' + request_get['crit_dmg_min'][0])
+        monsters = monsters.filter(crit_dmg__gte=request_get['crit_dmg_min'][0])
+    
+    if 'crit_dmg_max' in request_get.keys() and request_get['crit_dmg_max'][0] and request_get['crit_dmg_max'][0] != '0':
+        filters.append('Critical Damage Maximum: ' + request_get['crit_dmg_max'][0])
+        monsters = monsters.filter(crit_dmg__lte=request_get['crit_dmg_max'][0])
+    
+    if 'eff_hp_min' in request_get.keys() and request_get['eff_hp_min'][0] and request_get['eff_hp_min'][0] != '0':
+        filters.append('Effective HP Minimum: ' + request_get['eff_hp_min'][0])
+        monsters = monsters.filter(eff_hp__gte=request_get['eff_hp_min'][0])
+    
+    if 'eff_hp_max' in request_get.keys() and request_get['eff_hp_max'][0] and request_get['eff_hp_max'][0] != '0':
+        filters.append('Effective HP Maximum: ' + request_get['eff_hp_max'][0])
+        monsters = monsters.filter(eff_hp__lte=request_get['eff_hp_max'][0])
+    
+    if 'eff_hp_def_min' in request_get.keys() and request_get['eff_hp_def_min'][0] and request_get['eff_hp_def_min'][0] != '0':
+        filters.append('E. HP Def Break Minimum: ' + request_get['eff_hp_def_min'][0])
+        monsters = monsters.filter(eff_hp_def_break__gte=request_get['eff_hp_def_min'][0])
+    
+    if 'eff_hp_def_max' in request_get.keys() and request_get['eff_hp_def_max'][0] and request_get['eff_hp_def_max'][0] != '0':
+        filters.append('E. HP Def Break Maximum: ' + request_get['eff_hp_def_max'][0])
+        monsters = monsters.filter(eff_hp_def_break__lte=request_get['eff_hp_def_max'][0])
+    
+    if 'storage' in request_get.keys() and request_get['storage'][0] and request_get['storage'][0] != '0':
         filters.append('Storage: ' + request_get['storage'][0])
         monsters = monsters.filter(storage=request_get['storage'][0])
-
-    if 'hoh' in request_get.keys() and request_get['hoh']:
+    
+    if 'hoh' in request_get.keys() and request_get['hoh'][0] and request_get['hoh'][0] != '0':
         filters.append('HoH: ' + request_get['hoh'][0])
         if request_get['hoh'][0] == "True":
             monsters = monsters.filter(base_monster__in=get_monsters_hoh())
         else:
             monsters = monsters.exclude(base_monster__in=get_monsters_hoh())
     
-    if 'fusion' in request_get.keys() and request_get['fusion']:
+    if 'fusion' in request_get.keys() and request_get['fusion'][0] and request_get['fusion'][0] != '0':
         filters.append('Fusion: ' + request_get['fusion'][0])
         if request_get['fusion'][0] == "True":
             monsters = monsters.filter(base_monster__in=get_monsters_fusion())
         else:
             monsters = monsters.exclude(base_monster__in=get_monsters_fusion())
-
+    
     monsters_count = monsters.count()
 
     monsters_over_time = get_monster_list_over_time(monsters)
@@ -826,15 +918,23 @@ def get_monsters_task(request_get):
     monsters_by_hoh = get_monster_list_group_by_hoh(monsters)
     monsters_by_fusion = get_monster_list_group_by_fusion(monsters)
     
-    best_monsters_ids = [monster.id for monster in get_monster_list_best(monsters, 100, monsters_count)]
-    fastest_monsters_ids = [monster.id for monster in get_monster_list_fastest(monsters, 100, monsters_count)]
-    toughest_monsters_ids = [monster.id for monster in get_monster_list_toughest(monsters, 100, monsters_count)]
-    toughest_def_break_monsters_ids = [monster.id for monster in get_monster_list_toughest_def_break(monsters, 100, monsters_count)]
+    best_monsters_ids = [monster.id for monster in get_monster_list_best(monsters, 50, monsters_count)]
+    fastest_monsters_ids = [monster.id for monster in get_monster_list_fastest(monsters, 50, monsters_count)]
+
+    filter_options = {
+        'families': list(MonsterFamily.objects.all().values_list('name', flat=True)),
+        'elements': MonsterBase().get_monster_attributes(),
+        'archetypes': MonsterBase().get_monster_archetypes(),
+        'stars': [1, 2, 3, 4, 5, 6],
+        'stars_natural': [1, 2, 3, 4, 5, 6],
+    }
 
     context = {
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
+        'filter_options': filter_options,
+        'request': request_get,
 
         # chart monster by acquiration date
         'time_timeline': monsters_over_time['time'],
@@ -882,96 +982,36 @@ def get_monsters_task(request_get):
         # table best by speed
         'fastest_monsters_ids': fastest_monsters_ids,
         'fastest_amount': len(fastest_monsters_ids),
-
-        # table best by Effective HP
-        'toughest_monsters_ids': toughest_monsters_ids,
-        'toughest_amount': len(toughest_monsters_ids),
-
-        # table best by Effective HP while Defense Broken
-        'toughest_def_break_monsters_ids': toughest_def_break_monsters_ids,
-        'toughest_def_break_amount': len(toughest_def_break_monsters_ids),
     }
 
     return context
 
 @shared_task
 def get_monster_by_id_task(request_get, arg_id):
-    monsters = Monster.objects.all().order_by('-avg_eff')
     monster = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
+    monsters = Monster.objects.filter(base_monster=monster.base_monster)
     
-    rta_monsters = RuneRTA.objects.filter(monster=arg_id).prefetch_related('rune', 'rune__rune_set', 'monster', 'monster__base_monster')
+    MAX_COUNT = 50
+    rta_runes = list(RuneRTA.objects.filter(monster=monster).values_list('rune__id', flat=True))
 
-    rta_build = list()
-    for rta_monster in rta_monsters:
-        rta_build.append(rta_monster.rune)
-
-    try:
-        rta_eff = round(sum([ rune.efficiency for rune in rta_build ]) / len(rta_build), 2)
-    except ZeroDivisionError:
-        rta_eff = None
-
-    monsters_category_base = monsters.filter(base_monster=monster.base_monster)
-    monsters_category_family = monsters.filter(base_monster__family=monster.base_monster.family)
-    monsters_category_attribute = monsters.filter(base_monster__attribute=monster.base_monster.attribute)
-    monsters_category_type = monsters.filter(base_monster__archetype=monster.base_monster.archetype)
-    monsters_category_attr_type = monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__archetype=monster.base_monster.archetype)
-    monsters_category_base_class = monsters.filter(base_monster__base_class=monster.base_monster.base_class)
-    monsters_category_all = monsters_category_attr_type.filter(base_monster__base_class=monster.base_monster.base_class)
-
-    rta_similar_builds = dict()
-    for rta_similar in RuneRTA.objects.filter(monster__base_monster__family=monster.base_monster.family, monster__base_monster__attribute=monster.base_monster.attribute).exclude(monster=monster.id):
-        if rta_similar.monster.id not in rta_similar_builds.keys():
-            rta_similar_builds[rta_similar.monster.id] = list()
-        rta_similar_builds[rta_similar.monster.id].append(rta_similar.rune.id)
-
-    
-    MAX_COUNT = 20
     mon_similar_builds = list(monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family).exclude(id=monster.id).values_list('id', flat=True))
     mon_similar_builds = random.sample(mon_similar_builds, min(MAX_COUNT, len(mon_similar_builds)))
 
-    rta_final_similar_builds = dict()
-    for key in random.sample(rta_similar_builds.keys(), min(MAX_COUNT, len(rta_similar_builds))):
-        rta_final_similar_builds[key] = rta_similar_builds[key]
-    rta_similar_builds = rta_final_similar_builds
-
-    monsters_count = monsters.count()
-
-    ranks = {
-        'normal': {
-            'avg_eff': get_monster_rank_avg_eff(monsters, monster),
-            'hp': get_monster_rank_stats(monsters, monster, 'hp', monsters_count),
-            'attack': get_monster_rank_stats(monsters, monster, 'attack', monsters_count),
-            'defense': get_monster_rank_stats(monsters, monster, 'defense', monsters_count),
-            'speed': get_monster_rank_stats(monsters, monster, 'speed', monsters_count),
-            'res': get_monster_rank_stats(monsters, monster, 'res', monsters_count),
-            'acc': get_monster_rank_stats(monsters, monster, 'acc', monsters_count),
-            'crit_rate': get_monster_rank_stats(monsters, monster, 'crit_rate', monsters_count),
-            'crit_dmg': get_monster_rank_stats(monsters, monster, 'crit_dmg', monsters_count),
-            'eff_hp': get_monster_rank_stats(monsters, monster, 'eff_hp', monsters_count),
-            'eff_hp_def_break': get_monster_rank_stats(monsters, monster, 'eff_hp_def_break', monsters_count),
-        },
-        'categorized': {
-            'avg_eff_base': get_monster_rank_avg_eff(monsters_category_base, monster),
-            'avg_eff_family': get_monster_rank_avg_eff(monsters_category_family, monster),
-            'avg_eff_attribute': get_monster_rank_avg_eff(monsters_category_attribute, monster),
-            'avg_eff_type': get_monster_rank_avg_eff(monsters_category_type, monster),
-            'avg_eff_attr_type': get_monster_rank_avg_eff(monsters_category_attr_type, monster),
-            'avg_eff_base_class': get_monster_rank_avg_eff(monsters_category_base_class, monster),
-            'avg_eff_all': get_monster_rank_avg_eff(monsters_category_all, monster),
-        }
-    }
-
-    rta = {
-        'build_ids': [rune.id for rune in rta_build],
-        'eff': rta_eff,
-    }
+    rta_similar_builds = list(set(list(RuneRTA.objects.filter(monster__base_monster=monster.base_monster).exclude(monster=monster.id).values_list('monster__id', flat=True))))
+    rta_similar_builds = random.sample(rta_similar_builds, min(MAX_COUNT, len(rta_similar_builds)))
+    
+    monsters_cols = ['id', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp', 'eff_hp_def_break']
+    df_monsters = pd.DataFrame(monsters.values_list(*monsters_cols), columns=monsters_cols).drop_duplicates(subset=['id'])
+    
+    df_means = df_monsters.mean()
+    
+    ranks = calc_monster_comparison_stats(monster.id, monster.hp, monster.attack, monster.defense, monster.speed, monster.res, monster.acc, monster.crit_rate, monster.crit_dmg, monster.avg_eff_total, monster.eff_hp, monster.eff_hp_def_break, df_monsters, len(df_monsters), df_means)['rank']
 
     context = {
         'ranks': ranks,
-        'rta': rta,
+        'rta_runes': rta_runes,
         'similar_ids': mon_similar_builds,
         'rta_similar_ids': rta_similar_builds,
-        'decks_ids': [deck.id for deck in Deck.objects.filter(monsters__id=monster.id)],
     }
 
     return context

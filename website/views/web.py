@@ -161,9 +161,7 @@ def get_monsters_ajax(request, task_id):
 
             context['best_monsters'] = Monster.objects.filter(id__in=context['best_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-avg_eff')
             context['fastest_monsters'] = Monster.objects.filter(id__in=context['fastest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-speed')
-            context['toughest_monsters'] = Monster.objects.filter(id__in=context['toughest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp')
-            context['toughest_def_break_monsters'] = Monster.objects.filter(id__in=context['toughest_def_break_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-eff_hp_def_break')     
-
+            
             html = render_to_string('website/monsters/monster_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 
@@ -183,12 +181,12 @@ def get_monster_by_id_ajax(request, task_id, arg_id):
             context = data.get()
 
             context['monster'] = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
-            context['rta']['build'] = Rune.objects.filter(id__in=context['rta']['build_ids'])
-            context['similar'] = Monster.objects.filter(id__in=context['similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
+            context['rta_runes'] = Rune.objects.filter(id__in=context['rta_runes']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster')
+
+            context['similar_monsters'] = Monster.objects.filter(id__in=context['similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
             context['rta_similar'] = dict()
-            for rta_sim_mon_id, rta_sim_rune_id in context['rta_similar_ids'].items():
-                context['rta_similar'][Monster.objects.get(id=rta_sim_mon_id)] = Rune.objects.filter(id__in=rta_sim_rune_id)
-            context['decks'] = Deck.objects.filter(id__in=context['decks_ids']).prefetch_related('monsters', 'monsters__base_monster', 'leader', 'leader__base_monster')
+            for mon in context['rta_similar_ids']:
+                context['rta_similar'][Monster.objects.get(id=mon)] = Rune.objects.filter(id__in=RuneRTA.objects.filter(monster__id=mon).values_list('rune', flat=True))
             context['records'] = get_monster_records(context['monster'])
 
             html = render_to_string('website/monsters/monster_by_id_ajax.html', context)

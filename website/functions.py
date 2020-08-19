@@ -725,6 +725,10 @@ def get_artifact_similar(artifacts, artifact):
 # region MONSTERS - most of them should be async and in tasks to speed things up even more
 def get_monster_list_over_time(monsters):
     """Return amount of monsters acquired over time."""
+
+    if not monsters.exists():
+        return { 'time': [], 'quantity': []}
+
     LENGTH = 100
     temp_monsters = list(monsters.values_list('created', flat=True))
     temp_monsters.sort()
@@ -734,7 +738,7 @@ def get_monster_list_over_time(monsters):
     start = time_stamps[0]
     end = time_stamps[-1]
     delta = (end - start) / (LENGTH + 1)
-    time_values = np.arange(start, end + delta, delta)
+    time_values = np.arange(start, end + delta, delta) if monsters.count() > 1 else [start, start]
 
     distribution = np.histogram(time_stamps, bins=time_values)[0].tolist()
 
@@ -766,20 +770,6 @@ def get_monster_list_fastest(monsters, x, count):
     fastest_monsters = fastest_monsters[:min(x, count)]
 
     return fastest_monsters
-
-def get_monster_list_toughest(monsters, x, count):
-    """Return TopX (or all, if there is no X elements in list) toughest (Effective HP) monsters."""
-    toughest_monsters = monsters.order_by(F('eff_hp').desc(nulls_last=True))
-    toughest_monsters = toughest_monsters[:min(x, count)]
-
-    return toughest_monsters
-
-def get_monster_list_toughest_def_break(monsters, x, count):
-    """Return TopX (or all, if there is no X elements in list) toughest (Effective HP while Defense Broken) monsters."""
-    toughest_def_break_monsters = monsters.order_by(F('eff_hp_def_break').desc(nulls_last=True))
-    toughest_def_break_monsters = toughest_def_break_monsters[:min(x, count)]
-
-    return toughest_def_break_monsters
 
 def get_monster_list_group_by_attribute(monsters):
     """Return names, amount of attributes and quantity of monsters for every attribute in given monsters list."""
@@ -2002,6 +1992,7 @@ def get_profile_comparison_with_database(wizard_id):
         df_wiz = df_group[df_group['wizard__id'] == wizard_id]
         df_means = df_group.mean()
         comparison['runes'] += [calc_rune_comparison_stats(*row, df_group, len(df_group), df_means) for row in zip(df_wiz['id'], df_wiz['sub_hp_flat'], df_wiz['sub_hp'], df_wiz['sub_atk_flat'], df_wiz['sub_atk'], df_wiz['sub_def_flat'], df_wiz['sub_def'], df_wiz['sub_speed'], df_wiz['sub_res'], df_wiz['sub_acc'], df_wiz['sub_crit_rate'], df_wiz['sub_crit_dmg'], df_wiz['efficiency'])]
+    
     ######## Future Artifact Update
     # artifacts = Artifact.objects.all()
     # wiz_artifacts = Artifact.objects.filter(wizard=wiz)

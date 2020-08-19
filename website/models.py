@@ -505,6 +505,14 @@ class MonsterBase(models.Model):
             if archetype == name:
                 return key
 
+    @classmethod
+    def get_monster_attributes(cls):
+        return list(dict(cls.MONSTER_ATTRIBUTES).values())
+        
+    @classmethod
+    def get_monster_archetypes(cls):
+        return list(dict(cls.MONSTER_TYPES).values())
+
 class MonsterHoh(models.Model):
     monster = models.ForeignKey(MonsterBase, on_delete=models.PROTECT, db_index=True)
     date_open = models.DateField()

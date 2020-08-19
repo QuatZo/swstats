@@ -27,17 +27,23 @@
             maintainAspectRatio: false,
             title: {
                 display: true,
-                text: 'Monster Quantity Per Type'
+                text: 'Monster Quantity Per Archetype'
             },
             scales: {
                 xAxes: [{
                     categoryPercentage: 1.0,
-                    barPercentage: 1.0
+                    barPercentage: 1.0,
+                    gridLines: {
+                        color: 'rgba(84, 92, 98, .25)'
+                    }
                 }],
                 yAxes: [{
                     display: true,
                     ticks: {
                         suggestedMin: 0,
+                    },
+                    gridLines: {
+                        color: 'rgba(84, 92, 98, .25)'
                     }
                 }]
             },
@@ -56,7 +62,7 @@ function handleClickMonstersType(evt) {
     var activeElement = chartMonsterType.getElementAtEvent(evt);
     if(activeElement.length > 0){
         var index = activeElement[0]._index;
-        addParam(document.location.href, 'type', monsterTypes[index])
+        addParam(document.location.href, 'archetype', monsterTypes[index])
     }
 };
 </script>

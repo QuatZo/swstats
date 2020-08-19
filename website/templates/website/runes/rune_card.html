@@ -33,8 +33,8 @@
                     <span class='substat'>Average</span>
                         {% if rank.avg > 0.00 %}
                             <span style='color: #00aa00'>+{{ rank.avg }}{% if percentage %}%{% endif %}</span><br />
-                        {% elif rank.avg > 0.00 %}
-                            <span style='color: #ff0000'>-{{ rank.avg }}{% if percentage %}%{% endif %}</span><br />
+                        {% elif rank.avg < 0.00 %}
+                            <span style='color: #ff0000'>{{ rank.avg }}{% if percentage %}%{% endif %}</span><br />
                         {% else %}
                             {{ rank.avg }}{% if percentage %}%{% endif %}
                         {% endif %}
