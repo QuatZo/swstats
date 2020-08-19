@@ -1,0 +1,54 @@
+{% load static %}
+{% load other %}
+{% load artifacts %}
+{% load monsters %}
+
+<div class='card-custom bordered standard' onClick="moveTo('{% url 'artifact_by_id' arg_id=artifact.id %}')" style="cursor: pointer;">
+    <div class='card-custom-header'>
+        +{{ artifact.level }} {{ artifact.get_quality_display }}
+        {% if artifact.rtype == 1 %} {{ artifact.get_attribute_display }}{% else %}{{ artifact.get_archetype_display }}{% endif %} Artifact
+    </div>
+    <div class='card-custom-body standard'>
+        <div class='artifact-prim'>
+            {% if artifact.rtype == 1 %}
+                <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar" />
+            {% else %}
+                <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar" />
+            {% endif %}
+            <div class='artifact-stats'>
+                {{ artifact.get_primary_display }}
+            </div>
+        </div>
+
+        <div class='artifact-substats'>
+            {% for substat in artifact.substats|parse_artifact_substats_to_table:artifact.substats_values %}
+                <span class='substat'>{{ substat.name }}</span> {{ substat.value }}%<br />
+            {% endfor %}
+        </div>
+
+        <div class='artifact-info'>
+            <span class='substat'>Efficiency</span> {{ artifact.efficiency }}%<br />
+            <span class='substat'>Efficiency Max</span> {{ artifact.efficiency_max }}%<br />
+            <span class='substat'>Locked</span> {% if artifact.locked %}<span style="color: #00aa00">Yes</span>{% else %}<span style="color: #ff0000">No</span>{% endif %}<br />
+            <span class='substat'>Equipped</span>
+                {% if artifact.equipped %}
+                    {% with artifact|get_monster as mon %}
+                        {% if mon %}
+                            <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
+                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ mon.id }}"{% endif %}/>
+                            </a>
+                            {% if not deep %}
+                                <div id="mon-{{ mon.id }}" class="tip-content" style='display: none;'>
+                                    {% include "website/monsters/monster_card_compressed.html" with monster=mon deep=True %}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <img src="{% static 'website/images/monsters/monster_unknown.png' %}" class="table-monster-avatar-min"/>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span style="color: #ff0000">No</span>
+                {% endif %}
+        </div>
+    </div>
+</div>

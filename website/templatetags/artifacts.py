@@ -7,6 +7,9 @@ register = template.Library()
 def parse_artifact_substats_to_table(substats, substats_values):
     sub_texts = list()
     for sub_key, sub_val in zip(substats, substats_values):
-        sub_texts.append(Artifact().get_artifact_substat(sub_key).replace('%', f'{sub_val}%'))
+        sub_texts.append({
+            'name': Artifact().get_artifact_substat(sub_key).replace('%', ''),
+            'value': sub_val
+        })
         
     return sub_texts

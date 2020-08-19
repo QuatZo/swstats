@@ -235,7 +235,6 @@ class Rune(models.Model):
     def get_rune_qualities(cls):
         return list(dict(cls.RUNE_QUALITIES).values())
     
-
 class Artifact(models.Model):
     ARTIFACT_QUALITIES = (
         (0, 'Unknown'),
@@ -414,6 +413,22 @@ class Artifact(models.Model):
     @classmethod
     def get_artifact_substat(cls, number):
         return dict(cls.ARTIFACT_EFFECTS_ALL)[number]
+
+    @classmethod
+    def get_artifact_qualities(cls):
+        return list(dict(cls.ARTIFACT_QUALITIES).values())
+    
+    @classmethod
+    def get_artifact_archetypes(cls):
+        return list(dict(cls.ARTIFACT_ARCHETYPES).values())
+    
+    @classmethod
+    def get_artifact_attributes(cls):
+        return list(dict(cls.ARTIFACT_ATTRIBUTES).values())
+        
+    @classmethod
+    def get_artifact_main_stats(cls):
+        return list(dict(cls.ARTIFACT_PRIMARY_EFFECTS).values())
 
 class MonsterFamily(models.Model):
     id = models.IntegerField(primary_key=True, unique=True, db_index=True) # unit_master_id, first 3 characters

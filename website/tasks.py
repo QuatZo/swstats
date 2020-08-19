@@ -518,12 +518,10 @@ def get_runes_task(request_get):
     best_runes_ids = [rune.id for rune in best_runes]
     fastest_runes_ids = [rune.id for rune in fastest_runes]
 
-    filter_qualities = Rune().get_rune_qualities()
     filter_options = {
         'sets': list(RuneSet.objects.all().values_list('name', flat=True)),
         'slots': [1, 2, 3, 4, 5, 6],
-        'qualities': filter_qualities,
-        'qualities_original': filter_qualities,
+        'qualities':  Rune().get_rune_qualities(),
         'main_stats': Rune().get_rune_effects(),
         'stars': [1, 2 , 3, 4, 5, 6],
     }
@@ -648,35 +646,44 @@ def get_artifacts_task(request_get):
     if request_get:
         is_filter = True
 
-    if 'rtype' in request_get.keys() and request_get['rtype']:
+    if 'rtype' in request_get.keys() and request_get['rtype'] and request_get['rtype'][0] != '0':
         filters.append('Type: ' + request_get['rtype'][0])
         rtype_id = Artifact().get_artifact_rtype_id(request_get['rtype'][0])
         artifacts = artifacts.filter(rtype=rtype_id)
 
-    if 'primary' in request_get.keys() and request_get['primary']:
-        filters.append('Primary: ' + request_get['primary'][0])
-        primary_id = Artifact().get_artifact_primary_id(request_get['primary'][0])
+    if 'primary' in request_get.keys() and request_get['primary'] and request_get['primary'][0] != '0':
+        primary = request_get['primary'][0].replace('plus', '+').replace('percent', '%')
+        filters.append('Primary: ' + primary)
+        primary_id = Artifact().get_artifact_primary_id(primary)
         artifacts = artifacts.filter(primary=primary_id)
     
-    if 'quality' in request_get.keys() and request_get['quality']:
+    if 'quality' in request_get.keys() and request_get['quality'] and request_get['quality'][0] != '0':
         filters.append('Quality: ' + request_get['quality'][0])
         quality_id = Artifact().get_artifact_quality_id(request_get['quality'][0])
         artifacts = artifacts.filter(quality=quality_id)
     
-    if 'quality-original' in request_get.keys() and request_get['quality-original']:
-        filters.append('Original Quality: ' + request_get['quality-original'][0])
-        quality_original_id = Artifact().get_artifact_quality_id(request_get['quality-original'][0])
+    if 'quality_original' in request_get.keys() and request_get['quality_original'] and request_get['quality_original'][0] != '0':
+        filters.append('Original Quality: ' + request_get['quality_original'][0])
+        quality_original_id = Artifact().get_artifact_quality_id(request_get['quality_original'][0])
         artifacts = artifacts.filter(quality_original=quality_original_id)
 
-    if 'attribute' in request_get.keys() and request_get['attribute']:
+    if 'attribute' in request_get.keys() and request_get['attribute'] and request_get['attribute'][0] != '0':
         filters.append('Element: ' + request_get['attribute'][0])
         attribute_id = Artifact().get_artifact_attribute_id(request_get['attribute'][0])
         artifacts = artifacts.filter(attribute=attribute_id)
 
-    if 'archetype' in request_get.keys() and request_get['archetype']:
+    if 'archetype' in request_get.keys() and request_get['archetype'] and request_get['archetype'][0] != '0':
         filters.append('Archetype: ' + request_get['archetype'][0])
         archetype_id = Artifact().get_artifact_archetype_id(request_get['archetype'][0])
         artifacts = artifacts.filter(archetype=archetype_id)
+    
+    if 'eff_min' in request_get.keys() and request_get['eff_min'] and request_get['eff_min'][0] != '0':
+        filters.append('Efficiency Minimum: ' + request_get['eff_min'][0])
+        artifacts = artifacts.filter(efficiency__gte=request_get['eff_min'][0])
+
+    if 'eff_max' in request_get.keys() and request_get['eff_max'] and request_get['eff_max'][0] != '0':
+        filters.append('Efficiency Maximum: ' + request_get['eff_max'][0])
+        artifacts = artifacts.filter(efficiency__lte=request_get['eff_max'][0])
 
     artifacts_count = artifacts.count()
     
@@ -692,10 +699,19 @@ def get_artifacts_task(request_get):
     best_artifacts = get_rune_list_best(artifacts, 100, artifacts_count)
     best_artifacts_ids = [artifact.id for artifact in best_artifacts]
     
+    filter_options = {
+        'qualities': Artifact().get_artifact_qualities(),
+        'archetypes': Artifact().get_artifact_archetypes(),
+        'attributes': Artifact().get_artifact_attributes(),
+        'main_stats': Artifact().get_artifact_main_stats(),
+    }
+
     context = {
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
+        'filter_options': filter_options,
+        'request': request_get,
 
         # chart distribution
         'all_distribution': normal_distribution_artifacts['distribution'],
@@ -744,25 +760,9 @@ def get_artifact_by_id_task(request_get, arg_id):
     artifact = get_object_or_404(Artifact.objects.prefetch_related('equipped_artifacts'), id=arg_id)
     artifacts = Artifact.objects.all()
 
-    artifact_category_rtype = artifacts.filter(rtype=artifact.rtype)
-    artifact_category_attribute = artifacts.filter(attribute=artifact.attribute)
-    artifact_category_archetype = artifacts.filter(archetype=artifact.archetype)
-
     similar_ids = get_artifact_similar(artifacts, artifact)
 
-    ranks = {
-        # 'normal': {
-        #     'efficiency': get_rune_rank_eff(artifacts, artifact),
-        # },
-        # 'categorized': {
-        #     'efficiency_type': get_rune_rank_eff(artifact_category_rtype, artifact),
-        #     'efficiency_attribute': get_rune_rank_eff(artifact_category_attribute, artifact),
-        #     'efficiency_archetype': get_rune_rank_eff(artifact_category_archetype, artifact),
-        # }
-    }
-
     context = {
-        'ranks': ranks,
         'similar_ids': similar_ids,
         'arg_id': arg_id,
     }

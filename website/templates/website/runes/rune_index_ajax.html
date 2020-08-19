@@ -164,7 +164,7 @@
                 <div class='row'>
                     {% for rune in best_runes %}
                         <div class='col-12 col-md-3'>
-                            {% include 'website/runes/rune_card_compressed.html' with rune=rune %}
+                            {% include 'website/runes/rune_card_compressed.html' with rune=rune deep=False %}
                         </div>
                     {% endfor %}
                 </div>
@@ -179,7 +179,7 @@
                 <div class='row'>
                     {% for rune in fastest_runes %}
                         <div class='col-12 col-md-3'>
-                            {% include 'website/runes/rune_card_compressed.html' with rune=rune %}
+                            {% include 'website/runes/rune_card_compressed.html' with rune=rune deep=False %}
                         </div>
                     {% endfor %}
                 </div>
@@ -187,3 +187,18 @@
         </div>
     </div>    
 </div>
+
+<script>
+    $(document).ready(function () {
+        $('.tip').each(function () {
+            $(this).tooltip(
+            {
+                html: true,
+				placement: 'top',
+                title: $('#' + $(this).data('tip')).html()
+            });
+        });
+		$(this).data('bs.tooltip').config.placement = 'top';// For dynamic position
+  		$(this).data('bs.tooltip').config.boundary= 'top'; // Used for tooltip boundary range
+    });
+</script>

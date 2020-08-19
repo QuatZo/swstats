@@ -718,10 +718,7 @@ def get_artifact_list_grouped_by_archetype(artifacts):
 def get_artifact_similar(artifacts, artifact):
     """Return artifacts similar to the given one."""
     similar_artifacts = artifacts.filter(rtype=artifact.rtype, attribute=artifact.attribute, archetype=artifact.archetype).exclude(id=artifact.id).values_list('id', flat=True)
-    MAX_COUNT = 50
-    artifacts_count = len(similar_artifacts)
-    if artifacts_count <= MAX_COUNT:
-        MAX_COUNT = artifacts_count
+    MAX_COUNT = min(50, len(similar_artifacts))
     return random.sample(list(similar_artifacts), MAX_COUNT)
 # endregion
 

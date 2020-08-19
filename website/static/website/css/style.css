@@ -3,6 +3,8 @@ body {
     font-family: 'Roboto', sans-serif !important;
     font-style: normal;
     font-weight: 300;
+    color: #ffffff!important;
+    background-color: #121212!important;
 }
 
 .feather {
@@ -39,6 +41,7 @@ body {
     z-index: 100; /* Behind the navbar */
     padding: 48px 0 0; /* Height of navbar */
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    background-color: #545b62;
 }
 
 .navbar a{
@@ -67,10 +70,19 @@ body {
     }
 }
 
+.sidebar .nav-item.active{
+    background-color: #343a40;
+}
+
 .sidebar .nav-link {
-    color: #333;
-    padding: 0;
-    padding-top: .75em;
+    color: #ffffff;
+    padding: 5px;
+}
+
+.sidebar.toggled .nav-link {
+    width: 40px;    
+    padding: 5px 0;
+    margin: auto;
 }
 
 .sidebar .nav-link .feather {
@@ -79,7 +91,7 @@ body {
 }
 
 .sidebar .nav-link.active {
-    color: #007bff;
+    color: #ffffff;
 }
 
 .sidebar .nav-link:hover .feather,
@@ -88,7 +100,7 @@ body {
 }
 
 .sidebar .nav-link.active .feather.custom{
-    stroke: #007bff;
+    stroke: #ffffff;
 }
 
 .sidebar-heading {
@@ -123,7 +135,6 @@ body {
 
 .sidebar.toggled .nav-item{
     padding-left: 0;
-    margin: auto;
 }
 
 .navbar .navbar-brand,
@@ -197,6 +208,11 @@ body {
     margin-bottom: 50px;
 }
 
+.card-custom .list-group-item{
+    background-color: #343a40;
+    border: 1px solid rgba(255, 255, 255,.875);
+}
+
 .card-custom h5{
     padding-top: 5px;
 }
@@ -268,7 +284,6 @@ body {
 
 .card-custom select{
     width: 100%;
-    padding: 8px 10px;
 }
 
 .card-custom.short .card-custom-body.number{
@@ -300,21 +315,34 @@ body {
     text-align: initial;
 }
 
-.card-custom-body .rune-prim{
+.card-custom-body .rune-prim,
+.card-custom-body .artifact-prim
+{
     display: flex;
 }
 
-.card-custom-body .rune-stats{
+.card-custom-body .rune-stats,
+.card-custom-body .artifact-stats
+{
     margin-left: 10px;
 }
 
+.card-custom-body .artifact-stats{
+    display: flex;
+    align-items: center;
+}
+
 .card-custom-body .rune-substats,
-.card-custom-body .rune-info
+.card-custom-body .rune-info,
+.card-custom-body .artifact-substats,
+.card-custom-body .artifact-info
 {
     margin-top: 10px;
 }
 
-.card-custom-body .rune-info{
+.card-custom-body .rune-info,
+.card-custom-body .artifact-info
+{
     position: relative;
     bottom: 0;
 }
@@ -323,11 +351,12 @@ body {
     color: #cdb775;
 }
 
-.rune-card-compressed{
+.rune-card-compressed,
+.artifact-card-compressed
+{
     min-width: 300px;
     width: 300px;
 }
-
 
 .monster-info-row,
 .monster-runes-row
@@ -573,7 +602,11 @@ td{
     border: 1px solid #dee2e6 !important; 
     vertical-align: middle !important; 
     text-align: center;
-    background-color: white;
+    background-color: rgba(0, 0, 0, .25);
+}
+
+.comparison-table tbody{
+    background-color: #343a40;
 }
   
 .comparison-table tbody tr td:first-child,
@@ -600,6 +633,7 @@ td{
     position: sticky;
     left: -1px;
     z-index: 1;
+    background-color: #343a40;
 }
 .comparison-table thead th.first.double
 {
@@ -607,17 +641,20 @@ td{
     position: sticky;
     left: 79px;
     z-index: 1;
+    background-color: #343a40;
 }
 
 .comparison-table .page-link,
 .comparison-table .page-link:hover
 {
-    color: #6c757d !important;
+    color: #fff !important;
+    background-color: #6c757d!important;
+    border-color: #6c757d!important;
 }
 
 .comparison-table .page-item.active .page-link{
-    background-color: #6c757d !important;
-    border-color: #6c757d !important;
+    background-color: #545b62 !important;
+    border-color: #545b62 !important;
     color: #fff !important;
 }
 
@@ -646,7 +683,9 @@ td{
 }
 
 .bs-tooltip-auto[x-placement^=top] .arrow::before,
-.bs-tooltip-top .arrow::before 
+.bs-tooltip-top .arrow::before,
+.bs-tooltip-auto[x-placement^=bottom] .arrow::before,
+.bs-tooltip-bottom .arrow::before 
 {     
     border: none!important;
     display: none;
@@ -733,6 +772,10 @@ td{
     border-bottom-right-radius: .25rem;
 }
 
+.dark-href{
+    color: #b2ebf2;
+}
+
 /* Loading Spinner */
 #secs{
     position: relative;
@@ -744,14 +787,14 @@ td{
 .loader,
 .loader:before,
 .loader:after {
-  background: #000000;
+  background: #ffffff;
   -webkit-animation: load1 1s infinite ease-in-out;
   animation: load1 1s infinite ease-in-out;
   width: 1em;
   height: 4em;
 }
 .loader {
-  color: #000000;
+  color: #ffffff;
   text-indent: -9999em;
   margin: 88px auto;
   position: relative;
@@ -810,9 +853,12 @@ td{
 }
 
 @media (max-width: 768px) {
-    .rune-card-compressed{
+    .rune-card-compressed,
+    .artifact-card-compressed
+    {
         width: 100%;
     }
+
     .tooltip > .tooltip-inner {
         max-width: 100%;
     }
