@@ -1575,18 +1575,31 @@ def get_siege_records_task(request_get):
     if request_get:
         is_filter = True
     
-    if 'family' in request_get.keys() and request_get['family']:
+    if 'family' in request_get.keys() and request_get['family'][0] and request_get['family'][0] != '0':
         family = [family_member.replace('_', ' ') for family_member in request_get['family']]
         filters.append('Family: ' + ', '.join(family))
         for member in family:
             records = records.filter(monsters__base_monster__family__name=member)
 
-    if 'ranking' in request_get.keys() and request_get['ranking']:
+    if 'attribute' in request_get.keys() and request_get['attribute'] and request_get['attribute'][0] != '0':
+        filters.append('Element: ' + request_get['attribute'][0])
+        records = records.filter(monsters__base_monster__attribute=MonsterBase().get_attribute_id(request_get['attribute'][0]))
+    
+    if 'ranking' in request_get.keys() and request_get['ranking'][0] and request_get['ranking'][0] != '0':
         rankings = [ranking for ranking in request_get['ranking']]
         ranking_names = [Guild().get_siege_ranking_name(int(ranking)) for ranking in rankings]
         filters.append('Ranking: ' + ', '.join(ranking_names))
         for ranking in rankings:
             records = records.filter(wizard__guild__siege_ranking=ranking)
+
+    if 'success_rate_min' in request_get.keys() and request_get['success_rate_min'][0] and request_get['success_rate_min'][0] != '0':
+        filters.append('Success Rate Minimum: ' + request_get['success_rate_min'][0])
+        records = records.filter(ratio__gte=float(request_get['success_rate_min'][0]))
+
+    if 'success_rate_max' in request_get.keys() and request_get['success_rate_max'][0] and request_get['success_rate_max'][0] != '0':
+        filters.append('Success Rate Maximum: ' + request_get['success_rate_max'][0])
+        records = records.filter(ratio__lte=float(request_get['success_rate_max'][0]))
+        
 
     records = records.prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'monsters__base_monster__family')
 
@@ -1602,6 +1615,7 @@ def get_siege_records_task(request_get):
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
+        'request': request_get,
 
         # table top
         'records_ids': records_ids,

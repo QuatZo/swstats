@@ -249,8 +249,13 @@ def get_siege_records_ajax(request, task_id):
 
         if data.ready():
             context = data.get()
-            context['best_records'] = SiegeRecord.objects.filter(id__in=context['records_ids']).prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster', 'monsters__base_monster__family').annotate(sorting_val=Sum((F('win') + 250) * F('ratio'), output_field=FloatField())).order_by('-sorting_val')[:context['best_amount']]
+            context['best_records'] = SiegeRecord.objects.filter(id__in=context['records_ids']).prefetch_related('monsters', 'monsters__base_monster', 'wizard', 'wizard__guild', 'leader', 'leader__base_monster', 'monsters__base_monster__family').annotate(sorting_val=Sum((F('win') + 250) * F('ratio') / 100, output_field=FloatField())).order_by('-sorting_val')[:context['best_amount']]
 
+            context['filter_options'] = {
+                'families': list(MonsterFamily.objects.all().values_list('name', flat=True)),
+                'elements': MonsterBase().get_monster_attributes(),
+                'rankings': Guild().get_siege_ranks(),
+            }
             html = render_to_string('website/siege/siege_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 

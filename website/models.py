@@ -82,6 +82,10 @@ class Guild(models.Model):
             return "Unknown"
         return dict(cls.GUILD_RANKS)[ranking_id]
 
+    @classmethod
+    def get_siege_ranks(cls):
+        return dict(cls.SIEGE_RANKS)
+
 class Wizard(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True, db_index=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
     mana = models.BigIntegerField(blank=True, null=True, default=None) # wizard_mana

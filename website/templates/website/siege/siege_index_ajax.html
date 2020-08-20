@@ -1,13 +1,99 @@
 {% load other %}
+{% load monsters %}
 
 {% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %}
-<p>
-    The position of comp on the list is calculated by using the following formula, where \(0 < win\_ratio < 1\)
-    $$points =  {(wins + 250) * win\_ratio}$$
-</p>
-{% include "website/siege/charts/siege_chart_group_by_family.html" with name=family_name count=family_count color=family_color %}
-{% include "website/siege/charts/siege_chart_group_by_ranking.html" with ids=ranking_id name=ranking_name count=ranking_count color=ranking_color %}
 
-{% with "Top "|add_str:best_amount|add_str:" Siege Defenses" as text%}
-    {% include "website/siege/siege_table.html" with records=best_records collapse_id="top_records" text=text collapsed="collapse" %}
-{% endwith %}
+<div class='content'>
+    <div class='content-menu'>
+        <button class="btn btn-secondary btn-compare active" type="button" onclick="changeView(0)" id='view-1-button'>Filters</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(1)" id='view-2-button'>Charts</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(2)" id='view-3-button'>Table</button>
+    </div>
+    <form method="GET" action="" id='filters'>
+        <div id='view-1'>
+            <div class='row'>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Family</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='family'>
+                                <option value='0'></option>
+                                {% for family in filter_options.families %}
+                                    <option value='{{ family|space_to_ }}' {% if 'family' in request.keys and request.family.0 == family|space_to_ %}selected{% endif %}>{{ family }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Element</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='attribute'>
+                                <option value='0'></option>
+                                {% for element in filter_options.elements %}
+                                    <option value='{{ element }}' {% if 'attribute' in request.keys and request.attribute.0 == element %}selected{% endif %}>{{ element }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Ranking</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='ranking'>
+                                <option value='0'></option>
+                                {% for rank_id, rank_name in filter_options.rankings.items %}
+                                    <option value='{{ rank_id }}' {% if 'ranking' in request.keys and request.ranking.0 == rank_id|slugify %}selected{% endif %}>{{ rank_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Success Rate (in percentages)</h5>
+                        </div>
+                        <div class='card-custom-body number'>
+                            <input type='number' name='success_rate_min' min="0" max="100" value="{% if 'success_rate_min' in request.keys %}{{ request.success_rate_min.0 }}{% else %}0{% endif %}"/>
+                            -
+                            <input type='number' name='success_rate_max' min="0" max="100" value="{% if 'success_rate_max' in request.keys %}{{ request.success_rate_max.0 }}{% else %}0{% endif %}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class='btn btn-secondary btn-compare active' type="submit" style='width: 100%;'>Filter</button>
+        </div>
+    </form>
+    <div id='view-2' class='row' style='display: none;'>
+        {% include "website/siege/charts/siege_chart_group_by_family.html" with name=family_name count=family_count color=family_color %}
+
+        {% include "website/siege/charts/siege_chart_group_by_ranking.html" with ids=ranking_id name=ranking_name count=ranking_count color=ranking_color %}
+    </div>
+    <div id='view-3'>
+        <div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body standard'>
+                The position of comp on the list is calculated by using the following formula, where \(0 < win\_ratio < 1\)
+                $$points =  {(wins + 250) * win\_ratio}$$
+            </div>
+        </div>
+
+        {% include "website/siege/siege_table.html" with records=best_records collapse_id="top_records" text=text collapsed="collapse" %}
+    </div>
+	<script>$('#view-3').css('display', 'none');</script>
+</div>
+
+<script>
+	document.getElementById("filters").action = window.location.href;
+</script>
