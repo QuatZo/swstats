@@ -73,6 +73,92 @@
 				</div>
 			{% endfor %}
 		</div>
+    </div>
+    
+    <div id='view-4' style='display: none;'>
+        <div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body'>
+                This page shows monster records. Every card is clickable and will redirect to specific content in the game (i.e. R5).
+            </div>
+        </div>
+		
+		<div class='card-custom' style='min-height: 100px;'>
+            <div class="card-custom-header">
+                <h5 data-toggle="collapse" data-target="#dungeons" aria-expanded="true" aria-controls="dungeons">Dungeons</h5>
+            </div>
+            <div id='dungeons' class='card-custom-body collapse show'>
+                <div class='row'>
+                    {% for _, dungeon in records.dungeons.items %}
+                        <div class='col-12 col-md-6 col-lg-4 col-xl-3'>
+                            {% include 'website/dungeons/dungeon_card_compressed.html' with dungeon=dungeon %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class='card-custom' style='min-height: 100px;'>
+            <div class="card-custom-header">
+                <h5 data-toggle="collapse" data-target="#raids" aria-expanded="true" aria-controls="raids">Raids</h5>
+            </div>
+            <div id='raids' class='card-custom-body collapse show'>
+                <div class='row'>
+                    {% for _, raid_r in records.raids.items %}
+                        <div class='col-12 col-md-6 col-lg-4 col-xl-3'>
+                            {% include 'website/dungeons/dungeon_card_compressed.html' with dungeon=raid_r raid=True %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class='card-custom' style='min-height: 100px;'>
+            <div class="card-custom-header">
+                <h5 data-toggle="collapse" data-target="#rifts" aria-expanded="true" aria-controls="rifts">Rifts</h5>
+            </div>
+            <div id='rifts' class='card-custom-body collapse show'>
+                <div class='row'>
+                    {% for _, rift in records.rifts.items %}
+                        <div class='col-12 col-md-6 col-lg-4 col-xl-3'>
+                            {% include 'website/dungeons/rift_card_compressed.html' with rift=rift %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class='card-custom' style='min-height: 100px;'>
+            <div class="card-custom-header">
+                <h5 data-toggle="collapse" data-target="#siege" aria-expanded="true" aria-controls="siege">Siege</h5>
+            </div>
+            <div id='siege' class='card-custom-body collapse show'>
+                <div class='row'>
+                    {% for siege in records.siege %}
+                        {% if siege.full %}
+                            <div class='col-12 col-md-6 col-lg-4 col-xl-3'>
+                                <div class='card-custom bordered standard' onClick="moveTo('{% url 'siege' %}')" style='cursor: pointer;'>
+                                    <div class='card-custom-header' style='display: block;'>
+                                        {% for monster in siege.monsters.all %}
+                                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster.base_monster %}" class="table-monster-avatar-min" style="cursor: initial;" />
+                                        {% endfor %}
+                                    </div>
+                                    <div class='card-custom-body standard'>
+                                        <span class='substat'>Leader</span> <img src="{% static 'website/images/monsters/'|get_monster_avatar:siege.leader.base_monster %}" class="table-monster-avatar-min" style="cursor: initial;" /><br />
+                                        <span class='substat'>Wins</span> {{ siege.win }}<br />
+                                        <span class='substat'>Loses</span> {{ siege.lose }}<br />
+                                        <span class='substat'>Success rate</span> {{ siege.win|calc_success_rate:siege.lose }}<br />
+                                        <span class='substat'>Siege rank</span> {{ siege.wizard.guild.get_siege_ranking_display }}<br />
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>    
 </div>
 

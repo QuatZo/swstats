@@ -899,37 +899,52 @@ def get_monster_rank_stats(monsters, monster, stat, count):
 
 def get_monster_records(monster):
     siege = monster.siege_defense_monsters.all()
-    dungeons = monster.dungeon_monsters.all().distinct('dungeon')
+    
+    dungeons = monster.dungeon_monsters.values('dungeon', 'stage', 'win').annotate(ct=Count('id'), avg=Avg('clear_time')).order_by('dungeon', '-stage', 'win')
+    dungs = dict()
+    for d in dungeons:
+        key = f"d{d['dungeon']}_s{d['stage']}"
+        if key not in dungs.keys():
+            dungs[key] = {'d_id': d['dungeon'], 'stage': d['stage'], 'wins': 0, 'loses': 0, 'avg_time': None}
+        if d['win']:
+            dungs[key]['wins'] = d['ct']
+            dungs[key]['avg_time'] = d['avg']
+        else:
+            dungs[key]['loses'] = d['ct']
 
-    raids_has = False
     raids = RaidDungeonRun.objects.all()
+    raids_mon =  dict()
     for i in range(1, 9):
-        if raids.filter(**{f'monster_{i}': monster}).exists():
-            raids_has = True
-            break
+        for run in raids.filter(**{f'monster_{i}': monster}).values('stage', 'win').annotate(ct=Count('battle_key'), avg=Avg('clear_time')).order_by('stage', 'win'):
+            key = f's_{run["stage"]}'
+            # {% include 'website/dungeons/dungeon_card_compressed.html' with dungeon=raid %}
+            if key not in raids_mon.keys():
+                raids_mon[key] = {'d_name': 'Rift of Worlds', 'd_url': 'rift-of-worlds', 'stage': run['stage'], 'wins': 0, ' loses': 0, 'avg_time': None }
+            if run['win']:
+                raids_mon[key]['wins'] = run['ct']
+                raids_mon[key]['avg_time'] = run['avg']
+            else:
+                raids_mon[key]['loses'] = run['ct']
 
-    rifts = list()
+    rifts = dict()
     rifts_obj = RiftDungeonRun.objects.all()
     for i in range(1, 9):
-        rift_temp = rifts_obj.filter(**{f'monster_{i}': monster})
-        if rift_temp.exists():
-            rift_dungeons = list(set(rift_temp.values_list('dungeon', flat=True)))
-            for rift_dungeon in rift_dungeons:
-                rift_name = RiftDungeonRun.objects.filter(dungeon=rift_dungeon).first().get_dungeon_display()
-                if rift_name not in rifts:
-                    rifts.append(rift_name)
-                if len(rifts) == 5:
-                    break
+        rift_temp = rifts_obj.filter(**{f'monster_{i}': monster}).values('dungeon', 'win').annotate(ct=Count('battle_key'), avg=Avg('dmg_total')).order_by('dungeon', 'win')
+        for run in rift_temp:
+            key = f'dungeon_{run["dungeon"]}'
+            if key not in rifts.keys():
+                rifts[key] = {'dungeon': run["dungeon"], 'wins': 0, 'loses': 0, 'avg_dmg': None}
+            if run['win']:
+                rifts[key]['wins'] = run['ct']
+                rifts[key]['avg_dmg'] = int(run['avg'])
+            else:
+                rifts[key]['loses'] = run['ct']
 
-    has_records = False
-    if siege.exists()  or dungeons.exists() or len(rifts):
-        has_records = True
     return {
         'siege': siege,
-        'dungeons': dungeons,
+        'dungeons': dungs,
         'rifts': rifts,
-        'raids': raids_has,
-        'has': has_records,
+        'raids': raids_mon,
     }
 # endregion
 
