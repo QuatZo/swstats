@@ -1097,11 +1097,25 @@ def get_dungeon_by_stage_task(request_get, name, stage):
     if request_get:
         is_filter = True
 
-    if 'base' in request_get.keys() and request_get['base']:
+    if 'base' in request_get.keys() and request_get['base'][0] and request_get['base'][0] != '0':
         base = request_get['base'][0].replace('_', ' ')
-        filters.append('Base Monster: ' + base)
+        filters.append('Monster: ' + base)
         dungeon_runs_ids = dungeon_runs.filter(monsters__base_monster__name=base).values_list('id', flat=True)
         dungeon_runs = dungeon_runs.filter(id__in=dungeon_runs_ids)
+        
+    if 'secs_min' in request_get.keys() and request_get['secs_min'][0] and request_get['secs_min'][0] != '0':
+        filters.append('Faster than: ' + request_get['secs_min'][0] + ' seconds')
+        dungeon_runs = dungeon_runs.filter(clear_time__lte=datetime.timedelta(seconds=int(request_get['secs_min'][0])))
+
+    success_rate_min = 0
+    if 'success_rate_min' in request_get.keys() and request_get['success_rate_min'][0] and request_get['success_rate_min'][0] != '0':
+        filters.append('Success Rate Minimum: ' + request_get['success_rate_min'][0])
+        success_rate_min = float(request_get['success_rate_min'][0])
+
+    success_rate_max = 0
+    if 'success_rate_max' in request_get.keys() and request_get['success_rate_max'][0] and request_get['success_rate_max'][0] != '0':
+        filters.append('Success Rate Maximum: ' + request_get['success_rate_max'][0])
+        success_rate_max = float(request_get['success_rate_max'][0])
         
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
@@ -1123,13 +1137,14 @@ def get_dungeon_by_stage_task(request_get, name, stage):
     except AttributeError:
         fastest_run = None
 
-    records_personal = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
+    records_personal = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse = True)
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs_clear)
 
     context = {
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
+        'request': request_get,
 
         # all
         'name': name,
@@ -1160,18 +1175,34 @@ def get_raid_dungeon_by_stage_task(request_get, stage):
     name = 'Rift of Worlds'
 
     dungeon_runs = RaidDungeonRun.objects.filter(stage=stage)
+    dungeon_runs = dungeon_runs.exclude(monster_1__isnull=True, monster_2__isnull=True, monster_3__isnull=True, monster_4__isnull=True, monster_5__isnull=True, monster_6__isnull=True, monster_7__isnull=True, monster_8__isnull=True, leader__isnull=True)
+  
     if request_get:
         is_filter = True
 
-    if 'base' in request_get.keys() and request_get['base']:
+    if 'base' in request_get.keys() and request_get['base'][0] and request_get['base'][0] != '0':
         base = request_get['base'][0].replace('_', ' ')
-        filters.append('Base Monster: ' + base)
+        filters.append('Monster: ' + base)
         dungeon_runs_final_ids = list()
         for i in range(1, 9):
             dungeon_runs_ids = dungeon_runs.filter(**{f'monster_{i}__base_monster__name': base}).values_list('battle_key', flat=True)
             if dungeon_runs_ids:
                 dungeon_runs_final_ids += list(dungeon_runs_ids)
         dungeon_runs = dungeon_runs.filter(battle_key__in=dungeon_runs_final_ids)
+        
+    if 'secs_min' in request_get.keys() and request_get['secs_min'][0] and request_get['secs_min'][0] != '0':
+        filters.append('Faster than: ' + request_get['secs_min'][0] + ' seconds')
+        dungeon_runs = dungeon_runs.filter(clear_time__lte=datetime.timedelta(seconds=int(request_get['secs_min'][0])))
+
+    success_rate_min = 0
+    if 'success_rate_min' in request_get.keys() and request_get['success_rate_min'][0] and request_get['success_rate_min'][0] != '0':
+        filters.append('Success Rate Minimum: ' + request_get['success_rate_min'][0])
+        success_rate_min = float(request_get['success_rate_min'][0])
+
+    success_rate_max = 0
+    if 'success_rate_max' in request_get.keys() and request_get['success_rate_max'][0] and request_get['success_rate_max'][0] != '0':
+        filters.append('Success Rate Maximum: ' + request_get['success_rate_max'][0])
+        success_rate_max = float(request_get['success_rate_max'][0])
     
     dungeon_runs = dungeon_runs.prefetch_related('monster_1', 'monster_1__base_monster','monster_2', 'monster_2__base_monster','monster_3', 'monster_3__base_monster','monster_4', 'monster_4__base_monster','monster_5', 'monster_5__base_monster','monster_6', 'monster_6__base_monster','monster_7', 'monster_7__base_monster','monster_8', 'monster_8__base_monster','leader', 'leader__base_monster')
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
@@ -1184,13 +1215,14 @@ def get_raid_dungeon_by_stage_task(request_get, stage):
     except AttributeError:
         fastest_run = None
 
-    records_personal = sorted(get_raid_dungeon_records_personal(dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
+    records_personal = sorted(get_raid_dungeon_records_personal(dungeon_runs, fastest_run, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse = True)
     base_names, base_quantities = get_raid_dungeon_runs_by_base_class(dungeon_runs)
 
     context = {
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
+        'request': request_get,
     
         # all
         'name': name,
@@ -1225,12 +1257,14 @@ def get_rift_dungeon_by_stage_task(request_get, name):
     name = ' '.join(names)
 
     dungeon_runs = RiftDungeonRun.objects.filter(dungeon=RiftDungeonRun().get_dungeon_id(name)).exclude(clear_rating=None)
+    dungeon_runs = dungeon_runs.exclude(monster_1__isnull=True, monster_2__isnull=True, monster_3__isnull=True, monster_4__isnull=True, monster_5__isnull=True, monster_6__isnull=True, monster_7__isnull=True, monster_8__isnull=True, leader__isnull=True)
+
     if request_get:
         is_filter = True
 
-    if 'base' in request_get.keys() and request_get['base']:
+    if 'base' in request_get.keys() and request_get['base'][0] and request_get['base'][0] != '0':
         base = request_get['base'][0].replace('_', ' ')
-        filters.append('Base Monster: ' + base)
+        filters.append('Monster: ' + base)
         dungeon_runs_final_ids = list()
         for i in range(1, 9):
             dungeon_runs_ids = dungeon_runs.filter(**{f'monster_{i}__base_monster__name': base}).values_list('battle_key', flat=True)
@@ -1238,6 +1272,20 @@ def get_rift_dungeon_by_stage_task(request_get, name):
                 dungeon_runs_final_ids += list(dungeon_runs_ids)
         dungeon_runs = dungeon_runs.filter(battle_key__in=dungeon_runs_final_ids)
     
+    if 'dmg_min' in request_get.keys() and request_get['dmg_min'][0] and request_get['dmg_min'][0] != '0':
+        filters.append('Damage Minimum: ' + request_get['dmg_min'][0])
+        dungeon_runs = dungeon_runs.filter(dmg_total__gte=request_get['dmg_min'][0])
+
+    success_rate_min = 0
+    if 'success_rate_min' in request_get.keys() and request_get['success_rate_min'][0] and request_get['success_rate_min'][0] != '0':
+        filters.append('Success Rate Minimum: ' + request_get['success_rate_min'][0])
+        success_rate_min = float(request_get['success_rate_min'][0])
+
+    success_rate_max = 0
+    if 'success_rate_max' in request_get.keys() and request_get['success_rate_max'][0] and request_get['success_rate_max'][0] != '0':
+        filters.append('Success Rate Maximum: ' + request_get['success_rate_max'][0])
+        success_rate_max = float(request_get['success_rate_max'][0])
+
     dungeon_runs = dungeon_runs.prefetch_related('monster_1', 'monster_1__base_monster','monster_2', 'monster_2__base_monster','monster_3', 'monster_3__base_monster','monster_4', 'monster_4__base_monster','monster_5', 'monster_5__base_monster','monster_6', 'monster_6__base_monster','monster_7', 'monster_7__base_monster','monster_8', 'monster_8__base_monster','leader', 'leader__base_monster')
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True)
     
@@ -1250,13 +1298,14 @@ def get_rift_dungeon_by_stage_task(request_get, name):
     except AttributeError:
         highest_damage = None
 
-    records_personal = sorted(get_rift_dungeon_records_personal(dungeon_runs, highest_damage), key=itemgetter('sorting_val'), reverse = True)
+    records_personal = sorted(get_rift_dungeon_records_personal(dungeon_runs, highest_damage, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse = True)
     base_names, base_quantities = get_rift_dungeon_runs_by_base_class(dungeon_runs)
 
     context = {
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
+        'request': request_get,
     
         # all
         'name': name,

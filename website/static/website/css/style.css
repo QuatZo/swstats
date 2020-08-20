@@ -587,6 +587,12 @@ h1.h2
     border-radius: 50%;
 }
 
+.table-monster-avatar-mid{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
 .table-monster-avatar-min{
     width: 30px;
     height: 30px;

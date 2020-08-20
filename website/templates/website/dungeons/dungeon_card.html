@@ -1,36 +1,36 @@
 {% load static %}
 {% load dungeons %}
 
-<div class="col-12 col-sm-3 rank">
-    <div class="card">
-        <div class="card-header dungeon-header">
-            <img class="dungeon-header-img" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
-            {{ dungeon }} 
+<div class="col-12 col-sm-6 col-md-3 rank">
+    <div class="card-custom standard">
+        <div class="card-header">
+            <img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
+            <b>{{ dungeon }}</b> 
         </div>
         {% for stage, stage_info in info.items %}
-            <div class="card-header" type="button" data-toggle="collapse" data-target="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" aria-expanded="true" aria-controls="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}">
+            <div class="card-custom-header" type="button" data-toggle="collapse" data-target="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" aria-expanded="true" aria-controls="#dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" style='display: inherit; border-radius: 0;'>
                 {% if dungeon|is_rift_beast %}
                     {{ stage }} <a href="{% url 'rift_dungeon_by_stage' name=dungeon|dungeon_to_div_id %}" style="position: relative; float: right;">More</a>
                 {% else %}
-                    {{ stage }} <a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=stage|slice:"1:" %}" style="position: relative; float: right;">More</a>
+                    {{ stage }} <a href="{% url 'dungeon_by_stage' name=dungeon|dungeon_to_div_id stage=stage|slice:"1:" %}" style="position: relative; float: right;"><b>More</b></a>
                 {% endif %}
             </div>
-            <div class="card-body inner {% if stage == "B10" or stage == "B5" and dungeon|dungeon_to_div_id == "rift-of-worlds" or dungeon|is_rift_beast %}show{% else %}collapse{% endif %}" id="dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" >
+            <div class="card-custom-body inner {% if stage == "B10" or stage == "B5" and dungeon|dungeon_to_div_id == "rift-of-worlds" or dungeon|is_rift_beast %}show{% else %}collapse{% endif %}" id="dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" style='min-height: unset; text-align: inherit;' >
                 <div class="row">
-                    <div class="col-6 col-sm-6"><b>Quantity</b></div>
-                    <div class="col-6 col-sm-6"> {{ stage_info.quantity|default:"0" }} </div>
+                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"><b>Quantity</b></div>
+                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"> {{ stage_info.quantity|default:"0" }} </div>
                 </div>
                 <div class="row">
-                    <div class="col-6 col-sm-6"><b>Avg. Time</b></div>
-                    <div class="col-6 col-sm-6"> {{ stage_info.avg_time|default:"-" }} </div>
+                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"><b>Avg. Time</b></div>
+                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"> {{ stage_info.avg_time|default:"-" }} </div>
                 </div>
                 <div class="row">
-                    <div class="col-6 col-sm-6"><b>Wins</b></div>
-                    <div class="col-6 col-sm-6"> {{ stage_info.wins|default:"0" }} </div>
+                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"><b>Wins</b></div>
+                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"> {{ stage_info.wins|default:"0" }} </div>
                 </div>
                 <div class="row">
-                    <div class="col-6 col-sm-6"><b>Loses</b></div>
-                    <div class="col-6 col-sm-6"> {{ stage_info.loses|default:"0" }} </div>
+                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"><b>Loses</b></div>
+                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"> {{ stage_info.loses|default:"0" }} </div>
                 </div>
             </div>
         {% endfor %}

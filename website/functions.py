@@ -1052,7 +1052,7 @@ def get_dungeon_runs_distribution(runs, parts):
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run):
+def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min, success_rate_max):
     records = list()
 
     for comp in comps:
@@ -1074,12 +1074,17 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run):
             'success_rate': round(wins_comp * 100 / runs_comp, 2),
         }
 
+        if success_rate_min > 0 and record['success_rate'] < success_rate_min:
+            continue
+        if success_rate_max > 0 and record['success_rate'] > success_rate_max:
+            continue
+
         # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
-            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+            record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )), 4)
             record['average_time'] = str(record['average_time'])
             records.append(record)
 
@@ -1096,7 +1101,7 @@ def get_dungeon_runs_by_base_class(dungeon_runs):
     base_monsters = {k: base_monsters[k] for k in sorted(base_monsters, key=base_monsters.get, reverse=True)}
     return (list(base_monsters.keys()), list(base_monsters.values()))
 
-def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
+def get_raid_dungeon_records_personal(dungeon_runs, fastest_run, success_rate_min, success_rate_max):
     records = list()
     comps = list()
 
@@ -1120,12 +1125,17 @@ def get_raid_dungeon_records_personal(dungeon_runs, fastest_run):
             'success_rate': round(wins_count * 100 / records_count, 2),
         }
 
+        if success_rate_min > 0 and record['success_rate'] < success_rate_min:
+            continue
+        if success_rate_max > 0 and record['success_rate'] > success_rate_max:
+            continue
+
         # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time']:
-            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+            record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )), 4)
         else:
             record['sorting_val'] = -1
         record['average_time'] = str(record['average_time'])
@@ -1165,7 +1175,7 @@ def get_rift_dungeon_damage_distribution(runs, parts):
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_rift_dungeon_records_personal(dungeon_runs, highest_damage):
+def get_rift_dungeon_records_personal(dungeon_runs, highest_damage, success_rate_min, success_rate_max):
     records = list()
     comps = list()
 
@@ -1193,11 +1203,16 @@ def get_rift_dungeon_records_personal(dungeon_runs, highest_damage):
             'dmg_avg': round(dmg['avg_dmg']),
         }
 
+        if success_rate_min > 0 and record['success_rate'] < success_rate_min:
+            continue
+        if success_rate_max > 0 and record['success_rate'] > success_rate_max:
+            continue
+
         # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
-        record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) ))
+        record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / (math.exp((record['dmg_avg'] * most_freq_rating) / -(highest_damage * 12) )), 4)
         records.append(record)
 
     return records
@@ -1247,7 +1262,7 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run):
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
         if record['average_time'] is not None:
-            record['sorting_val'] = (min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run ))
+            record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )), 4)
             record['average_time'] = str(record['average_time'])
             records.append(record)
     

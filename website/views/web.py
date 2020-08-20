@@ -365,6 +365,7 @@ def get_dungeon_by_stage_ajax(request, task_id, name, stage):
                     record['frontline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['frontline']]
                     record['backline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['backline']]
                     record['leader'] = Monster.objects.get(id=record['leader']) if record['leader'] else None
+                context['monsters'] = MonsterBase.objects.all()
 
                 html = render_to_string('website/dungeons/raid_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
                 return HttpResponse(html)
@@ -376,6 +377,7 @@ def get_dungeon_by_stage_ajax(request, task_id, name, stage):
 
                 for record in context['records_personal']:
                     record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+                context['monsters'] = MonsterBase.objects.all()
 
                 html = render_to_string('website/dungeons/dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
                 return HttpResponse(html)

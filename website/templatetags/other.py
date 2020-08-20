@@ -1,6 +1,7 @@
 from django import template
 from website.models import MonsterBase
 
+import uuid
 import random
 
 register = template.Library()
@@ -52,3 +53,7 @@ def add_num(arg1, arg2):
 @register.filter
 def space_to_(arg1):
     return arg1.replace(' ', '_')
+
+@register.filter
+def randomize(val):
+    return val * uuid.uuid4().int
