@@ -21,10 +21,17 @@
                         {% for monster in record.comp %}  
                             {% with monster.id|randomize as rand_mon_id %}
                                 <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href"> 
-                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar tip" data-tip="mon-{{ rand_mon_id }}" />
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar tip" data-tip="mon-{{ rand_mon_id }}" onmouseenter="ajaxTooltip({{ monster.id }}, 'mon', '{{ rand_mon_id }}', this)" />
                                 </a>
                                 <div id="mon-{{ rand_mon_id }}" class="tip-content" style='display: none;'>
-                                    {% include "website/monsters/monster_card_compressed.html" with monster=monster deep=True %}
+                                    <div class='card-custom disclaimer'>
+                                        <div class='card-custom-header'>
+                                            Loading...
+                                        </div>
+                                        <div class='card-custom-body'>
+                                            Loading...
+                                        </div>
+                                    </div>
                                 </div>
                             {% endwith %}
                         {% endfor %}                    
@@ -40,27 +47,47 @@
     </table>
 </div>
 <script>
+    function initTableTooltips(){
+        $('.tip').each(function () {
+            $(this).tooltip(
+            {
+                html: true,
+                placement: 'top',
+                title: $('#' + $(this).data('tip')).html(),
+                boundary: "window",
+                container: 'body',
+            });
+        });
+    }
+
+    function ajaxTooltip(el_id, el_type, tooltip_id, el){
+        var prefix = '#' + el_type + '-'
+        if(!$(prefix + tooltip_id).html().includes('Loading')){
+            return;
+        }
+        var url_mask = "{% url 'object_card' obj_type='a' obj_id=1 %}".replace('a', el_type.toString()).replace('1', el_id.toString());
+        $.ajax({
+            url: url_mask,
+            type: "GET",
+            success: function(response) {
+                $(prefix + tooltip_id).html(response)
+                $(el).attr("data-original-title", response).tooltip('show');
+            },
+            error: function(xhr) {
+                $('#content-ajax-container').html("{% include 'website/error.html' with task_id='' %}");
+            }
+        });
+    }
+
     $('#table-dungeon').DataTable({
         scrollY: window.innerHeight - 200,
         scrollX: true,
         scrollCollapse: true,
         tooltip: true,
         responsive: true,
-        "order": [[ 5, "desc" ]]
-    });
-    $(document).ready(function () {
-        $('.tip').each(function () {
-            $(this).tooltip(
-            {
-                html: true,
-				placement: 'top',
-                title: $('#' + $(this).data('tip')).html(),
-                boundary: "window",
-                container: 'body',
-            });
-        });
-		$(this).data('bs.tooltip').config.placement = 'top';// For dynamic position
-  		$(this).data('bs.tooltip').config.boundary= 'top'; // Used for tooltip boundary range
-
+        "order": [[ 5, "desc" ]],
+        "drawCallback": function( settings ) {
+            initTableTooltips(); // your tootlip function.
+        },
     });
 </script>

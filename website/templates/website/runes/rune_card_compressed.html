@@ -44,14 +44,23 @@
                 {% if rune.equipped %}
                     {% with rune|get_monster as mon %}
                         {% if mon %}
-                            <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
-                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ mon.id }}"{% endif %}/>
-                            </a>
-                            {% if not deep %}
-                                <div id="mon-{{ mon.id }}" class="tip-content" style='display: none;'>
-                                    {% include "website/monsters/monster_card_compressed.html" with monster=mon deep=True %}
-                                </div>
-                            {% endif %}
+                            {% with mon.id|randomize as rand_mon_id %}
+                                <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ rand_mon_id }}"{% endif %} onmouseenter="ajaxTooltip({{ mon.id }}, 'mon', '{{ rand_mon_id }}', this)" />
+                                </a>
+                                {% if not deep %}
+                                    <div id="mon-{{ rand_mon_id }}" class="tip-content" style='display: none;'>
+                                        <div class='card-custom disclaimer'>
+                                            <div class='card-custom-header'>
+                                                Loading...
+                                            </div>
+                                            <div class='card-custom-body'>
+                                                Loading...
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
                         {% else %}
                             <img src="{% static 'website/images/monsters/monster_unknown.png' %}" class="table-monster-avatar-min"/>
                         {% endif %}
@@ -63,14 +72,23 @@
             <span class='substat'>Equipped in RTA</span>
                 {% with rune|get_monster:True as mon %}
                     {% if mon %}
-                        <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
-                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ mon.id }}"{% endif %} />
-                        </a>
-                        {% if not deep %}
-                            <div id="mon-{{ mon.id }}" class="tip-content" style='display: none;'>
-                                {% include "website/monsters/monster_card_compressed.html" with monster=mon deep=True %}
-                            </div>
-                        {% endif %}
+                        {% with mon.id|randomize as rand_mon_id %}
+                            <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
+                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ rand_mon_id }}"{% endif %} onmouseenter="ajaxTooltip({{ mon.id }}, 'mon', '{{ rand_mon_id }}', this)" />
+                            </a>
+                            {% if not deep %}
+                                <div id="mon-{{rand_mon_id }}" class="tip-content" style='display: none;'>
+                                    <div class='card-custom disclaimer'>
+                                        <div class='card-custom-header'>
+                                            Loading...
+                                        </div>
+                                        <div class='card-custom-body'>
+                                            Loading...
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
                     {% else %}
                         <span style="color: #ff0000">No</span>
                     {% endif %}

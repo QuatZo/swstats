@@ -82,6 +82,7 @@ urlpatterns = [
     path('dimholecalc/', views.get_dimhole_calculator, name='dimholecalc'),
 
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
+    path('object/<str:obj_type>/<int:obj_id>', views.get_object_for_card, name='object_card'),
 
     path('reports/', views.get_report_menu, name='reports'),
     path('reports/generate/', views.get_report, name='reports_generate'),

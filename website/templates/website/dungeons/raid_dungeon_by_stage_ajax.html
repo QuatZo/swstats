@@ -34,7 +34,7 @@
                             <h5>Faster than (seconds)</h5>
                         </div>
                         <div class='card-custom-body'>
-                            <input type='number' name='secs_min' min="0" max="600" value="{% if 'secs_min' in request.keys %}{{ request.secs_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='secs_min' min="0" max="600" value="{% if 'secs_min' in request.keys %}{{ request.secs_min.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
@@ -44,9 +44,9 @@
                             <h5>Success Rate (in percentages)</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='success_rate_min' min="0" max="100" value="{% if 'success_rate_min' in request.keys %}{{ request.success_rate_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='success_rate_min' min="0" max="100" value="{% if 'success_rate_min' in request.keys %}{{ request.success_rate_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='success_rate_max' min="0" max="100" value="{% if 'success_rate_max' in request.keys %}{{ request.success_rate_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='success_rate_max' min="0" max="100" value="{% if 'success_rate_max' in request.keys %}{{ request.success_rate_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>

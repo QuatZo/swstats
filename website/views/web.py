@@ -482,3 +482,13 @@ def get_contribute_info(request):
 
 def get_credits(request):
     return render( request, 'website/credits.html')
+
+def get_object_for_card(request, obj_type, obj_id):
+    if obj_type == 'mon':
+        html = render_to_string('website/monsters/monster_card_compressed.html', {'monster': Monster.objects.get(id=obj_id), 'deep': True,}) # return JSON/Dict like during Desktop Upload
+    elif obj_type == 'rune':
+        html = render_to_string('website/runes/rune_card_compressed.html', {'rune': Rune.objects.get(id=obj_id), 'deep': True,}) # return JSON/Dict like during Desktop Upload
+    elif obj_type == 'artifact':
+        html = render_to_string('website/artifacts/artifact_card_compressed.html', {'artifact': Artifact.objects.get(id=obj_id), 'deep': True,}) # return JSON/Dict like during Desktop Upload
+    
+    return HttpResponse(html)

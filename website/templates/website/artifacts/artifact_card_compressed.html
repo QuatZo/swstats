@@ -34,14 +34,23 @@
                 {% if artifact.equipped %}
                     {% with artifact|get_monster as mon %}
                         {% if mon %}
-                            <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
-                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ mon.id }}"{% endif %}/>
-                            </a>
-                            {% if not deep %}
-                                <div id="mon-{{ mon.id }}" class="tip-content" style='display: none;'>
-                                    {% include "website/monsters/monster_card_compressed.html" with monster=mon deep=True %}
-                                </div>
-                            {% endif %}
+                            {% with mon.id|randomize as rand_mon_id %}
+                                <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ rand_mon_id }}"{% endif %} onmouseenter="ajaxTooltip({{mon.id }}, 'mon', '{{ rand_mon_id }}', this)" />
+                                </a>
+                                {% if not deep %}
+                                    <div id="mon-{{ rand_mon_id }}" class="tip-content" style='display: none;'>
+                                        <div class='card-custom disclaimer'>
+                                            <div class='card-custom-header'>
+                                                Loading...
+                                            </div>
+                                            <div class='card-custom-body'>
+                                                Loading...
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
                         {% else %}
                             <img src="{% static 'website/images/monsters/monster_unknown.png' %}" class="table-monster-avatar-min"/>
                         {% endif %}
@@ -52,3 +61,24 @@
         </div>
     </div>
 </div>
+
+<script>
+    function ajaxTooltip(el_id, el_type, tooltip_id, el){
+        var prefix = '#' + el_type + '-'
+        if(!$(prefix + tooltip_id).html().includes('Loading')){
+            return;
+        }
+        var url_mask = "{% url 'object_card' obj_type='a' obj_id=1 %}".replace('a', el_type.toString()).replace('1', el_id.toString());
+        $.ajax({
+            url: url_mask,
+            type: "GET",
+            success: function(response) {
+                $(prefix + tooltip_id).html(response)
+                $(el).attr("data-original-title", response).tooltip('show');
+            },
+            error: function(xhr) {
+                $('#content-ajax-container').html("{% include 'website/error.html' with task_id='' %}");
+            }
+        });
+    }
+</script>

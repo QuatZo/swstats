@@ -56,4 +56,6 @@ def space_to_(arg1):
 
 @register.filter
 def randomize(val):
+    if isinstance(val, str):
+        return
     return val * uuid.uuid4().int
