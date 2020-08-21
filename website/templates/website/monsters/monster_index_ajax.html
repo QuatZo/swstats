@@ -89,132 +89,168 @@
                 <div class='col-12 col-md-4 col-lg-4'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
-                            <h5>Average Efficiency (0 - Don't Filter)</h5>
+                            <h5>Average Efficiency</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='eff_min' min="0" max="150" value="{% if 'eff_min' in request.keys %}{{ request.eff_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='eff_min' min="0" max="150" value="{% if 'eff_min' in request.keys %}{{ request.eff_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='eff_max' min="0" max="150" value="{% if 'eff_max' in request.keys %}{{ request.eff_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='eff_max' min="0" max="150" value="{% if 'eff_max' in request.keys %}{{ request.eff_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>HP</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='hp_min' min="0" max="70000" value="{% if 'hp_min' in request.keys %}{{ request.hp_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='hp_min' min="0" max="70000" value="{% if 'hp_min' in request.keys %}{{ request.hp_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='hp_max' min="0" max="70000" value="{% if 'hp_max' in request.keys %}{{ request.hp_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='hp_max' min="0" max="70000" value="{% if 'hp_max' in request.keys %}{{ request.hp_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>Attack</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='atk_min' min="0" max="10000" value="{% if 'atk_min' in request.keys %}{{ request.atk_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='atk_min' min="0" max="10000" value="{% if 'atk_min' in request.keys %}{{ request.atk_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='atk_max' min="0" max="10000" value="{% if 'atk_max' in request.keys %}{{ request.atk_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='atk_max' min="0" max="10000" value="{% if 'atk_max' in request.keys %}{{ request.atk_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>Defense</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='def_min' min="0" max="10000" value="{% if 'def_min' in request.keys %}{{ request.def_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='def_min' min="0" max="10000" value="{% if 'def_min' in request.keys %}{{ request.def_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='def_max' min="0" max="10000" value="{% if 'def_max' in request.keys %}{{ request.def_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='def_max' min="0" max="10000" value="{% if 'def_max' in request.keys %}{{ request.def_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>Speed</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='spd_min' min="0" max="1000" value="{% if 'spd_min' in request.keys %}{{ request.spd_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='spd_min' min="0" max="1000" value="{% if 'spd_min' in request.keys %}{{ request.spd_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='spd_max' min="0" max="1000" value="{% if 'spd_max' in request.keys %}{{ request.spd_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='spd_max' min="0" max="1000" value="{% if 'spd_max' in request.keys %}{{ request.spd_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>Resistance</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='res_min' min="0" max="300" value="{% if 'res_min' in request.keys %}{{ request.res_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='res_min' min="0" max="300" value="{% if 'res_min' in request.keys %}{{ request.res_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='res_max' min="0" max="300" value="{% if 'res_max' in request.keys %}{{ request.res_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='res_max' min="0" max="300" value="{% if 'res_max' in request.keys %}{{ request.res_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>Accuracy</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='acc_min' min="0" max="300" value="{% if 'acc_min' in request.keys %}{{ request.acc_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='acc_min' min="0" max="300" value="{% if 'acc_min' in request.keys %}{{ request.acc_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='acc_max' min="0" max="300" value="{% if 'acc_max' in request.keys %}{{ request.acc_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='acc_max' min="0" max="300" value="{% if 'acc_max' in request.keys %}{{ request.acc_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>Critical Rate</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='crit_rate_min' min="0" max="300" value="{% if 'crit_rate_min' in request.keys %}{{ request.crit_rate_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='crit_rate_min' min="0" max="300" value="{% if 'crit_rate_min' in request.keys %}{{ request.crit_rate_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='crit_rate_max' min="0" max="300" value="{% if 'crit_rate_max' in request.keys %}{{ request.crit_rate_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='crit_rate_max' min="0" max="300" value="{% if 'crit_rate_max' in request.keys %}{{ request.crit_rate_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>Critical Damage</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='crit_dmg_min' min="0" max="1000" value="{% if 'crit_dmg_min' in request.keys %}{{ request.crit_dmg_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='crit_dmg_min' min="0" max="1000" value="{% if 'crit_dmg_min' in request.keys %}{{ request.crit_dmg_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='crit_dmg_max' min="0" max="1000" value="{% if 'crit_dmg_max' in request.keys %}{{ request.crit_dmg_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='crit_dmg_max' min="0" max="1000" value="{% if 'crit_dmg_max' in request.keys %}{{ request.crit_dmg_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>Effective HP</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='eff_hp_min' min="0" max="1000000" value="{% if 'eff_hp_min' in request.keys %}{{ request.eff_hp_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='eff_hp_min' min="0" max="1000000" value="{% if 'eff_hp_min' in request.keys %}{{ request.eff_hp_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='eff_hp_max' min="0" max="1000000" value="{% if 'eff_hp_max' in request.keys %}{{ request.eff_hp_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='eff_hp_max' min="0" max="1000000" value="{% if 'eff_hp_max' in request.keys %}{{ request.eff_hp_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>
-                <div class='col-12 col-md-4 col-lg-2'>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
                             <h5>E. HP w/ Def Break</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='eff_hp_def_min' min="0" max="1000000" value="{% if 'eff_hp_def_min' in request.keys %}{{ request.eff_hp_def_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='eff_hp_def_min' min="0" max="1000000" value="{% if 'eff_hp_def_min' in request.keys %}{{ request.eff_hp_def_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='eff_hp_def_max' min="0" max="1000000" value="{% if 'eff_hp_def_max' in request.keys %}{{ request.eff_hp_def_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='eff_hp_def_max' min="0" max="1000000" value="{% if 'eff_hp_def_max' in request.keys %}{{ request.eff_hp_def_max.0 }}{% else %}{% endif %}"/>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Hall of Heroes</h5>
+                        </div>
+                        <div class='card-custom-body' style='flex-direction: row; justify-content: space-evenly;'>
+							<div><input type='radio' name='hoh' value='False' {% if 'hoh' in request.keys and request.hoh.0 == 'False' %}checked{% endif %}>No</div>
+							<div><input type='radio' name='hoh' value='True' {% if 'hoh' in request.keys and request.hoh.0 == 'True' %}checked{% endif %}>Yes</div>
+							<div><input type='radio' name='hoh' value='0' {% if 'hoh' not in request.keys or request.hoh.0 == '0'%}checked{% endif %}>Both</div>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Storage</h5>
+                        </div>
+                        <div class='card-custom-body' style='flex-direction: row; justify-content: space-evenly;'>
+							<div><input type='radio' name='storage' value='False' {% if 'storage' in request.keys and request.storage.0 == 'False' %}checked{% endif %}>No</div>
+							<div><input type='radio' name='storage' value='True' {% if 'storage' in request.keys and request.storage.0 == 'True' %}checked{% endif %}>Yes</div>
+							<div><input type='radio' name='storage' value='0' {% if 'storage' not in request.keys or request.storage.0 == '0'%}checked{% endif %}>Both</div>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Fusion</h5>
+                        </div>
+                        <div class='card-custom-body' style='flex-direction: row; justify-content: space-evenly;'>
+							<div><input type='radio' name='fusion' value='False' {% if 'fusion' in request.keys and request.fusion.0 == 'False' %}checked{% endif %}>No</div>
+							<div><input type='radio' name='fusion' value='True' {% if 'fusion' in request.keys and request.fusion.0 == 'True' %}checked{% endif %}>Yes</div>
+							<div><input type='radio' name='fusion' value='0' {% if 'fusion' not in request.keys or request.fusion.0 == '0'%}checked{% endif %}>Both</div>
                         </div>
                     </div>
                 </div>

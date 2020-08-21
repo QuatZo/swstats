@@ -53,7 +53,7 @@
                 $('#report-generator').html(data);
             },
             error: function(){
-                $('#report-generator').html("<h2>There was an error while connecting. Please, try again.<br>If error still exists, contact <a href='http://reddit.com/u/quatzo'>administrator</a>.");
+                $('#report-generator').html("{% include 'website/error.html' with task_id=task_id %}");
             }
         });
     });

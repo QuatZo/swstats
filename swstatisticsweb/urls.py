@@ -89,13 +89,13 @@ urlpatterns = [
     path('reports/old/', views.get_old_reports, name='reports_old'),
 
     ######### NOT IN SIDEBAR MENU
-    path('homunculus/', views.get_homunculus, name='homunculus'),
-    path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
-    path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'),
-    path('decks/', views.get_decks, name='decks'),
-    path('decks/<str:task_id>/', views.get_decks_ajax, name='decks_ajax'),
-    path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
-    path('decks/id/<int:arg_id>/<str:task_id>/', views.get_deck_by_id_ajax, name='deck_by_id_ajax'),
+    # path('homunculus/', views.get_homunculus, name='homunculus'),
+    # path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
+    # path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'),
+    # path('decks/', views.get_decks, name='decks'),
+    # path('decks/<str:task_id>/', views.get_decks_ajax, name='decks_ajax'),
+    # path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
+    # path('decks/id/<int:arg_id>/<str:task_id>/', views.get_deck_by_id_ajax, name='deck_by_id_ajax'),
     #########
 
     ######### BOT
