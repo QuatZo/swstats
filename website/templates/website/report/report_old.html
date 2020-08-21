@@ -21,12 +21,12 @@
     <div class="row cards" id="row-cards">
         {% for image_key, image_val in images.items %}
             <div class="col-6 col-sm-3">
-                <div class="card" style="margin-bottom: 25px;">
-                    <div class="card-header">
+                <div class="card-custom disclaimer">
+                    <div class="card-custom-header">
                         {{ image_key|monster_name_from_filename }} ({{ image_val }})
                     </div>
-                    <div class="card-body">
-                        <a href="{% static 'website/reports/'|add_str:image_key %}" target="_blank">Click to see image</a>
+                    <div class="card-custom-body">
+                        <a class='dark-href' href="{% static 'website/reports/'|add_str:image_key %}" target="_blank">Click to see image</a>
                     </div>
                 </div>
             </div>

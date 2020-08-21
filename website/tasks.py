@@ -1332,31 +1332,45 @@ def get_rift_dungeon_by_stage_task(request_get, name):
 def get_dimension_hole_task(request_get):
     is_filter = False
     filters = list()
-    records_ok = False
 
     dungeon_runs = DimensionHoleRun.objects.all().order_by('clear_time')
 
     if request_get:
         is_filter = True
 
-    if 'base' in request_get.keys() and request_get['base']:
+    if 'base' in request_get.keys() and request_get['base'][0] and request_get['base'][0] != '0':
         base = request_get['base'][0].replace('_', ' ')
         filters.append('Base Monster: ' + base)
         dungeon_runs_ids = dungeon_runs.filter(monsters__base_monster__name=base).values_list('id', flat=True)
         dungeon_runs = dungeon_runs.filter(id__in=dungeon_runs_ids)
 
-    if 'dungeon' in request_get.keys() and request_get['dungeon']:
+    if 'dungeon' in request_get.keys() and request_get['dungeon'][0] and request_get['dungeon'][0] != '0':
         dungeon = request_get['dungeon'][0].replace('_', ' ')
         filters.append('Dungeon: ' + dungeon)
         dungeon_runs = dungeon_runs.filter(dungeon=DimensionHoleRun().get_dungeon_id_by_name(dungeon))
 
-    if 'practice' in request_get.keys() and request_get['practice']:
+    if 'practice' in request_get.keys() and request_get['practice'][0] and request_get['practice'][0] != '0':
         filters.append('Practice Mode: ' + request_get['practice'][0])
         dungeon_runs = dungeon_runs.filter(practice=request_get['practice'][0])
 
-    if 'stage' in request_get.keys() and request_get['stage']:
+    if 'stage' in request_get.keys() and request_get['stage'][0] and request_get['stage'][0] != '0':
         filters.append('Stage: ' + request_get['stage'][0])
         dungeon_runs = dungeon_runs.filter(stage=int(request_get['stage'][0]))
+
+    if 'secs_min' in request_get.keys() and request_get['secs_min'][0] and request_get['secs_min'][0] != '0':
+        filters.append('Faster than: ' + request_get['secs_min'][0] + ' seconds')
+        dungeon_runs = dungeon_runs.filter(clear_time__lte=datetime.timedelta(seconds=int(request_get['secs_min'][0])))
+
+    success_rate_min = 0
+    if 'success_rate_min' in request_get.keys() and request_get['success_rate_min'][0] and request_get['success_rate_min'][0] != '0':
+        filters.append('Success Rate Minimum: ' + request_get['success_rate_min'][0])
+        success_rate_min = float(request_get['success_rate_min'][0])
+
+    success_rate_max = 0
+    if 'success_rate_max' in request_get.keys() and request_get['success_rate_max'][0] and request_get['success_rate_max'][0] != '0':
+        filters.append('Success Rate Maximum: ' + request_get['success_rate_max'][0])
+        success_rate_max = float(request_get['success_rate_max'][0])
+        
 
     dungeon_runs = dungeon_runs.prefetch_related('monsters', 'monsters__base_monster')
     dungeon_runs_clear = dungeon_runs.exclude(clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
@@ -1376,11 +1390,7 @@ def get_dimension_hole_task(request_get):
     except AttributeError:
         fastest_run = None
     
-    if 'stage' in request_get.keys() and request_get['stage'] and 'dungeon' in request_get.keys() and request_get['dungeon']:
-        records_ok = True
-        records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run), key=itemgetter('sorting_val'), reverse = True)
-    else:
-        records_personal = "Pick dungeon & stage to see recorded comps."
+    records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse = True)
 
     dungeon_runs = dungeon_runs_clear # exclude failed runs
 
@@ -1393,6 +1403,7 @@ def get_dimension_hole_task(request_get):
         # filters
         'is_filter': is_filter,
         'filters': '[' + ', '.join(filters) + ']',
+        'request': request_get,
 
         # all
         'avg_time': str(avg_time),
@@ -1423,7 +1434,6 @@ def get_dimension_hole_task(request_get):
         'stage_colors': create_rgb_colors(runs_per_stage['length']),
 
         # personal table
-        'records_ok': records_ok,
         'records_personal': records_personal,
     }
 

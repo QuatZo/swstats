@@ -6,15 +6,67 @@
     Credits
 {% endblock %}
 
-{% block ajax_container %} 
-    Thanks for using this tool, you are awesome! Some people contributed to this directly (or indirectly), so I wanted to thank them for their effort. <br /> <br />
-    <ul>
-        <li><b><a class='dark-href' href="https://www.com2us.com/">Com2Us</a></b> - all data belongs to them, since it's theirs game.
-        <li><b><a class='dark-href' href="https://github.com/Xzandro">Xzandro</a></b> - creator of <a class='dark-href' href="https://github.com/Xzandro/sw-exporter">SWEXporter</a>, which is a main tool to gather data logs, 
-            <a class='dark-href' href="https://tool.swop.one">SWOP</a> and <a class='dark-href' href="https://gw.swop.one">SWAG</a>
-        <li><b><a class='dark-href' href="https://github.com/PeteAndersen">Porksmash</a></b> - creator of <a class='dark-href' href="https://swarfarm.com">SWARFarm</a>, which helps you track and manage your monster collection, fusions etc. and Bestiary.
-        <li><b><a class='dark-href' href="https://github.com/chinleung">Chin Leung</a></b> - <a class='dark-href' href="https://www.rtapicks.info/dashboards/main">RTA Analytics Tool</a>, thanks to this I needed to do a lot less RTA-related work.
-        <li><b><a class='dark-href' href="https://www.chartjs.org/">Chart.JS</a></b> - <i>Simple yet flexible JavaScript charting for designers & developers</i>
-        <li><b><a class='dark-href' href="https://www.mathjax.org/">MathJax</a></b> - <i>A JavaScript display engine for mathematics that works in all browsers.</i>
-    </ul>
+{% block ajax_container %}
+    <div class='row'>
+        <div class='col-12 col-sm-6 col-md-4 col-lg-3'>
+            <div class='card-custom disclaimer'>
+                <div class='card-custom-header'>
+                    <a class='dark-href' href="https://www.com2us.com/">Com2Us</a>
+                </div>
+                <div class='card-custom-body'>
+                    All data belongs to Com2Us, since it's their game.
+                </div>
+            </div>
+        </div>
+        <div class='col-12 col-sm-6 col-md-4 col-lg-3'>
+            <div class='card-custom disclaimer'>
+                <div class='card-custom-header'>
+                    <a class='dark-href' href="https://github.com/Xzandro">Xzandro</a>
+                </div>
+                <div class='card-custom-body' style='display: block;'>
+                    Creator of <a class='dark-href' href="https://github.com/Xzandro/sw-exporter">SWEXporter</a>, which is a main tool to gather data logs, <a class='dark-href' href="https://tool.swop.one">SWOP</a> and <a class='dark-href' href="https://gw.swop.one">SWAG</a>
+                </div>
+            </div>
+        </div>
+        <div class='col-12 col-sm-6 col-md-4 col-lg-3'>
+            <div class='card-custom disclaimer'>
+                <div class='card-custom-header'>
+                    <a class='dark-href' href="https://github.com/PeteAndersen">Porksmash</a>
+                </div>
+                <div class='card-custom-body' style='display: block;'>
+                    Creator of <a class='dark-href' href="https://swarfarm.com">SWARFarm</a>, which helps you track and manage your monster collection, fusions etc. and Bestiary.
+                </div>
+            </div>
+        </div>
+        <div class='col-12 col-sm-6 col-md-4 col-lg-3'>
+            <div class='card-custom disclaimer'>
+                <div class='card-custom-header'>
+                    <a class='dark-href' href="https://github.com/chinleung">Chin Leung</a>
+                </div>
+                <div class='card-custom-body' style='display: block;'>
+                    Creator of <a class='dark-href' href="https://www.rtapicks.info/dashboards/main">RTA Analytics Tool</a>, thanks to this I needed to do a lot less RTA-related work.
+                </div>
+            </div>
+        </div>
+        <div class='col-12 col-sm-6 col-md-4 col-lg-3'>
+            <div class='card-custom disclaimer'>
+                <div class='card-custom-header'>
+                    <a class='dark-href' href="https://www.chartjs.org/">Chart.JS</a>
+                </div>
+                <div class='card-custom-body' style='display: block;'>
+                    <i>Simple yet flexible JavaScript charting for designers & developers</i>
+                </div>
+            </div>
+        </div>
+        <div class='col-12 col-sm-6 col-md-4 col-lg-3'>
+            <div class='card-custom disclaimer'>
+                <div class='card-custom-header'>
+                    <a class='dark-href' href="https://www.mathjax.org/">MathJax</a>
+                </div>
+                <div class='card-custom-body' style='display: block;'>
+                    <i>A JavaScript display engine for mathematics that works in all browsers.</i>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

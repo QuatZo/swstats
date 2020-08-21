@@ -2,16 +2,8 @@
 {% load other %}
 {% load monsters %}
 
-<div class="title-container">
-    <h2 class="title">
-        {{ text }}
-    </h2>
-    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ collapse_id }}" aria-expanded="false" aria-controls="#{{ collapse_id }}"> 
-        Show/Hide 
-    </button>
-</div>
-<div class="table-responsive {{ collapsed }}" id="{{ collapse_id }}">
-    <table class="table table-hover table-sm">
+<div class='comparison-table'>
+    <table class="table table-dark table-striped table-bordered table-hover" id='table-dungeon' style='width: 100%;'>
         <thead>
             <tr>
                 <th scope="col">Dungeon</th>
@@ -21,6 +13,7 @@
                 <th scope="col">Wins</th>
                 <th scope="col">Loses</th>
                 <th scope="col">Success Rate</th>
+                <th scope="col">Points</th>
             </tr>
         </thead>
         <tbody>
@@ -29,27 +22,49 @@
                     <td>{{ record.dungeon }}</td>    
                     <td>{{ record.stage|add_reverse_str:"B" }}</td>
                     <td>
-                        {% for monster in record.comp %}
-                            {% if base %} 
-                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar" onclick="filterMonster('{{ monster.name }}')" style="cursor: pointer;" />
-                            {% else %}    
+                        {% for monster in record.comp %}  
+                            {% with monster.id|randomize as rand_mon_id %} 
                                 <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href"> 
-                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar"/>
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar tip" data-tip="mon-{{ rand_mon_id }}" />
                                 </a> 
-                            {% endif %}
+                                <div id="mon-{{ rand_mon_id }}" class="tip-content" style='display: none;'>
+                                    {% include "website/monsters/monster_card_compressed.html" with monster=monster deep=True %}
+                                </div>
+                            {% endwith %}
                         {% endfor %}                    
                     </td>
                     <td>{{ record.average_time }}</td>    
                     <td>{{ record.wins }}</td>    
                     <td>{{ record.loses }}</td>    
-                    <td>{{ record.success_rate }}%</td>                  
+                    <td>{{ record.success_rate }}%</td>
+                    <td>{{ record.sorting_val }}</td>                  
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-    <script>
-        function filterMonster(href){
-            addParam(document.location.href, 'base', href.toString().replace(" ", "_"))
-        }
-    </script>
 </div>
+<script>
+    $('#table-dungeon').DataTable({
+        scrollY: window.innerHeight - 200,
+        scrollX: true,
+        scrollCollapse: true,
+        tooltip: true,
+        responsive: true,
+        "order": [[ 7, "desc" ]],
+    });
+    $(document).ready(function () {
+        $('.tip').each(function () {
+            $(this).tooltip(
+            {
+                html: true,
+				placement: 'top',
+                title: $('#' + $(this).data('tip')).html(),
+                boundary: "window",
+                container: 'body',
+            });
+        });
+		$(this).data('bs.tooltip').config.placement = 'top';// For dynamic position
+  		$(this).data('bs.tooltip').config.boundary= 'top'; // Used for tooltip boundary range
+
+    });
+</script>

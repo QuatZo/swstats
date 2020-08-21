@@ -969,3 +969,7 @@ class DimensionHoleRun(models.Model):
         for key, val in dict(cls.DIM_HOLE_TYPES).items():
             if val == name:
                 return key
+
+    @classmethod
+    def get_dungeon_names(cls):
+        return list(dict(cls.DIM_HOLE_TYPES).values())

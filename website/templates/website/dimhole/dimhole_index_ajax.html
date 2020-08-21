@@ -1,26 +1,130 @@
 {% load other %}
+{% load monsters %}
 
 {% if avg_time %}<h3>Average Time: {{ avg_time }}</h3>{% endif %}
 {% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %} 
 
-<p>
-	The position of comp on the list is calculated by using the following formula, where \(0 < win\_rate < 1\), \(clear\_time [s] \), \(fastest\_run [s]\) and \(wins = min(wins, 1000)\)
-	$$points = {\sqrt[3]{wins} * win\_rate \over exp({clear\_time \over fastest\_run})}$$
-</p>
-{% include "website/dungeons/charts/dungeon_chart_distribution.html" with means=runs_means distribution=runs_distribution color=runs_colors %}
+<div class='content'>
+    <div class='content-menu'>
+        <button class="btn btn-secondary btn-compare active" type="button" onclick="changeView(0)" id='view-1-button'>Filters</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(1)" id='view-2-button'>Charts</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(2)" id='view-3-button'>Table</button>
+    </div>
+    <form method="GET" action="{% url 'dimhole' %}">
+        <div id='view-1'>
+            <div class='row'>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Dungeon</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='dungeon'>
+                                <option value='0'></option>
+                                {% for dungeon in dungeons %}
+                                    <option value='{{ dungeon|space_to_ }}' {% if 'dungeon' in request.keys and request.dungeon.0 == dungeon|space_to_ %}selected{% endif %}>{{ dungeon }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Stage</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='stage'>
+                                <option value='0'></option>
+                                <option value='1' {% if 'stage' in request.keys and request.stage.0 == '1' %}selected{% endif %}>1</option>
+                                <option value='2' {% if 'stage' in request.keys and request.stage.0 == '2' %}selected{% endif %}>2</option>
+                                <option value='3' {% if 'stage' in request.keys and request.stage.0 == '3' %}selected{% endif %}>3</option>
+                                <option value='4' {% if 'stage' in request.keys and request.stage.0 == '4' %}selected{% endif %}>4</option>
+                                <option value='5' {% if 'stage' in request.keys and request.stage.0 == '5' %}selected{% endif %}>5</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Practice</h5>
+                        </div>
+                        <div class='card-custom-body' style='flex-direction: row; justify-content: space-evenly;'>
+							<div><input type='radio' name='practice' value='False' {% if 'practice' in request.keys and request.practice.0 == 'False' %}checked{% endif %}>No</div>
+							<div><input type='radio' name='practice' value='True' {% if 'practice' in request.keys and request.practice.0 == 'True' %}checked{% endif %}>Yes</div>
+							<div><input type='radio' name='practice' value='0' {% if 'practice' not in request.keys or request.practice.0 == '0'%}checked{% endif %}>Both</div>
+                        </div>
+                    </div>
+                </div>
+				<div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Monster</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='base'>
+                                <option value='0'></option>
+                                {% for monster in monsters %}
+                                    <option value='{{ monster.name|space_to_ }}' {% if 'base' in request.keys and request.base.0 == monster.name|space_to_ %}selected{% endif %}>{{ monster.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Faster than (seconds)</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <input type='number' name='secs_min' min="0" max="600" value="{% if 'secs_min' in request.keys %}{{ request.secs_min.0 }}{% else %}0{% endif %}"/>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Success Rate (in percentages)</h5>
+                        </div>
+                        <div class='card-custom-body number'>
+                            <input type='number' name='success_rate_min' min="0" max="100" value="{% if 'success_rate_min' in request.keys %}{{ request.success_rate_min.0 }}{% else %}0{% endif %}"/>
+                            -
+                            <input type='number' name='success_rate_max' min="0" max="100" value="{% if 'success_rate_max' in request.keys %}{{ request.success_rate_max.0 }}{% else %}0{% endif %}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class='btn btn-secondary btn-compare active' type="submit" style='width: 100%;'>Filter</button>
+        </div>
+    </form>
+    <div id='view-2' class='row' style='display: none;'>
+        {% include "website/dungeons/charts/dungeon_chart_distribution.html" with means=runs_means distribution=runs_distribution color=runs_colors %}
 
-{% include "website/dungeons/charts/dungeon_chart_group_by_base.html" with name=base_names color=base_colors count=base_quantity %}
+		{% include "website/dungeons/charts/dungeon_chart_group_by_base.html" with name=base_names color=base_colors count=base_quantity %}
 
-{% include "website/dimhole/charts/dimhole_chart_group_by_dungeon.html" with name=dungeon_names color=dungeon_colors count=dungeon_quantity %}
+		{% include "website/dimhole/charts/dimhole_chart_group_by_dungeon.html" with name=dungeon_names color=dungeon_colors count=dungeon_quantity %}
+		
+		<div class='chart'>
+			{% include "website/dimhole/charts/dimhole_chart_group_by_practice.html" with name=practice_names color=practice_colors count=practice_quantity class='chart-2' %}
 
-<div class='chart'>
-	{% include "website/dimhole/charts/dimhole_chart_group_by_practice.html" with name=practice_names color=practice_colors count=practice_quantity class='chart-2' %}
+			{% include "website/dimhole/charts/dimhole_chart_group_by_stage.html" with name=stage_names color=stage_colors count=stage_quantity class='chart-2 right' %}
+		</div>
+    </div>
+    <div id='view-3'>
+        <div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body standard'>
+                The position of comp on the list is calculated by using the following formula, where \(0 < win\_rate < 1\), \(clear\_time [s] \), \(fastest\_run [s]\) and \(wins = min(wins, 1000)\)
+				$$points = {\sqrt[3]{wins} * win\_rate \over exp({clear\_time \over fastest\_run})}$$
+            </div>
+        </div>
 
-	{% include "website/dimhole/charts/dimhole_chart_group_by_stage.html" with name=stage_names color=stage_colors count=stage_quantity class='chart-2 right' %}
+		{% include "website/dimhole/dimhole_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" base=False %}
+    </div>
+	<script>$('#view-3').css('display', 'none');</script>
 </div>
 
-{% if records_personal|get_type == 'str' %}
-	<h2>{{ records_personal }}</h2>
-{% else %}
-	{% include "website/dimhole/dimhole_records_table.html" with records=records_personal collapse_id="records_personal" text="Comps per Builds" collapsed="collapse" base=False %}
-{% endif %}
+

@@ -1233,7 +1233,7 @@ def get_rift_dungeon_runs_by_base_class(dungeon_runs):
 # endregion
 
 # region DIMENSION HOLE DUNGEONS - should be async and in tasks to speed things up even more
-def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run):
+def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min, success_rate_max):
     records = list()
     for comp in comps:
         runs = dungeon_runs
@@ -1256,6 +1256,11 @@ def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run):
             'loses': runs_comp - wins_comp,
             'success_rate': round(wins_comp * 100 / runs_comp, 2),
         }
+        
+        if success_rate_min > 0 and record['success_rate'] < success_rate_min:
+            continue
+        if success_rate_max > 0 and record['success_rate'] > success_rate_max:
+            continue
 
         # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
         # 60 - seconds in one minute;

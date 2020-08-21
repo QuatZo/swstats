@@ -723,7 +723,7 @@ td{
 }
 
 .building-done{
-    background-color: rgba(255, 0, 0, 0.35);
+    background-color: rgba(255, 0, 0, 0.15);
 }
 
 .calc-input{
@@ -784,7 +784,7 @@ td{
 }
 
 .dark-href{
-    color: #b2ebf2;
+    color: #b2ebf2!important;
 }
 
 /* Loading Spinner */
