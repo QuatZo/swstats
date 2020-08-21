@@ -37,17 +37,13 @@
 {% block jquery %}
 <script>
     $('#swap-view').click(function() {
-        if($('#row-images').css('visibility') == 'hidden'){
-            $('#row-images').css('visibility', 'visible');
-            $('#row-cards').css('visibility', 'hidden');
-            $('#row-images').css('position', 'relative');
-            $('#row-cards').css('position', 'absolute');
+        if($('#row-images').css('display') == 'none'){
+            $('#row-images').css('display', 'flex');
+            $('#row-cards').css('display', 'none');
         }
         else{
-            $('#row-images').css('visibility', 'hidden');
-            $('#row-cards').css('visibility', 'visible');
-            $('#row-images').css('position', 'absolute');
-            $('#row-cards').css('position', 'relative');
+            $('#row-images').css('display', 'none');
+            $('#row-cards').css('display', 'flex');
         }
     })
 </script>
