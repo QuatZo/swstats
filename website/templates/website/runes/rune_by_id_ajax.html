@@ -43,13 +43,13 @@
 		{% if rune.equipped_runes %}
 			{% for monster in rune.equipped_runes.all %}
 				<div class='col-12 col-md-5'>
-					{% include "website/monsters/monster_card_compressed.html" with monster=monster rta_runes=None deep=False %}
+					{% include "website/monsters/monster_card_compressed.html" with monster=monster deep=False %}
 				</div>
 			{% endfor %}
 		{% endif %}
 		{% if rta_monster %}
 			<div class='col-12 col-md-5'>
-				{% include "website/monsters/monster_card_compressed.html" with monster=rta_monster rta_runes=rta_runes deep=False %}
+				{% include "website/monsters/monster_card_compressed.html" with monster=rta_monster deep=False %}
 			</div>
 		{% endif %}
     </div>

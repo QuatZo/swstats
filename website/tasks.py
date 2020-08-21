@@ -638,7 +638,6 @@ def get_rune_by_id_task(request_get, arg_id):
     ranks = calc_rune_comparison_stats(rune.id, rune_temp['hp_flat'], rune_temp['hp'], rune_temp['atk_flat'], rune_temp['atk'], rune_temp['def_flat'], rune_temp['def'], rune_temp['speed'], rune_temp['res'], rune_temp['acc'], rune_temp['crit_rate'], rune_temp['crit_dmg'], rune.efficiency, df_runes, len(df_runes), df_means)['rank']
 
     context = {
-        'rta_monster_id': rta_monster_id,
         'ranks': ranks,
         'similar_ids': similar_ids,
         'arg_id': arg_id,
@@ -1005,10 +1004,12 @@ def get_monster_by_id_task(request_get, arg_id):
     
     MAX_COUNT = 50
 
-    mon_similar_builds = list(monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family).exclude(id=monster.id).values_list('id', flat=True))
+    mon_similar_builds = list(monsters.exclude(id=monster.id).values_list('id', flat=True))
     mon_similar_builds = random.sample(mon_similar_builds, min(MAX_COUNT, len(mon_similar_builds)))
 
-    
+    rta_mon_similar_builds = list(set(list(monsters.filter(runes_rta__isnull=False).exclude(id=monster.id).values_list('id', flat=True))))
+    rta_mon_similar_builds = random.sample(rta_mon_similar_builds, min(MAX_COUNT, len(rta_mon_similar_builds)))
+
     monsters_cols = ['id', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp', 'eff_hp_def_break']
     df_monsters = pd.DataFrame(monsters.values_list(*monsters_cols), columns=monsters_cols).drop_duplicates(subset=['id'])
     
@@ -1018,9 +1019,8 @@ def get_monster_by_id_task(request_get, arg_id):
 
     context = {
         'ranks': ranks,
-        'rta_runes': rta_runes,
         'similar_ids': mon_similar_builds,
-        'rta_similar_ids': rta_similar_builds,
+        'rta_similar_ids': rta_mon_similar_builds,
     }
 
     return context

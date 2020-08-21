@@ -9,13 +9,20 @@
         <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(1)" id='view-2-button'>Similar</button>
     </div>
 	<div id='view-1' class='row justify-content-md-center'>
-		<div class='col-12 col-md-5'>
+		<div class='col-12 col-md-4'>
 			{% include 'website/artifacts/artifact_card_compressed.html' with artifact=artifact %}
 		</div>
 		{% if artifact.equipped_artifacts %}
 			{% for monster in artifact.equipped_artifacts.all %}
-				<div class='col-12 col-md-5'>
-					{% include "website/monsters/monster_card_compressed.html" with monster=monster rta_runes=None deep=False %}
+				<div class='col-12 col-md-4'>
+					{% include "website/monsters/monster_card_compressed.html" with monster=monster deep=False %}
+				</div>
+			{% endfor %}
+		{% endif %}
+        {% if artifact.equipped_artifacts_rta %}
+			{% for monster in artifact.equipped_artifacts_rta.all %}
+				<div class='col-12 col-md-4'>
+					{% include "website/monsters/monster_card_compressed.html" with monster=monster deep=False %}
 				</div>
 			{% endfor %}
 		{% endif %}

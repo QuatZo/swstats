@@ -67,9 +67,9 @@
         </div>
 		
 		<div class='row'>
-			{% for similar, r_runes in rta_similar.items %}
+			{% for similar in rta_similar %}
 				<div class='col-12 col-md-3'>
-					{% include 'website/monsters/monster_card_compressed.html' with monster=similar deep=False rta_runes=r_runes %}
+					{% include 'website/monsters/monster_card_compressed.html' with monster=similar deep=False %}
 				</div>
 			{% endfor %}
 		</div>

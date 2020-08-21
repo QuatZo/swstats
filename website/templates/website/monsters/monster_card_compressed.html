@@ -5,7 +5,7 @@
 
 <div class='card-custom bordered standard'  onClick="moveTo('{% url 'monster_by_id' arg_id=monster.id %}')" style='cursor: pointer;'>
     <div class='card-custom-header'>
-        {{ monster.base_monster.name }}{% if rta_runes %} (RTA Build){% endif %}
+        {{ monster.base_monster.name }}
     </div>
     <div class='card-custom-body standard'>
         <div class='monster-info'>
@@ -142,56 +142,85 @@
                     {% endif %}
                 </div>
             </div>
-
-            {% if rta_runes %}
-                {% if not deep %}
-                    <div class='monster-runes-row'>
-                        <div class='substat width-min-200'>RTA Runes</div>
-                        <div class='flex-right'>
-                            {% for rune in rta_runes %}
-                                {% with rune.id|randomize as rand_rune_id %}
-                                    <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
-                                        <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }} {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="rune-{{ rand_rune_id }}"{% endif %} onmouseenter="ajaxTooltip({{ rune.id }}, 'rune', '{{ rand_rune_id }}', this)" >
-                                            <div class="{{ "rune-slot"|add_str:rune.slot }}">
-                                                <div class="rune">
-                                                    <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
+            {% if not deep %}
+                <div class='monster-runes-row'>
+                    <div class='substat width-min-200'>RTA Runes</div>
+                    <div class='flex-right'>
+                        {% for rune in monster.runes_rta.all %}
+                            {% with rune.id|randomize as rand_rune_id %}
+                                <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
+                                    <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }} {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="rune-{{ rand_rune_id }}"{% endif %} onmouseenter="ajaxTooltip({{ rune.id }}, 'rune', '{{ rand_rune_id }}', this)" >
+                                        <div class="{{ "rune-slot"|add_str:rune.slot }}">
+                                            <div class="rune">
+                                                <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if not deep %}
+                                        <div id="rune-{{ rand_rune_id }}" class="tip-content" style='display: none;'>
+                                            <div class='card-custom disclaimer'>
+                                                <div class='card-custom-header'>
+                                                    Loading...
+                                                </div>
+                                                <div class='card-custom-body'>
+                                                    Loading...
                                                 </div>
                                             </div>
                                         </div>
-                                        {% if not deep %}
-                                            <div id="rune-{{ rand_rune_id }}" class="tip-content" style='display: none;'>
-                                                <div class='card-custom disclaimer'>
-                                                    <div class='card-custom-header'>
-                                                        Loading...
-                                                    </div>
-                                                    <div class='card-custom-body'>
-                                                        Loading...
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    </a>
-                                {% endwith %}
-                            {% endfor %}
-                            
-                        </div>
+                                    {% endif %}
+                                </a>
+                            {% endwith %}
+                        {% endfor %}
+                        
                     </div>
-                {% endif %}
-                <div class='monster-runes-row'>
-                    <div class='substat width-min-200'>RTA Sets</div> 
-                    <div class='flex-right'>
-                        {% if rta_runes|length > 0 %}
-                            {% with rta_runes|get_sets as sets %}
+                </div>
+            {% endif %}
+            <div class='monster-runes-row'>
+                <div class='substat width-min-200'>RTA Sets</div> 
+                <div class='flex-right'>
+                    {% if monster.runes_rta.count > 0 %}
+                            {% with monster.runes_rta.all|get_sets as sets %}
                                 {% for set in sets %}
                                     <img src="{% static 'website/images/runes/'|add_str:set|lower|add_str:".png" %}" class="table-monster-avatar-min" />
                                 {% endfor %}
                             {% endwith %}
-                        {% else %}
-                            Broken
-                        {% endif %}
-                    </div>
+                    {% else %}
+                        Broken
+                    {% endif %}
                 </div>
-            {% endif %}
+            </div>
+            <div class='monster-runes-row'>
+                <div class='substat width-min-200'>RTA Artifacts</div>
+                <div class='flex-right'> 
+                    {% if monster.artifacts_rta.count %}
+                        {% for artifact in monster.artifacts_rta.all %}
+                            {% with artifact.id|randomize as rand_artifact_id %}
+                                <a href="{% url 'artifact_by_id' arg_id=artifact.id %}">
+                                    {% if artifact.rtype == 1 %}
+                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this)" >
+                                    {% else %}
+                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this)" >
+                                    {% endif %}
+                                </a>
+                                {% if not deep %}
+                                    <div id="artifact-{{ rand_artifact_id }}" class="tip-content" style='display: none;'>
+                                        <div class='card-custom disclaimer'>
+                                            <div class='card-custom-header'>
+                                                Loading...
+                                            </div>
+                                            <div class='card-custom-body'>
+                                                Loading...
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

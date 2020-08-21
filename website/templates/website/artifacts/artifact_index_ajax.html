@@ -89,12 +89,12 @@
                 <div class='col-12 col-md-4 col-lg-4'>
                     <div class='card-custom short'>
                         <div class='card-custom-header'>
-                            <h5>Efficiency (0 - Don't Filter)</h5>
+                            <h5>Efficiency</h5>
                         </div>
                         <div class='card-custom-body number'>
-                            <input type='number' name='eff_min' min="0" max="150" value="{% if 'eff_min' in request.keys %}{{ request.eff_min.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='eff_min' min="0" max="150" value="{% if 'eff_min' in request.keys %}{{ request.eff_min.0 }}{% else %}{% endif %}"/>
                             -
-                            <input type='number' name='eff_max' min="0" max="150" value="{% if 'eff_max' in request.keys %}{{ request.eff_max.0 }}{% else %}0{% endif %}"/>
+                            <input type='number' name='eff_max' min="0" max="150" value="{% if 'eff_max' in request.keys %}{{ request.eff_max.0 }}{% else %}{% endif %}"/>
                         </div>
                     </div>
                 </div>

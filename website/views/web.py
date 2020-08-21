@@ -94,12 +94,7 @@ def get_rune_by_id_ajax(request, task_id, arg_id):
             context = data.get()
 
             context['rune'] = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
-            if context['rta_monster_id']:
-                context['rta_monster'] = Monster.objects.filter(id=context['rta_monster_id']).prefetch_related('base_monster', 'runes').first()
-            else:
-                context['rta_runes'] = None
-                context['rta_monster'] = None
-
+            context['rta_monster'] = context['rune'].equipped_runes_rta.first()
             context['similar_runes'] = Rune.objects.filter(id__in=context['similar_ids']).order_by('-efficiency').prefetch_related('equipped_runes', 'equipped_runes__base_monster', 'rune_set')
 
             html = render_to_string('website/runes/rune_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
@@ -181,10 +176,9 @@ def get_monster_by_id_ajax(request, task_id, arg_id):
             context = data.get()
 
             context['monster'] = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
-            context['rta_runes'] = Rune.objects.filter(id__in=context['rta_runes']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster')
-
+            
             context['similar_monsters'] = Monster.objects.filter(id__in=context['similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
-            context['rta_similar'] = dict()
+            context['rta_similar'] = Monster.objects.filter(id__in=context['rta_similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
             context['records'] = get_monster_records(context['monster'])
 
             html = render_to_string('website/monsters/monster_by_id_ajax.html', context)
