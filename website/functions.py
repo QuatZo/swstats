@@ -137,12 +137,6 @@ def parse_rune(temp_rune, rune_lock=None):
 
     obj, created = Rune.objects.update_or_create( id=rune['id'], defaults=rune, )
 
-def parse_runes_rta(rta_runes):
-    for rta_rune in rta_runes:
-        obj, created = RuneRTA.objects.update_or_create(rune=rta_rune['rune_id'], defaults={
-            'monster': Monster.objects.get(id=rta_rune['occupied_id']),
-            'rune': Rune.objects.get(id=rta_rune['rune_id']),
-        })
 # endregion
 
 # region ARTIFACTS
@@ -306,7 +300,7 @@ def calc_stats(monster, runes):
 
     return stats
 
-def parse_monster(temp_monster, buildings = list(), units_locked = list()):
+def parse_monster(temp_monster, buildings = list(), units_locked = list(), runes_rta = list(), artifacts_rta = list()):
     com2us_keys = ['unit_id', 'unit_level', 'class', 'create_time']
     map_keys = ['id', 'level', 'stars', 'created']
     temp_monster_keys = temp_monster.keys()
@@ -377,9 +371,14 @@ def parse_monster(temp_monster, buildings = list(), units_locked = list()):
                 break
     monster['locked'] = True if 'unit_id' in temp_monster_keys and temp_monster['unit_id'] in units_locked else False
 
+    mon_runes_rta = [Rune.objects.get(id=r_id) for r_id in runes_rta]
+    mon_artifacts_rta = [Artifact.objects.get(id=r_id) for r_id in artifacts_rta]
+
     obj, created = Monster.objects.update_or_create( id=monster['id'], defaults=monster, )
     obj.runes.set(monster_runes)
+    obj.runes_rta.set(mon_runes_rta)
     obj.artifacts.set(monster_artifacts)
+    obj.artifacts_rta.set(mon_artifacts_rta)
     obj.save()
 
 def parse_wizard_homunculus(homunculus):

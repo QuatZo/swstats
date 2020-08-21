@@ -186,6 +186,7 @@ class Rune(models.Model):
     efficiency = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # to calculate in views
     efficiency_max = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # to calculate in views
     equipped = models.BooleanField(db_index=True) # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
+    equipped_rta = models.BooleanField(db_index=True, blank=True, default=False)
     locked = models.BooleanField(db_index=True) # rune_lock_list
 
     def get_substats_display(self):
@@ -348,6 +349,7 @@ class Artifact(models.Model):
     efficiency = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # to calculate in views
     efficiency_max = models.FloatField(validators=[MinValueValidator(0.00)], db_index=True) # to calculate in views
     equipped = models.BooleanField(db_index=True) # occupied_id (0 - inventory, else Monster ID)
+    equipped_rta = models.BooleanField(db_index=True, blank=True, default=False)
     locked = models.BooleanField(db_index=True) # locked
 
     def get_substat_display(self, substat):
@@ -575,7 +577,9 @@ class Monster(models.Model):
 
     skills = ArrayField( models.IntegerField(db_index=True) ) # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already
     runes = models.ManyToManyField(Rune, related_name='equipped_runes', related_query_name='equipped_runes', blank=True, db_index=True) # runes
+    runes_rta = models.ManyToManyField(Rune, related_name='equipped_runes_rta', related_query_name='equipped_runes_rta', blank=True, db_index=True) # runes
     artifacts = models.ManyToManyField(Artifact, related_name='equipped_artifacts', related_query_name='equipped_artifacts', blank=True, db_index=True) # artifacts
+    artifacts_rta = models.ManyToManyField(Artifact, related_name='equipped_artifacts_rta', related_query_name='equipped_artifacts_rta', blank=True, db_index=True) # artifacts
     created = models.DateTimeField(db_index=True) # create_time
     source = models.ForeignKey(MonsterSource, on_delete=models.PROTECT) # source
     transmog = models.BooleanField() # costume_master_id
@@ -591,18 +595,6 @@ class Monster(models.Model):
 class MonsterRep(models.Model):
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True) # wizard_info
     monster = models.ForeignKey(Monster, on_delete=models.CASCADE, db_index=True) # rep_unit_id in profile JSON - wizard_info part
-
-class RuneRTA(models.Model):
-    monster = models.ForeignKey(Monster, on_delete=models.CASCADE, db_index=True)
-    rune = models.ForeignKey(Rune, on_delete=models.CASCADE, db_index=True)
-
-    def __str__(self):
-        return str(self.rune) + " on " + str(self.monster)
-
-    class Meta:
-        verbose_name = 'Rune RTA'
-        verbose_name_plural = 'Runes RTA'
-        ordering = ['monster', 'rune']
 
 class Deck(models.Model):
     DECK_TYPES = [

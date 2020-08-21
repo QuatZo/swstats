@@ -100,14 +100,31 @@ def handle_profile_upload_task(data):
         for temp_artifact in temp_artifacts:
             parse_artifact(temp_artifact)
 
-        for temp_monster in data['unit_list']:
-            parse_monster(temp_monster, data['building_list'], data['unit_lock_list'])
-
+        temp_runes_rta = dict()
         if 'world_arena_rune_equip_list' in data.keys():
-            parse_runes_rta(data['world_arena_rune_equip_list'])
-        else:
-            logger.warning("Given JSON file is before an RTA Rune Management Update!")
-            log_request_data(request.data)
+            for temp_rune_rta in data['world_arena_rune_equip_list']:
+                if temp_rune_rta['occupied_id'] not in temp_runes_rta.keys():
+                    temp_runes_rta[temp_rune_rta['occupied_id']] = list()
+                temp_runes_rta[temp_rune_rta['occupied_id']].append(temp_rune_rta['rune_id'])
+                temp_r = Rune.objects.get(id=temp_rune_rta['rune_id'])
+                temp_r.equipped_rta = True
+                temp_r.save()
+
+        
+        temp_artifacts_rta = dict()
+        if 'world_arena_artifact_equip_list' in data.keys():
+            for temp_artifact_rta in data['world_arena_artifact_equip_list']:
+                if temp_artifact_rta['occupied_id'] not in temp_artifacts_rta.keys():
+                    temp_artifacts_rta[temp_artifact_rta['occupied_id']] = list()
+                temp_artifacts_rta[temp_artifact_rta['occupied_id']].append(temp_artifact_rta['artifact_id'])
+                temp_a = Artifact.objects.get(id=temp_artifact_rta['artifact_id'])
+                temp_a.equipped_rta = True
+                temp_a.save()
+
+        for temp_monster in data['unit_list']:
+            mon_runes_rta = temp_runes_rta[temp_monster['unit_id']] if temp_monster['unit_id'] in temp_runes_rta.keys() else list()
+            mon_artifacts_rta = temp_artifacts_rta[temp_monster['unit_id']] if temp_monster['unit_id'] in temp_artifacts_rta.keys() else list()
+            parse_monster(temp_monster, data['building_list'], data['unit_lock_list'], mon_runes_rta, mon_artifacts_rta)
 
         # monster rep
         obj, created = MonsterRep.objects.update_or_create( wizard__id=wizard['id'], defaults={
@@ -584,11 +601,6 @@ def get_rune_by_id_task(request_get, arg_id):
     rune = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
     runes = Rune.objects.filter(slot=rune.slot, rune_set=rune.rune_set, primary=rune.primary)
 
-    try:
-        rta_monster_id = RuneRTA.objects.filter(rune=rune.id).prefetch_related('monster', 'monster__base_monster', 'rune', 'rune__rune_set').first().monster.id
-    except AttributeError:
-        rta_monster_id = None
-
     similar_ids = get_rune_similar(runes, rune)
 
     runes_kw = {
@@ -992,13 +1004,10 @@ def get_monster_by_id_task(request_get, arg_id):
     monsters = Monster.objects.filter(base_monster=monster.base_monster)
     
     MAX_COUNT = 50
-    rta_runes = list(RuneRTA.objects.filter(monster=monster).values_list('rune__id', flat=True))
 
     mon_similar_builds = list(monsters.filter(base_monster__attribute=monster.base_monster.attribute, base_monster__family=monster.base_monster.family).exclude(id=monster.id).values_list('id', flat=True))
     mon_similar_builds = random.sample(mon_similar_builds, min(MAX_COUNT, len(mon_similar_builds)))
 
-    rta_similar_builds = list(set(list(RuneRTA.objects.filter(monster__base_monster=monster.base_monster).exclude(monster=monster.id).values_list('monster__id', flat=True))))
-    rta_similar_builds = random.sample(rta_similar_builds, min(MAX_COUNT, len(rta_similar_builds)))
     
     monsters_cols = ['id', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp', 'eff_hp_def_break']
     df_monsters = pd.DataFrame(monsters.values_list(*monsters_cols), columns=monsters_cols).drop_duplicates(subset=['id'])

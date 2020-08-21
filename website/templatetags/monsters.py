@@ -1,5 +1,5 @@
 from django import template
-from website.models import MonsterBase, Monster, Rune, Artifact, RuneRTA
+from website.models import MonsterBase, Monster, Rune, Artifact
 
 register = template.Library()
 
@@ -57,16 +57,19 @@ def get_monster_avatar(path, monster):
 def get_monster(obj, rta=False):
     if isinstance(obj, Rune):
         if rta:
-            rta_mons = RuneRTA.objects.filter(rune=obj)
-            for rta_mon in rta_mons:
-                return rta_mon.monster
+            for monster in obj.equipped_runes_rta.all():
+                return monster
         else:
             for monster in obj.equipped_runes.all():
                 return monster
     
     if isinstance(obj, Artifact):
-        for monster in obj.equipped_artifacts.all():
-            return monster
+        if rta:
+            for monster in obj.equipped_artifacts_rta.all():
+                return monster
+        else:
+            for monster in obj.equipped_artifacts.all():
+                return monster
 
     return None
 
@@ -84,7 +87,6 @@ def get_attribute_avatar(path, monster):
 
 @register.filter
 def check_skillups(monster):
-    skills = [None for _ in range(4)]
     max_skills = monster.base_monster.max_skills
     skilled_up = True
     for i in range(len(monster.skills)):

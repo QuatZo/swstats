@@ -95,7 +95,6 @@ def get_rune_by_id_ajax(request, task_id, arg_id):
 
             context['rune'] = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
             if context['rta_monster_id']:
-                context['rta_runes'] = Rune.objects.filter(id__in=RuneRTA.objects.filter(monster__id=context['rta_monster_id']).values_list('rune__id', flat=True))
                 context['rta_monster'] = Monster.objects.filter(id=context['rta_monster_id']).prefetch_related('base_monster', 'runes').first()
             else:
                 context['rta_runes'] = None
@@ -186,8 +185,6 @@ def get_monster_by_id_ajax(request, task_id, arg_id):
 
             context['similar_monsters'] = Monster.objects.filter(id__in=context['similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
             context['rta_similar'] = dict()
-            for mon in context['rta_similar_ids']:
-                context['rta_similar'][Monster.objects.get(id=mon)] = Rune.objects.filter(id__in=RuneRTA.objects.filter(monster__id=mon).values_list('rune', flat=True))
             context['records'] = get_monster_records(context['monster'])
 
             html = render_to_string('website/monsters/monster_by_id_ajax.html', context)
