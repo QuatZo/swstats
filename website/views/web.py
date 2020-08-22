@@ -399,6 +399,8 @@ def get_rift_dungeon_by_stage_ajax(request, task_id, name):
                 record['backline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['backline']]
                 record['leader'] = Monster.objects.get(id=record['leader']) if record['leader'] else None
 
+            context['monsters'] = MonsterBase.objects.all()
+
             html = render_to_string('website/dungeons/rift_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
 
