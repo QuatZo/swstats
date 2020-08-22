@@ -49,10 +49,10 @@ class MonsterAdmin(admin.ModelAdmin):
         return "\n".join([str(rune) for rune in obj.runes_rta.all()])
         
     def get_artifacts(self, obj):
-        return "\n".join([str(rune) for artifact in obj.artifacts.all()])
+        return "\n".join([str(artifact) for artifact in obj.artifacts.all()])
 
     def get_artifacts_rta(self, obj):
-        return "\n".join([str(rune) for artifact in obj.artifacts_rta.all()])
+        return "\n".join([str(artifact) for artifact in obj.artifacts_rta.all()])
 
 class MonsterRepAdmin(admin.ModelAdmin):
     list_display = ( 'id', 'wizard', 'monster' )
