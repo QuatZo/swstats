@@ -102,11 +102,6 @@ urlpatterns = [
     ######### BOT
     path('bot/monsters/<int:monster_id>', views.bot_get_monster_report, name='bot_get_monster_report'),
     #########
-
-    ##### temp
-    path('temp/rta/', views.new_rta_structure)
-
-    ####
 ]
 
 if settings.DEBUG:

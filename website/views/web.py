@@ -483,20 +483,3 @@ def get_object_for_card(request, obj_type, obj_id):
         html = render_to_string('website/artifacts/artifact_card_compressed.html', {'artifact': Artifact.objects.get(id=obj_id), 'deep': True,}) # return JSON/Dict like during Desktop Upload
     
     return HttpResponse(html)
-
-def new_rta_structure(request):
-    rta = json.loads(request.body)
-
-    for x, y in rta.items():
-        if Monster.objects.filter(id=x).exists():
-            z = list()
-            for r in y:
-                if Rune.objects.filter(id=r).exists():
-                    ru = Rune.objects.get(id=r)
-                    ru.equipped_rta = True
-                    ru.save()
-                    z.append(ru)
-            m = Monster.objects.get(id=x)
-            m.runes_rta.set(z)
-
-    return HttpResponse('')
