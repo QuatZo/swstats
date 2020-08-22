@@ -930,6 +930,7 @@ class DimensionHoleRun(models.Model):
         (2201, 'Warbear (Karzhan)'),
         (2202, 'Inugami (Karzhan)'),
         (2203, 'Griffon (Karzhan)'),
+        (2301, 'Predator (Karzhan)'),
 
         (3101, 'Lumel'),
         (3201, 'Werewolf (Lumel)'),
