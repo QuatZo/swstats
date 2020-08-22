@@ -1,49 +1,64 @@
-{% load add_str %}
-<div class="row">
-    <div class="col-6 col-sm-2"><b>Monster</b></div>
-    <div class="col-6 col-sm-2"> {{ base_monster }} </div>
-    <div class="col-6 col-sm-2"><b>Count</b></div>
-    <div class="col-6 col-sm-2"> {{ monsters.count }} </div>
-    <div class="col-6 col-sm-2"><b>Type</b></div>
-    <div class="col-6 col-sm-2"> {{ base_monster.get_archetype_display }} </div>
-    <div class="col-6 col-sm-2"><b>Attribute</b></div>
-    <div class="col-6 col-sm-2"> {{ base_monster.get_attribute_display }} </div>
-    <div class="col-6 col-sm-2"><b>Hoh</b></div>
-    {% if hoh %}
-        <div class="col-6 col-sm-2"> Yes ({{ hoh_date }}) </div>
-    {% else %}
-        <div class="col-6 col-sm-2"> No </div>
-    {% endif %}
-    
-    <div class="col-6 col-sm-2"><b>Fusion</b></div>
-    {% if fusion %}
-        <div class="col-6 col-sm-2">Yes</div>
-    {% else %}
-        <div class="col-6 col-sm-2">No</div>
-    {% endif %}
-</div>
-{% include "website/report/report_monster_table.html" with monsters=monsters hoh=hoh hoh_date=hoh_date fusion=fusion %}
+{% load other %}
 
-{% if plots %}
-    {% include "website/report/report_monster_plots.html" with plots=plots %}
-{% endif %}
+<div class='content'>
+    <div class='content-menu'>
+        <button class="btn btn-secondary btn-compare active" type="button" onclick="changeView(0)" id='view-1-button'>Summary</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(1)" id='view-2-button'>Table</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(2)" id='view-3-button'>Charts</button>
+    </div>
+
+    <div id='view-1'>
+        <div class="row">
+            <div class="col-6 col-lg-3 col-md-4 col-xl-2">
+                <div class='card-custom disclaimer'>
+                    <div class='card-custom-header'><b>Monster</b></div>
+                    <div class='card-custom-body'>{{ base_monster }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 col-md-4 col-xl-2">
+                <div class='card-custom disclaimer'>
+                    <div class='card-custom-header'><b>Count</b></div>
+                    <div class='card-custom-body'>{{ monsters.count }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 col-md-4 col-xl-2">
+                <div class='card-custom disclaimer'>
+                    <div class='card-custom-header'><b>Type</b></div>
+                    <div class='card-custom-body'>{{ base_monster.get_archetype_display }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 col-md-4 col-xl-2">
+                <div class='card-custom disclaimer'>
+                    <div class='card-custom-header'><b>Attribute</b></div>
+                    <div class='card-custom-body'>{{ base_monster.get_attribute_display }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 col-md-4 col-xl-2">
+                <div class='card-custom disclaimer'>
+                    <div class='card-custom-header'><b>Hoh</b></div>
+                    <div class='card-custom-body'>{% if hoh %}Yes ({{ hoh_date }}){% else %}No{% endif %}</div>
+                </div>
+            </div>            
+            <div class="col-6 col-lg-3 col-md-4 col-xl-2">
+                <div class='card-custom disclaimer'>
+                    <div class='card-custom-header'><b>Fusion</b></div>
+                    <div class='card-custom-body'>{% if hoh %}Yes{% else %}No{% endif %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id='view-2'>
+        {% include "website/report/report_monster_table.html" with monsters=monsters hoh=hoh hoh_date=hoh_date fusion=fusion %}
+    </div>
+    <div id='view-3' style='display: none;'>
+        {% if plots %}
+            {% include "website/report/report_monster_plots.html" with plots=plots %}
+        {% endif %}
+    </div>
+</div>
 
 <script>
-$('#monster-table').DataTable( {
-    dom: 'Bfrtip',
-    buttons: [
-        {
-            extend: 'csv',
-            className: 'btn btn-primary left'
-        },
-        {
-            extend: 'excel',
-            className: 'btn btn-primary left'
-        },
-        {
-            extend: 'print',
-            className: 'btn btn-primary left'
-        }
-    ]
-} );
+    $(document).ready(function () {
+        $('#view-2').css('display', 'none');
+    });
 </script>

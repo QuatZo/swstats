@@ -1,7 +1,7 @@
 {% extends "website/base.html" %}
 
-{% block content_title%}
-    Curiosity
+{% block content_title %}
+    Homepage
 {% endblock %}
 
 {% block jquery %}
@@ -17,14 +17,14 @@
                         $('#content-ajax-container').html(response);
                     }
                     else if (seconds == 60){
-                        $('#content-ajax-container').html("<h2>Connection timed out.</h2>");
+                        $('#content-ajax-container').html("{% include 'website/error_timeout.html' with task_id=task_id %}");
                     }
                     else{
-                        setTimeout(fetchData, 500);
+                        setTimeout(fetchData, 250);
                     }
                 },
                 error: function(xhr) {
-                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
+                    $('#content-ajax-container').html("{% include 'website/error.html' with task_id=task_id %}");
                 }
             });
         }

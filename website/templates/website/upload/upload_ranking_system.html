@@ -1,9 +1,8 @@
-{% load add_num %}
-{% load add_str %}
+{% load other %}
 
 <div class="col-12 col-lg-12" style="padding: 0;">
-    <div class="card">
-        <div class="card-header">
+    <div class="card-custom">
+        <div class="card-custom-header">
             <center>
                 <h3><b>Scoring List</b></h3>
                 <br />
@@ -19,14 +18,14 @@
                         {{ points.runes.count.base|add_num:points.runes.stars_6_hero.base|add_num:points.runes.stars_6_legend.base|add_num:points.runes.upgrade_12.base|add_num:points.runes.upgrade_15.base|add_num:points.runes.sub_speed.0.base|add_num:points.runes.sub_speed.1.base }} points
             </center>
         </div>
-        <div class="card-body">
+        <div class="card-custom-body">
             <div class="row">
-                <div class="col-12 col-lg-4 border-right ranking-header" style="border-color: #333!important;">
+                <div class="col-12 col-lg-4 border-right ranking-header" style="border-color: rgba(255, 255, 255, .875)!important;">
                     <div class="row">
                         <div class="col-8 col-lg-8 border-right text-center"><b>Summoner, Guild, Towers, Flags</b></div>
                         <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
                     </div>
-                    <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                    <hr style="height: 1px; border: none; color: rgba(255, 255, 255, .875); background-color: rgba(255, 255, 255, .875);">
                     <ul class="list-group list-group-flush">
                         {% include 'website/upload/upload_ranking_cell.html' with text='Active Contributor<br /><small>if contributes to the database</small>' value=points.wizard.active_contributor.base %}
                         {% include 'website/upload/upload_ranking_cell.html' with text='Mana<br /><small>per 100k</small>' value=points.wizard.mana_100k.base %}
@@ -43,12 +42,12 @@
                         {% include 'website/upload/upload_ranking_cell.html' with text='All Flags (level 10)<br /><small>if all flags maxed</small>' value=points.flags.max_all.base %}
                     </ul>
                 </div>
-                <div class="col-12 col-lg-4 border-right ranking-header" style="border-color: #333!important;">
+                <div class="col-12 col-lg-4 border-right ranking-header" style="border-color: rgba(255, 255, 255, .875)!important;">
                     <div class="row">
                         <div class="col-8 col-lg-8 border-right text-center"><b>Monsters</b></div>
                         <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
                     </div>
-                    <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                    <hr style="height: 1px; border: none; color: rgba(255, 255, 255, .875); background-color: rgba(255, 255, 255, .875);">
                     <ul class="list-group list-group-flush">
                         {% include 'website/upload/upload_ranking_cell.html' with text='Quantity<br /><small>per monster</small>' value=points.monsters.count.base %}
                         {% include 'website/upload/upload_ranking_cell.html' with text='Nat4<br /><small>per monster</small>' value=points.monsters.nat4.base %}
@@ -73,7 +72,7 @@
                         <div class="col-8 col-lg-8 border-right text-center"><b>Runes</b></div>
                         <div class="col-4 col-lg-4 text-center"><b>Pts</b></div>
                     </div>
-                    <hr style="height: 1px; border: none; color: #333; background-color: #333;">
+                    <hr style="height: 1px; border: none; color: rgba(255, 255, 255, .875); background-color: rgba(255, 255, 255, .875);">
                     <ul class="list-group list-group-flush">
                         {% include 'website/upload/upload_ranking_cell.html' with text='Quantity<br /><small>per rune</small>' value=points.runes.count.base %}
                         {% include 'website/upload/upload_ranking_cell.html' with text='5* Legends<br /><small>per rune</small>' value=points.runes.stars_5_legend.base %}
@@ -92,7 +91,7 @@
             </div>
         </div>
         <div class='card-footer'>
-            <center>If you have an idea for optimizing this list, please contact me through <a href='http://reddit.com/u/quatzo'>Reddit</a></center>
+            <center>If you have an idea for optimizing this list, please contact me through <b><a class='dark-href' href='http://reddit.com/u/quatzo'>Reddit</a></b></center>
         </div>
     </div>
 </div>

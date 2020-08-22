@@ -1,68 +1,108 @@
-{% load add_str %}
-{% load add_reverse_str %}
-{% load to_list %}
-{% load rune_grinded_val %}
+{% load other %}
+{% load runes %}
 
-{% include "website/runes/rune_table.html" with runes=rune|to_list text="Rune (ID: "|add_str:rune.id|add_str:")" collapse_id="rune-"|add_str:rune.id collapsed="show"%}
-<div class="title-container">
-	<h2 class="title">
-		Rune's Cards
-	</h2>
-	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-row" aria-expanded="true" aria-controls="#substat-row"> 
-		Show/Hide 
-	</button>
-</div>
-<div class="row collapse" id="substat-row">
-	{% if ranks.normal.efficiency %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.normal.efficiency value=rune.efficiency|add_str:'%' %}{% endif %}
-	{% if ranks.normal.hp_flat %}{% include "website/runes/rune_card.html" with header='Flat HP' rank=ranks.normal.hp_flat value=rune.sub_hp_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
-	{% if ranks.normal.hp %}{% include "website/runes/rune_card.html" with header='HP%' rank=ranks.normal.hp value=rune.sub_hp|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.atk_flat %}{% include "website/runes/rune_card.html" with header='Flat ATK' rank=ranks.normal.atk_flat value=rune.sub_atk_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
-	{% if ranks.normal.atk %}{% include "website/runes/rune_card.html" with header='ATK%' rank=ranks.normal.atk value=rune.sub_atk|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.def_flat %}{% include "website/runes/rune_card.html" with header='Flat DEF' rank=ranks.normal.def_flat value=rune.sub_def_flat|rune_grinded_val:True|add_reverse_str:'+' %}{% endif %}
-	{% if ranks.normal.def %}{% include "website/runes/rune_card.html" with header='DEF%' rank=ranks.normal.def value=rune.sub_def|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.speed %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.normal.speed value=rune.sub_speed|rune_grinded_val:True %}{% endif %}
-	{% if ranks.normal.crit_rate %}{% include "website/runes/rune_card.html" with header='Critical Rate' rank=ranks.normal.crit_rate value=rune.sub_crit_rate|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.crit_dmg %}{% include "website/runes/rune_card.html" with header='Critical Damage' rank=ranks.normal.crit_dmg value=rune.sub_crit_dmg|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.res %}{% include "website/runes/rune_card.html" with header='Resistance' rank=ranks.normal.res value=rune.sub_res|rune_grinded_val:True|add_str:'%' %}{% endif %}
-	{% if ranks.normal.acc %}{% include "website/runes/rune_card.html" with header='Accuracy' rank=ranks.normal.acc value=rune.sub_acc|rune_grinded_val:True|add_str:'%' %}{% endif %}
-</div>
 
-<div class="title-container">
-	<h2 class="title">
-		Rune's Categorized Cards
-	</h2>
-	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#substat-categorized-row" aria-expanded="true" aria-controls="#substat-categorized-row"> 
-		Show/Hide 
-	</button>
-</div>
-<div class="row collapse" id="substat-categorized-row">
-	{% if ranks.categorized.efficiency_slot %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_slot value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot %}{% endif %}
-	{% if ranks.categorized.efficiency_set %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_set value=rune.efficiency|add_str:'%' categorized=True category="set "|add_str:rune.rune_set %}{% endif %}
-	{% if ranks.categorized.efficiency_both %}{% include "website/runes/rune_card.html" with header='Efficiency' rank=ranks.categorized.efficiency_both value=rune.efficiency|add_str:'%' categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}{% endif %}
-	{% if ranks.categorized.speed_slot %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_slot value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot %}{% endif %}
-	{% if ranks.categorized.speed_set %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_set value=rune.sub_speed|rune_grinded_val:True categorized=True category="set "|add_str:rune.rune_set %}{% endif %}
-	{% if ranks.categorized.speed_both %}{% include "website/runes/rune_card.html" with header='Speed' rank=ranks.categorized.speed_both value=rune.sub_speed|rune_grinded_val:True categorized=True category="slot "|add_str:rune.slot|add_str:" and set "|add_str:rune.rune_set %}{% endif %}
-</div>
+<div class='content'>
+    <div class='content-menu'>
+        <button class="btn btn-secondary btn-compare active" type="button" onclick="changeView(0)" id='view-1-button'>Summary</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(1)" id='view-2-button'>Monsters Equipped</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(2)" id='view-3-button'>Similar</button>
+    </div>
+	<div id='view-1'>
+		<div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body'>
+                Each place is determined by using only runes of the same type (Slot: {{ rune.slot }}, Set: {{ rune.rune_set.name }}, Primary: {{ rune.get_primary_display }})
+            </div>
+        </div>
 
-{% if rune.equipped_runes or rta_monster %}
-	<div class="title-container">
-		<h2 class="title">
-			Monsters
-		</h2>
-		<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-row" aria-expanded="true" aria-controls="#monster-row"> 
-			Show/Hide 
-		</button>
+		<div class='rune-content'>
+			<div class='rune-card-compressed'>
+				{% include 'website/runes/rune_card_compressed.html' with rune=rune %}
+			</div>
+
+			<div class='row ranks'>
+				{% include "website/runes/rune_card.html" with header='Efficiency [%]' rank=ranks.efficiency value=rune.efficiency eff=True %}
+				{% include "website/runes/rune_card.html" with header='HP [+]' rank=ranks.sub_hp_flat value=rune.sub_hp_flat %}
+				{% include "website/runes/rune_card.html" with header='HP [%]' rank=ranks.sub_hp value=rune.sub_hp percentage=True %}
+				{% include "website/runes/rune_card.html" with header='Attack [+]' rank=ranks.sub_atk_flat value=rune.sub_atk_flat %}
+				{% include "website/runes/rune_card.html" with header='Attack [%]' rank=ranks.sub_atk value=rune.sub_atk percentage=True %}
+				{% include "website/runes/rune_card.html" with header='Defense [+]' rank=ranks.sub_def_flat value=rune.sub_def_flat %}
+				{% include "website/runes/rune_card.html" with header='Defense [%]' rank=ranks.sub_def value=rune.sub_def percentage=True %}
+				{% include "website/runes/rune_card.html" with header='Speed [+]' rank=ranks.sub_speed value=rune.sub_speed percentage=True %}
+				{% include "website/runes/rune_card.html" with header='Resistance [%]' rank=ranks.sub_res value=rune.sub_res percentage=True %}
+				{% include "website/runes/rune_card.html" with header='Accuracy [%]' rank=ranks.sub_acc value=rune.sub_acc percentage=True %}
+				{% include "website/runes/rune_card.html" with header='Critical Rate [%]' rank=ranks.sub_crit_rate value=rune.sub_crit_rate percentage=True %}
+				{% include "website/runes/rune_card.html" with header='Critical Damage [%]' rank=ranks.sub_crit_dmg value=rune.sub_crit_dmg percentage=True %}
+			</div>
+		</div>
 	</div>
-	<div class="row collapse" id="monster-row">
+    <div id='view-2' class='row justify-content-md-center' style='display: none;'>
 		{% if rune.equipped_runes %}
 			{% for monster in rune.equipped_runes.all %}
-				{% include "website/monsters/monster_card_compressed.html" with name=monster|add_str:" (Normal Build)" monster=monster %}
+				<div class='col-12 col-md-5'>
+					{% include "website/monsters/monster_card_compressed.html" with monster=monster deep=False %}
+				</div>
 			{% endfor %}
 		{% endif %}
 		{% if rta_monster %}
-			{% include "website/monsters/monster_card_compressed.html" with name=rta_monster|add_str:" (RTA Build)" monster=rta_monster %}
+			<div class='col-12 col-md-5'>
+				{% include "website/monsters/monster_card_compressed.html" with monster=rta_monster deep=False %}
+			</div>
 		{% endif %}
-	</div>
-{% endif %}
+    </div>
+    <div id='view-3' style='display: none;'>
+        <div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body'>
+                This page shows up to 50 randomly chosen runes (Slot: {{ rune.slot }}, Set: {{ rune.rune_set.name }}, Primary: {{ rune.get_primary_display }}). Every card is clickable and will redirect to other rune.
+            </div>
+        </div>
+		
+		<div class='row'>
+			{% for similar in similar_runes %}
+				<div class='col-12 col-md-3'>
+					{% include 'website/runes/rune_card_compressed.html' with rune=similar deep=False %}
+				</div>
+			{% endfor %}
+		</div>
+    </div>    
+</div>
 
-{% include "website/runes/rune_table.html" with runes=similar_runes text="Similar Runes (up to 50 randomly chosen)" collapse_id="rune-"|add_str:rune.id|add_str:"-similar" collapsed="collapse"%}
+<script>
+	function ajaxTooltip(el_id, el_type, tooltip_id, el){
+		var prefix = '#' + el_type + '-'
+		if(!$(prefix + tooltip_id).html().includes('Loading')){
+			return;
+		}
+		var url_mask = "{% url 'object_card' obj_type='a' obj_id=1 %}".replace('a', el_type.toString()).replace('1', el_id.toString());
+		$.ajax({
+			url: url_mask,
+			type: "GET",
+			success: function(response) {
+				$(prefix + tooltip_id).html(response)
+				$(el).attr("data-original-title", response).tooltip('show');
+			},
+			error: function(xhr) {
+				$('#content-ajax-container').html("{% include 'website/error.html' with task_id='' %}");
+			}
+		});
+	}
+	
+    $(document).ready(function () {
+        $('.tip').each(function () {
+            $(this).tooltip(
+            {
+                html: true,
+				placement: 'top',
+                title: $('#' + $(this).data('tip')).html()
+            });
+        });
+		$(this).data('bs.tooltip').config.placement = 'top';// For dynamic position
+  		$(this).data('bs.tooltip').config.boundary= 'top'; // Used for tooltip boundary range
+    });
+</script>

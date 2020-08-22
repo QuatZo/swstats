@@ -1,6 +1,6 @@
 {% extends "website/base.html" %}
 {% load static %}
-{% load add_str %}
+{% load other %}
 
 {% block content_title %}
     [Desktop App] Towers & Flags Calculator
@@ -15,8 +15,8 @@
 
         <p id="loading"></p>
 
-        <div class="table-responsive">
-            <table class="table table-hover table-sm">
+        <div class='table-responsive'>
+            <table class="table table-dark table-hover table-sm" id='buildings-table' style='width: 100%;'>
                 <thead>
                     <tr>
                         <th scope="col">Area</th>
@@ -67,9 +67,9 @@
 {% endblock %}
 
 {% block jquery %}
-{{ buildings_cost|json_script:'buildings'}}
-{{ siege|json_script:'siege'}}
-{{ gw|json_script:'gw'}}
-<script>var upload_url = "{% url 'desktop' %}";</script>
-<script src="{% static 'website/js/buildings.js' %}"></script>
+    {{ buildings_cost|json_script:'buildings'}}
+    {{ siege|json_script:'siege'}}
+    {{ gw|json_script:'gw'}}
+    <script>var upload_url = "{% url 'desktop' %}";</script>
+    <script src="{% static 'website/js/buildings.js' %}"></script>
 {% endblock %}

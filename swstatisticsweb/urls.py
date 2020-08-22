@@ -82,25 +82,31 @@ urlpatterns = [
     path('dimholecalc/', views.get_dimhole_calculator, name='dimholecalc'),
 
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
+    path('object/<str:obj_type>/<int:obj_id>', views.get_object_for_card, name='object_card'),
 
     path('reports/', views.get_report_menu, name='reports'),
     path('reports/generate/', views.get_report, name='reports_generate'),
     path('oldreports/', RedirectView.as_view(url='/reports/old'), name='old_reports'), # old link, before Generate Report Update
     path('reports/old/', views.get_old_reports, name='reports_old'),
 
-    ######### NOT IN SIDEBAR MENU
-    path('homunculus/', views.get_homunculus, name='homunculus'),
-    path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
-    path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'),
-    path('decks/', views.get_decks, name='decks'),
-    path('decks/<str:task_id>/', views.get_decks_ajax, name='decks_ajax'),
-    path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
-    path('decks/id/<int:arg_id>/<str:task_id>/', views.get_deck_by_id_ajax, name='deck_by_id_ajax'),
+    ######### NOT IN SIDEBAR MENU, NO DARK MODE, OLD THEME
+    # path('homunculus/', views.get_homunculus, name='homunculus'),
+    # path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
+    # path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'),
+    # path('decks/', views.get_decks, name='decks'),
+    # path('decks/<str:task_id>/', views.get_decks_ajax, name='decks_ajax'),
+    # path('decks/id/<int:arg_id>/', views.get_deck_by_id, name='deck_by_id'),
+    # path('decks/id/<int:arg_id>/<str:task_id>/', views.get_deck_by_id_ajax, name='deck_by_id_ajax'),
     #########
 
     ######### BOT
     path('bot/monsters/<int:monster_id>', views.bot_get_monster_report, name='bot_get_monster_report'),
     #########
+
+    ##### temp
+    path('temp/rta/', views.new_rta_structure)
+
+    ####
 ]
 
 if settings.DEBUG:

@@ -1,10 +1,10 @@
 body {
     font-size: .875rem;
-    
-}
-
-td{
-    vertical-align: middle !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-style: normal;
+    font-weight: 300;
+    color: #ffffff!important;
+    background-color: #121212!important;
 }
 
 .feather {
@@ -41,6 +41,7 @@ td{
     z-index: 100; /* Behind the navbar */
     padding: 48px 0 0; /* Height of navbar */
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    background-color: #545b62;
 }
 
 .navbar a{
@@ -57,9 +58,7 @@ td{
 
 .sidebar-sticky {
     position: fixed;
-    top: 50px;
     height: calc(100vh - 50px);
-    padding-top: .5rem;
     overflow-x: hidden;
     overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
 }
@@ -71,10 +70,19 @@ td{
     }
 }
 
+.sidebar .nav-item.active{
+    background-color: #343a40;
+}
+
 .sidebar .nav-link {
-    color: #333;
-    padding: 0;
-    padding-top: .75em;
+    color: #ffffff;
+    padding: 5px;
+}
+
+.sidebar.toggled .nav-link {
+    width: 40px;    
+    padding: 5px 0;
+    margin: auto;
 }
 
 .sidebar .nav-link .feather {
@@ -83,7 +91,7 @@ td{
 }
 
 .sidebar .nav-link.active {
-    color: #007bff;
+    color: #ffffff;
 }
 
 .sidebar .nav-link:hover .feather,
@@ -92,7 +100,7 @@ td{
 }
 
 .sidebar .nav-link.active .feather.custom{
-    stroke: #007bff;
+    stroke: #ffffff;
 }
 
 .sidebar-heading {
@@ -104,11 +112,9 @@ td{
     margin: auto;
 }
 
-
 [role="main"] {
     padding-top: 48px; /* Space for fixed navbar */
 }
-
 
 .navbar-brand {
     padding-top: .75rem;
@@ -127,30 +133,8 @@ td{
     padding-left: 1vw;
 }
 
-.carousel-caption{
-    display: grid!important;
-    bottom: 5vh!important;
-}
-
-.carousel-caption h5{
-    height: 100%;
-    vertical-align: text-bottom;
-    font-size: 3vw;
-}
-.carousel-caption p{
-    font-size: 1.5vw;
-}
-
-.carousel-caption .btn:hover a{
-    color: #1f1f1f;
-}
-
-.carousel-caption a{
-    text-decoration: none;
-    color: #f1f1f1;
-}
-.carousel-caption a.nav-link{
-    display: unset;
+.sidebar.toggled .nav-item{
+    padding-left: 0;
 }
 
 .navbar .navbar-brand,
@@ -196,6 +180,207 @@ td{
     flex: 0 0 calc(100% - 80px);
 }
 
+/*          NAV-, SIDE-BAR END          */
+/*          CONTENT START               */
+
+.content{
+    max-width: 1500px;
+    margin: auto;
+}
+
+.rune-content{
+    display: flex;
+}
+
+.row.ranks{
+    margin: 0;
+    width: 100%;
+}
+
+/*          CONTENT END                 */
+/*          CARD START                  */
+
+.card-custom{
+    border-radius: 7px;
+    background-color: #343a40;
+    color: #ffffff;
+    min-height: 250px;
+    margin-bottom: 50px;
+}
+
+.card-custom .list-group-item{
+    background-color: #343a40;
+    border: 1px solid rgba(255, 255, 255,.875);
+}
+
+.card-custom h5{
+    padding-top: 5px;
+}
+
+.card-custom a,
+.card-custom a:hover,
+.card-custom a:active,
+.card-custom a:link,
+.card-custom a:visited
+{
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.card-custom-header{
+    background-color: rgba(0, 0, 0, .25);
+    border-radius: 7px 7px 0 0;
+    text-align: center;
+    padding: 10px;
+    min-height: 50px;
+    word-wrap: break-word;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+}
+
+.card-custom-header b{
+    text-transform: capitalize;
+}
+
+.card-custom-body{
+    min-height: 200px;
+    text-align: center;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+}
+
+.card-custom-body .monster-info{
+    border-bottom: 1px solid rgba(255, 255, 255, .25);
+    margin: 0;
+    margin-bottom: 10px;
+}
+.card-custom-body .monster-runes{
+    margin: 0;
+    margin-top: 10px;
+}
+
+.card-custom.big{
+    min-height: 600px;
+}
+.card-custom.big .card-custom-body{
+    min-height: 550px;
+    text-align: justify;
+    padding: 25px;
+}
+
+.card-custom.short{
+    min-height: 100px;
+}
+
+.card-custom.short .card-custom-body{
+    min-height: 50px;
+}
+
+.card-custom select{
+    width: 100%;
+}
+
+.card-custom.short .card-custom-body.number{
+    display: block;
+}
+
+.card-custom.short .card-custom-body.number input[type=number]{
+    width: 45%;
+}
+
+.card-custom.disclaimer{
+    min-height: 100px;
+}
+
+.card-custom.disclaimer .card-custom-body{
+    min-height: unset;
+}
+
+.card-custom.bordered{
+    border: 1px solid rgba(0, 0, 0, .25);
+}
+
+.card-custom.standard{
+    text-align: initial;
+}
+
+.card-custom-body.standard{
+    display: block;
+    text-align: initial;
+}
+
+.card-custom-body .rune-prim,
+.card-custom-body .artifact-prim
+{
+    display: flex;
+}
+
+.card-custom-body .rune-stats,
+.card-custom-body .artifact-stats
+{
+    margin-left: 10px;
+}
+
+.card-custom-body .artifact-stats{
+    display: flex;
+    align-items: center;
+}
+
+.card-custom-body .rune-substats,
+.card-custom-body .rune-info,
+.card-custom-body .artifact-substats,
+.card-custom-body .artifact-info
+{
+    margin-top: 10px;
+}
+
+.card-custom-body .rune-info,
+.card-custom-body .artifact-info
+{
+    position: relative;
+    bottom: 0;
+}
+
+.card-custom-body .substat{
+    color: #cdb775;
+}
+
+.rune-card-compressed,
+.artifact-card-compressed
+{
+    min-width: 300px;
+    width: 300px;
+}
+
+.monster-card-compressed{
+    min-width: 400px;
+    width: 400px;
+}
+
+.monster-info-row,
+.monster-runes-row
+{
+    width: 100%;
+    display: inline-block;
+    display: -webkit-inline-box;
+    padding: 2px 0;
+}
+
+.width-min-200{
+    min-width: 200px;
+}
+
+.monster-runes-row .flex-right{
+    width: calc(100% - 200px);
+}
+/*              CARD END                */
+/*              TITLE START             */
+
 .title-container{
     overflow: auto;
 }
@@ -216,65 +401,8 @@ td{
     border-color: #007bff;
 }
 
-tr.orig-quality-Legend,
-tr.orig-quality-Ancient.Legend
-{
-    background-color: rgb(255, 173, 73, .25);
-}
-
-tr.orig-quality-Hero,
-tr.orig-quality-Ancient.Hero
-{
-    background-color: rgb(255, 0, 255, .25);
-}
-
-tr.orig-quality-Rare,
-tr.orig-quality-Ancient.Rare
-{
-    background-color: rgb(0, 0, 255, .25);
-}
-
-tr.orig-quality-Magic,
-tr.orig-quality-Ancient.Magic
-{
-    background-color: rgb(0, 255, 0, .25);
-}
-
-.chart{
-    width: 100%;
-    height: 25vh;
-    min-height: 180px;
-    display: flex;
-}
-
-.chart-2{
-    width: 45%;
-    height: 25vh;
-    min-height: 180px;
-}
-
-.chart-2.right{
-    margin-left: 10%;
-}
-
-h2.title,
-h1.h2
-{
-    -webkit-user-select: none;
-    -moz-user-select: -moz-none;
-    -ms-user-select: none;
-    user-select: none
-}
-
-.rank{
-    min-height: 10vh;
-    padding: 15px 0;
-}
-
-.rank .card{
-    height: 100%;
-}
-
+/*              TITLE END               */
+/*              RUNES START             */
 .rune-background{
     width: 50px;
     height: 50px;
@@ -323,7 +451,7 @@ h1.h2
     background-image: url('/static/website/images/runes/bg_magic.png');
 }
 
-.rune-background.Magic{
+.rune-background.Common{
     background-image: url('/static/website/images/runes/bg_normal.png');
 }
 
@@ -405,7 +533,49 @@ h1.h2
     background-size: 45px auto;
     top: 5px;
 }
+/*              RUNES END               */
+/*              CHARTS START            */
+.chart{
+    width: 100%;
+    height: 25vh;
+    min-height: 180px;
+    display: flex;
+}
 
+.chart-2{
+    width: 45%;
+    height: 25vh;
+    min-height: 180px;
+}
+
+.chart-2.right{
+    margin-left: 10%;
+}
+
+/*              CHARTS END              */
+/*              HEADLINES START         */
+h2.title,
+h1.h2
+{
+    -webkit-user-select: none;
+    -moz-user-select: -moz-none;
+    -ms-user-select: none;
+    user-select: none
+}
+/*              HEADLINES END           */
+/*              RANK START              */
+
+.rank{
+    min-height: 10vh;
+    padding: 15px 0;
+}
+
+.rank .card{
+    height: 100%;
+}
+
+/*              RANK END                */
+/*              TABLE START             */
 .table-monster-href:hover{
     text-decoration: none;
 }
@@ -416,19 +586,120 @@ h1.h2
     border-radius: 50%;
 }
 
-.table-monster-avatar-min{
-    width: 25px;
-    height: 25px;
+.table-monster-avatar-mid{
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
 }
 
-.card-body.inner{
-    padding: 0;
-    flex: none;
+.table-monster-avatar-min{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
 }
 
-.card-body.inner div{
+td{
+    vertical-align: middle !important;
+}
+
+.comparison-table,
+.comparison-table table
+{
+    max-height: 750px;
+}
+
+.comparison-table th{
+    border: 1px solid #dee2e6 !important; 
+    vertical-align: middle !important; 
+    text-align: center;
+    background-color: rgba(0, 0, 0, .25);
+}
+
+.comparison-table tbody{
+    background-color: #343a40;
+}
+  
+.comparison-table tbody tr td:first-child,
+.comparison-table tbody tr td.second
+{
+    background-color: rgba(0, 0, 0, .15);
+}
+
+.comparison-table tbody tr td:first-child {
+    position: -webkit-sticky;
+    position: sticky;
+    left: -1px;
+}
+
+.comparison-table tbody tr td.second {
+    position: -webkit-sticky;
+    position: sticky;
+    left: 79px;
+}
+
+.comparison-table thead th.first:first-child
+{
+    position: -webkit-sticky;
+    position: sticky;
+    left: -1px;
+    z-index: 1;
+    background-color: #343a40;
+}
+.comparison-table thead th.first.double
+{
+    position: -webkit-sticky;
+    position: sticky;
+    left: 79px;
+    z-index: 1;
+    background-color: #343a40;
+}
+
+.comparison-table .page-link,
+.comparison-table .page-link:hover
+{
+    color: #fff !important;
+    background-color: #6c757d!important;
+    border-color: #6c757d!important;
+}
+
+.comparison-table .page-item.active .page-link{
+    background-color: #545b62 !important;
+    border-color: #545b62 !important;
+    color: #fff !important;
+}
+
+/*              TABLE END               */
+/*              OTHER START             */
+.tooltip > .tooltip-inner {
+    background: unset;
+    border: none;
     margin: 0;
+}
+
+.tooltip.show {
+    opacity: 1!important;
+}
+
+.tooltip .card-custom{
+    margin: 0;
+    min-width: 200px;
+}
+
+.tooltip .width-min-200{
+    min-width: 125px;
+}
+
+.tooltip .monster-runes-row .flex-right{
+    width: calc(100% - 125px);
+}
+
+.bs-tooltip-auto[x-placement^=top] .arrow::before,
+.bs-tooltip-top .arrow::before,
+.bs-tooltip-auto[x-placement^=bottom] .arrow::before,
+.bs-tooltip-bottom .arrow::before 
+{     
+    border: none!important;
+    display: none;
 }
 
 .dungeon-header{
@@ -452,7 +723,7 @@ h1.h2
 }
 
 .building-done{
-    background-color: rgba(255, 0, 0, 0.35);
+    background-color: rgba(255, 0, 0, 0.15);
 }
 
 .calc-input{
@@ -470,10 +741,6 @@ h1.h2
     width: 100%;
 }
 
-.row.cards{
-    visibility: hidden;
-}
-
 .btn-primary.left{
     float: left;
     margin: 2px;
@@ -484,86 +751,41 @@ h1.h2
     height: 735px;
 }
 
-#upload-menu{
+#upload-menu,
+.content-menu
+{
     margin-top: 10px;
     display: flex;
     width: 100%;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 50px;
 }
 
-#upload-menu button{
+#upload-menu button,
+.content-menu button
+{
     border-radius: 0;
+    width: 300px;
+    min-width: 150px;
 }
 
-#upload-menu button:first-child{
+#upload-menu button:first-child,
+.content-menu button:first-child
+{
     border-top-left-radius: .25rem;
     border-bottom-left-radius: .25rem;
 }
 
-#upload-menu button:last-child{
+#upload-menu button:last-child,
+.content-menu button:last-child
+{
     border-top-right-radius: .25rem;
     border-bottom-right-radius: .25rem;
 }
 
-.comparison-table,
-.comparison-table table
-{
-    max-height: 750px;
+.dark-href{
+    color: #b2ebf2!important;
 }
-
-.comparison-table th{
-    border: 1px solid #dee2e6 !important; 
-    vertical-align: middle !important; 
-    text-align: center;
-    background-color: white;
-}
-  
-.comparison-table tbody tr td:first-child,
-.comparison-table tbody tr td.second
-{
-    background-color: rgba(0, 0, 0, .15);
-}
-
-.comparison-table tbody tr td:first-child {
-    position: -webkit-sticky;
-    position: sticky;
-    left: -1px;
-}
-
-.comparison-table tbody tr td.second {
-    position: -webkit-sticky;
-    position: sticky;
-    left: 81px;
-}
-
-.comparison-table thead th.first:first-child
-{
-    position: -webkit-sticky;
-    position: sticky;
-    left: -1px;
-    z-index: 1;
-}
-.comparison-table thead th.first.double
-{
-    position: -webkit-sticky;
-    position: sticky;
-    left: 81px;
-    z-index: 1;
-}
-
-.comparison-table .page-link,
-.comparison-table .page-link:hover
-{
-    color: #6c757d !important;
-}
-
-.comparison-table .page-item.active .page-link{
-    background-color: #6c757d !important;
-    border-color: #6c757d !important;
-    color: #fff !important;
-}
-
 
 /* Loading Spinner */
 #secs{
@@ -576,14 +798,14 @@ h1.h2
 .loader,
 .loader:before,
 .loader:after {
-  background: #000000;
+  background: #ffffff;
   -webkit-animation: load1 1s infinite ease-in-out;
   animation: load1 1s infinite ease-in-out;
   width: 1em;
   height: 4em;
 }
 .loader {
-  color: #000000;
+  color: #ffffff;
   text-indent: -9999em;
   margin: 88px auto;
   position: relative;
@@ -633,6 +855,8 @@ h1.h2
   }
 }
 /* /////// /////// */
+
+/*              MOBILE START            */
 @media (max-width: 992px){
     .card .border-right.ranking-header{
         border-right: none!important;
@@ -640,6 +864,65 @@ h1.h2
 }
 
 @media (max-width: 768px) {
+    .rune-card-compressed,
+    .artifact-card-compressed,
+    .monster-card-compressed
+    {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .tooltip > .tooltip-inner {
+        max-width: 100%;
+    }
+
+    .rune-content{
+        display: block;
+    }
+    .rune-content .col-12{
+        padding: 0;
+    }
+
+    #upload-menu,
+    .content-menu
+    {
+        display: block;
+        margin-bottom: 25px;
+    }
+
+    #upload-menu button,
+    .content-menu button
+    {
+        width: 100%;
+    }
+    
+    #upload-menu button:first-child,
+    .content-menu button:first-child
+    {
+        border-top-left-radius: .25rem;
+        border-top-right-radius: .25rem;
+        border-bottom-left-radius: 0;
+    }
+
+    #upload-menu button:last-child,
+    .content-menu button:last-child
+    {
+        border-top-right-radius: 0;
+        border-bottom-left-radius: .25rem;
+        border-bottom-right-radius: .25rem;
+    }
+
+    .card-custom{
+        margin-bottom: 10px;
+    }
+
+    .card-custom.big{
+        min-height: 300px;
+    }
+    .card-custom.big .card-custom-body{
+        min-height: 250px;
+    }
+
     .report-button{
         height: 40vh;
     }
@@ -673,32 +956,19 @@ h1.h2
         flex: 100%;
     }
 
-    .sidebar.toggled{
+    .sidebar.toggled,
+    .sidebar ~ [role="main"]
+    {
         display: none;
+    }
+
+    .sidebar.toggled ~ [role="main"]
+    {
+        display: unset;
     }
 
     .sidebar-sticky{
         height: unset;
-    }
-
-    .carousel, 
-    .carousel-inner, 
-    .carousel-item, 
-    .carousel-inner img
-    {
-        height: 40vh; 
-    }
-
-    .carousel-caption h5{
-        font-size: 6vw;
-    }
-    .carousel-caption p{
-        font-size: 3vw;
-    }
-
-    .carousel-caption .btn{
-        max-height: 50px;
-        font-size: 3vw;
     }
 
     .homunculus-card-link{
@@ -708,3 +978,4 @@ h1.h2
         right: unset;
     }
 }
+/*              MOBILE END              */

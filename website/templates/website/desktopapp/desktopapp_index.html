@@ -1,5 +1,5 @@
 {% extends "website/base.html" %}
-{% load add_str %}
+{% load other %}
 
 {% block custom_script %}
     <script src="https://kit.fontawesome.com/db771f92f8.js" crossorigin="anonymous"></script>
@@ -20,7 +20,7 @@
     </form>
     <p>
         <br /><b>Disclaimer:</b> If you upload your profile on this page, it will <b>NOT</b> save itself to server database. 
-        It means that it will <b>NOT</b> be accessible for other people (even anonymously), but <b>if you want to contribute, check the <a href="{% url 'contribute' %}">Contribute</a> page</b>.
+        It means that it will <b>NOT</b> be accessible for other people (even anonymously), but <b>if you want to contribute, check the <a class='dark-href' href="{% url 'contribute' %}">Contribute</a> page</b>.
     </p>
     <div id='row'>
         {% csrf_token %}

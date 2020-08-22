@@ -1,5 +1,5 @@
 {% extends "website/base.html" %}
-{% load add_str %}
+{% load other %}
 
 {% block custom_script %}
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.21/fh-3.1.7/datatables.min.css"/>
@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block ajax_container %} 
-    <div class="alert alert-primary alert-dismissible fade show" style="margin-top: 10px;">
+    <div class="alert alert-dark alert-dismissible fade show" style="margin-top: 10px;">
         Report consists of 2 parts:
         <ul>
             <li>
@@ -36,7 +36,7 @@
         <input id="profile-json" name='profile-json-upload-button' type="file" style="display:none;">
         <input type="submit" value="Upload Profile" class="btn btn-secondary">
     </form>
-    <div class="alert alert-warning alert-dismissible fade show" style="margin-top: 10px;">
+    <div class="alert alert-secondary alert-dismissible fade show" style="margin-top: 10px;">
         If you upload your profile on this page, it <b>WILL BE</b> saved in server database. 
         It means that its content (monsters, runes etc) <b>WILL BE</b> accessible for other people <b>anonymously</b>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -47,7 +47,7 @@
     <div id='upload-menu'>
         {% include "website/upload/upload_menu.html" %}
     </div>
-    <div id='scoring-system'>
+    <div id='view-1'>
         {% include 'website/upload/upload_ranking_system.html' with points=points %}
     </div>
     <div id='row' style='margin-bottom: 25px;'>
@@ -57,40 +57,6 @@
 
 {% block jquery %}
 <script>
-    function changeView(view_id){
-        $('#scoring-system').fadeOut('slow');
-        $('#system-button').removeClass('active');
-
-        $('#ranking-result').fadeOut('slow');
-        $('#score-button').removeClass('active');
-
-        $('#comparison-monsters').fadeOut('slow');
-        $('#monsters-button').removeClass('active');
-
-        $('#comparison-runes').fadeOut('slow');
-        $('#runes-button').removeClass('active');
-
-        if(view_id == 0){
-            $('#scoring-system').fadeIn('slow');
-            $('#system-button').addClass('active');
-        }
-        
-        else if(view_id == 1){
-            $('#ranking-result').fadeIn('slow');
-            $('#score-button').addClass('active');
-        }
-
-        else if(view_id == 2){
-            $('#comparison-monsters').fadeIn('slow');
-            $('#monsters-button').addClass('active');
-        }
-
-        else if(view_id == 3){
-            $('#comparison-runes').fadeIn('slow');
-            $('#runes-button').addClass('active');
-        }
-    }
-
     $('#profile-json').change(function() {
         var i = $(this).prev('label').clone();
         var file = $('#profile-json')[0].files[0];

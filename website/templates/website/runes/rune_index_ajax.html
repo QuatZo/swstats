@@ -1,39 +1,223 @@
-{% load add_str %}
+{% load other %}
+{% load runes %}
 
 {% if is_filter %}<h3>Filters: {{ filters }}</h3>{% endif %} 
 
-<!-- Normal Distribution Chart -->
-{% include "website/runes/charts/rune_chart_distribution.html" with means=all_means distribution=all_distribution color=all_color %}
+<div class='content'>
+    <div class='content-menu'>
+        <button class="btn btn-secondary btn-compare active" type="button" onclick="changeView(0)" id='view-1-button'>Filters</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(1)" id='view-2-button'>Charts</button>
+        <button class="btn btn-secondary btn-compare" type="button" onclick="changeView(2)" id='view-3-button'>TOP</button>
+    </div>
+    <form method="GET" action="{% url 'runes' %}">
+        <div id='view-1'>
+            <div class='row'>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Slot</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='slot'>
+                                <option value='0'></option>
+                                {% for slot in filter_options.slots %}
+                                    <option value='{{ slot }}' {% if 'slot' in request.keys and request.slot.0 == slot|slugify %}selected{% endif %}>{{ slot }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Set</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='set'>
+                                <option value='0'></option>
+                                {% for set in filter_options.sets %}
+                                    <option value='{{ set }}' {% if 'set' in request.keys and request.set.0 == set %}selected{% endif %}>{{ set }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Quality</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='quality'>
+                                <option value='0'></option>
+                                {% for quality in filter_options.qualities %}
+                                    <option value='{{ quality }}' {% if 'quality' in request.keys and request.quality.0 == quality %}selected{% endif %}>{{ quality }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Original Quality</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='quality_original'>
+                                <option value='0'></option>
+                                {% for quality in filter_options.qualities %}
+                                    <option value='{{ quality }}' {% if 'quality_original' in request.keys and request.quality_original.0 == quality %}selected{% endif %}>{{ quality }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Main Stat</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='main_stat'>
+                                <option value='0'></option>
+                                {% for main_stat in filter_options.main_stats %}
+                                    <option value='{{ main_stat|symbol_to_percentage_plus_text }}' {% if 'main_stat' in request.keys and request.main_stat.0|percentage_plus_text_to_symbol == main_stat %}selected{% endif %}>{{ main_stat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-4'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Stars</h5>
+                        </div>
+                        <div class='card-custom-body'>
+                            <select name='stars'>
+                                <option value='0'></option>
+                                {% for star in filter_options.stars %}
+                                    <option value='{{ star }}' {% if 'stars' in request.keys and request.stars.0 == star|slugify %}selected{% endif %}>{{ star }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-12 col-md-4 col-lg-3 col-xl-2'>
+                    <div class='card-custom short'>
+                        <div class='card-custom-header'>
+                            <h5>Efficiency</h5>
+                        </div>
+                        <div class='card-custom-body number'>
+                            <input type='number' name='eff_min' min="0" max="150" value="{% if 'eff_min' in request.keys %}{{ request.eff_min.0 }}{% else %}{% endif %}"/>
+                            -
+                            <input type='number' name='eff_max' min="0" max="150" value="{% if 'eff_max' in request.keys %}{{ request.eff_max.0 }}{% else %}{% endif %}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class='btn btn-secondary btn-compare active' type="submit" style='width: 100%;'>Filter</button>
+        </div>
+    </form>
+    <div id='view-2' class='row' style='display: none;'>
+        <!-- Normal Distribution Chart -->
+        {% include "website/runes/charts/rune_chart_distribution.html" with means=all_means distribution=all_distribution color=all_color %}
 
-<div class='chart'>
-    <!-- Runes Grouped By Slot Chart -->
-    {% include "website/runes/charts/rune_chart_group_by_slot.html" with number=slot_number color=slot_color count=slot_count class='chart-2' %}
+        <div class='chart'>
+            <!-- Runes Grouped By Slot Chart -->
+            {% include "website/runes/charts/rune_chart_group_by_slot.html" with number=slot_number color=slot_color count=slot_count class='chart-2' %}
 
-    <!-- Runes Grouped By Quality Chart -->
-    {% include "website/runes/charts/rune_chart_group_by_quality.html" with name=quality_name color=quality_color count=quality_count class='chart-2 right' %}
+            <!-- Runes Grouped By Quality Chart -->
+            {% include "website/runes/charts/rune_chart_group_by_quality.html" with name=quality_name color=quality_color count=quality_count class='chart-2 right' %}
+        </div>
+
+        <div class='chart'>
+            <!-- Runes Grouped By Original Quality Chart -->
+            {% include "website/runes/charts/rune_chart_group_by_quality_original.html" with name=quality_original_name color=quality_original_color count=quality_original_count class='chart-2' %}
+            
+            <!-- Runes Grouped By Set Chart -->
+            {% include "website/runes/charts/rune_chart_group_by_set.html" with name=set_name color=set_color count=set_count class='chart-2 right' %}
+        </div>
+
+        <div class='chart'>
+            <!-- Runes Grouped By Main Stat -->
+            {% include "website/runes/charts/rune_chart_group_by_main_stat.html" with name=main_stat_name color=main_stat_color count=main_stat_count class='chart-2' %}
+            
+            <!-- Runes Grouped By Stars -->
+            {% include "website/runes/charts/rune_chart_group_by_stars.html" with number=stars_number color=stars_color count=stars_count class='chart-2 right' %}
+        </div>
+    </div>
+    <div id='view-3' style='display: none;'>
+        <div class='card-custom disclaimer'>
+            <div class='card-custom-header'>
+                <h5>Disclaimer</h5>
+            </div>
+            <div class='card-custom-body'>
+                Every Header, Card & Monster Avatar is clickable and will redirect you to other page (i.e. Specific Rune Page) or hide/show content here.   
+            </div>
+        </div>
+
+        <div class='card-custom' style='min-height: 100px;'>
+            <div class="card-custom-header">
+                <h5 data-toggle="collapse" data-target="#best_runes" aria-expanded="true" aria-controls="best_runes">Top 100 Runes (efficiency-wise)</h5>
+            </div>
+            <div id='best_runes' class='card-custom-body collapse show'>
+                <div class='row'>
+                    {% for rune in best_runes %}
+                        <div class='col-12 col-md-3'>
+                            {% include 'website/runes/rune_card_compressed.html' with rune=rune deep=False %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class='card-custom' style='min-height: 100px;'>
+            <div class="card-custom-header">
+                <h5 data-toggle="collapse" data-target="#fastest_runes" aria-expanded="true" aria-controls="fastest_runes">Fastest 100 Runes</h5>
+            </div>
+            <div id='fastest_runes' class='card-custom-body collapse show'>
+                <div class='row'>
+                    {% for rune in fastest_runes %}
+                        <div class='col-12 col-md-3'>
+                            {% include 'website/runes/rune_card_compressed.html' with rune=rune deep=False %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>    
 </div>
 
-<div class='chart'>
-    <!-- Runes Grouped By Original Quality Chart -->
-    {% include "website/runes/charts/rune_chart_group_by_quality_original.html" with name=quality_original_name color=quality_original_color count=quality_original_count class='chart-2' %}
+<script>	
+    function ajaxTooltip(el_id, el_type, tooltip_id, el){
+		var prefix = '#' + el_type + '-'
+		if(!$(prefix + tooltip_id).html().includes('Loading')){
+			return;
+		}
+		var url_mask = "{% url 'object_card' obj_type='a' obj_id=1 %}".replace('a', el_type.toString()).replace('1', el_id.toString());
+		$.ajax({
+			url: url_mask,
+			type: "GET",
+			success: function(response) {
+				$(prefix + tooltip_id).html(response)
+				$(el).attr("data-original-title", response).tooltip('show');
+			},
+			error: function(xhr) {
+				$('#content-ajax-container').html("{% include 'website/error.html' with task_id='' %}");
+			}
+		});
+	}
     
-    <!-- Runes Grouped By Set Chart -->
-    {% include "website/runes/charts/rune_chart_group_by_set.html" with name=set_name color=set_color count=set_count class='chart-2 right' %}
-</div>
-
-<div class='chart'>
-    <!-- Runes Grouped By Main Stat -->
-    {% include "website/runes/charts/rune_chart_group_by_main_stat.html" with name=main_stat_name color=main_stat_color count=main_stat_count class='chart-2' %}
-    
-    <!-- Runes Grouped By Stars -->
-    {% include "website/runes/charts/rune_chart_group_by_stars.html" with number=stars_number color=stars_color count=stars_count class='chart-2 right' %}
-</div>
-
-{% with "Top "|add_str:best_amount|add_str:" runes" as text %}
-    {% include "website/runes/rune_table.html" with runes=best_runes collapse_id="top_runes" text=text collapsed="collapse" %}
-{% endwith %}
-
-
-{% with "Fastest "|add_str:fastest_amount|add_str:" runes" as text %}
-    {% include "website/runes/rune_table.html" with runes=fastest_runes collapse_id="fastest_runes" text=text collapsed="collapse" %}
-{% endwith %}
+    $(document).ready(function () {
+        $('.tip').each(function () {
+            $(this).tooltip(
+            {
+                html: true,
+				placement: 'top',
+                title: $('#' + $(this).data('tip')).html()
+            });
+        });
+		$(this).data('bs.tooltip').config.placement = 'top';// For dynamic position
+  		$(this).data('bs.tooltip').config.boundary= 'top'; // Used for tooltip boundary range
+    });
+</script>

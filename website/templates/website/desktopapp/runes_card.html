@@ -1,15 +1,13 @@
 {% load static %}
-{% load add_str %}
-{% load get_attribute_avatar %}
-{% load get_star_avatar %}
+{% load other %}
 
 <div class="row">
     <div class="col-12 col-sm-6 rank">
-        <div class="card">
-            <div class="card-header">
+        <div class="card-custom standard">
+            <div class="card-custom-header">
                 Introduction
             </div>
-            <div class="card-body">
+            <div class="card-custom-body standard">
                 <div class="row">
                     <div class="col-6 col-sm-6"><b>Amount</b></div>
                     <div class="col-6 col-sm-6"> {{ runes.count }} </div>
@@ -54,11 +52,11 @@
         </div>
     </div>
     <div class="col-12 col-sm-6 rank">
-        <div class="card">
-            <div class="card-header">
+        <div class="card-custom">
+            <div class="card-custom-header">
                 Sets & Slots
             </div>
-            <div class="card-body">
+            <div class="card-custom-body">
                 <div class="row">
                     {% for set, count in runes.sets.items %}
                         <div class="col-6 col-sm-2" style="text-align: center;">

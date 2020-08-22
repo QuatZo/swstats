@@ -23,7 +23,6 @@ DROP TABLE website_monstersource CASCADE;
 DROP TABLE website_raiddungeonrun CASCADE;
 DROP TABLE website_riftdungeonrun CASCADE;
 DROP TABLE website_rune CASCADE;
-DROP TABLE website_runerta CASCADE;
 DROP TABLE website_runeset CASCADE;
 DROP TABLE website_siegerecord CASCADE;
 DROP TABLE website_siegerecord_monsters CASCADE;

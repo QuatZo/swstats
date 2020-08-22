@@ -6,7 +6,7 @@
      width="0.08in" height="0.08in"
      viewBox="0 0 24 24">
   <path id="Selection"
-        fill="none" stroke="black" stroke-width=".25"
+        fill="none" stroke="white" stroke-width=".25"
         d="M 11.00,8.00
            C 11.00,8.00 15.00,5.95 15.00,5.95
              17.41,5.15 20.24,5.46 21.16,8.23

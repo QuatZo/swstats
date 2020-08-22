@@ -1,12 +1,44 @@
-{% load substat_to_number %}
-{% if categorized and value|substat_to_number > 0 or not categorized %}
-    <div class="col-6 col-sm-3 rank">
-        <div class="card">
-            <div class="card-header">
+{% load runes %}
+{% if value %}
+    <div class="col-12 col-md-4">
+        <div class="card-custom disclaimer standard">
+            <div class="card-custom-header">
                 {{ header }}
             </div>
-            <div class="card-body">
-                <b>#{{ rank }}</b> in {{ header }} with <b>{{ value }}</b>{% if categorized %} for <b>{{ category }}</b>{% endif %}
+            <div class="card-custom-body standard">
+                {% if eff %}
+                    <span class='substat'>Value</span> {{ value }}%<br />
+                    <span class='substat'>Top</span>
+                        {% if not rank.top %}
+                            <span style='color: #00aa00'>Best</span><br />
+                        {% else %}
+                            {{ rank.top }}%<br />
+                        {% endif %}
+                    <span class='substat'>Average</span>
+                        {% if rank.avg > 0.00 %}
+                            <span style='color: #00aa00'>+{{ rank.avg }}%</span><br />
+                        {% elif rank.avg > 0.00 %}
+                            <span style='color: #ff0000'>-{{ rank.avg }}%</span><br />
+                        {% else %}
+                            {{ rank.avg }}%
+                        {% endif %}
+                {% else %}
+                    <span class='substat'>Value {% if value.1 > 0 %}+{{ value|rune_grinded_val }}{% if percentage %}%{% endif %}</span>{% else %}</span>+{{ value|rune_grinded_val }}{% if percentage %}%{% endif %}{% endif %}<br />
+                    <span class='substat'>Top</span>
+                        {% if not rank.top %}
+                            <span style='color: #00aa00'>Best</span><br />
+                        {% else %}
+                            {{ rank.top }}%<br />
+                        {% endif %}
+                    <span class='substat'>Average</span>
+                        {% if rank.avg > 0.00 %}
+                            <span style='color: #00aa00'>+{{ rank.avg }}{% if percentage %}%{% endif %}</span><br />
+                        {% elif rank.avg < 0.00 %}
+                            <span style='color: #ff0000'>{{ rank.avg }}{% if percentage %}%{% endif %}</span><br />
+                        {% else %}
+                            {{ rank.avg }}{% if percentage %}%{% endif %}
+                        {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>

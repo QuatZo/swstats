@@ -1,84 +1,96 @@
 {% load static %}
-{% load check_skillups %}
-{% load international_date %}
-{% load add_str %}
-{% load add_reverse_str %}
-{% load get_monster_avatar %}
-{% load get_sets %}
-{% load get_set_names %}
+{% load monsters %}
+{% load other %}
+{% load runes %}
 
-<div class="table-responsive title-container">
-    <h2 class="title">
-		Monster's Table
-	</h2>
-	<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#monster-div" aria-expanded="true" aria-controls="#monster-div"> 
-		Show/Hide 
-	</button>
-    <div class="show" id="monster-div">
-        <table class="table table-hover table-sm report" id="monster-table">
-            <thead>
+<div class='comparison-table'>
+    <table class="table table-dark table-striped table-bordered table-hover table-sm" id='monster-table' style='width: 100%;'>
+        <thead>
+            <tr>
+                <th scope="col">Level</th>
+                <th scope="col">Stars</th>
+                <th scope="col">HP</th>
+                <th scope="col">Attack</th>
+                <th scope="col">Defense</th>
+                <th scope="col">Speed</th>
+                <th scope="col">Res</th>
+                <th scope="col">Acc</th>
+                <th scope="col">CRate</th>
+                <th scope="col">CDmg</th>
+                <th scope="col">Eff</th>
+                <th scope="col">Eff.HP</th>
+                <th scope="col">Sets</th>
+                <th scope="col">Skillups</th>
+                <th scope="col">Acquired</th>
+                <th scope="col">Slot1</th>
+                <th scope="col">Slot2</th>
+                <th scope="col">Slot3</th>
+                <th scope="col">Slot4</th>
+                <th scope="col">Slot5</th>
+                <th scope="col">Slot6</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for monster in monsters %}
                 <tr>
-                    <th scope="col">Level</th>
-                    <th scope="col">Stars</th>
-                    <th scope="col">HP</th>
-                    <th scope="col">Attack</th>
-                    <th scope="col">Defense</th>
-                    <th scope="col">Speed</th>
-                    <th scope="col">Res</th>
-                    <th scope="col">Acc</th>
-                    <th scope="col">CRate</th>
-                    <th scope="col">CDmg</th>
-                    <th scope="col">Eff</th>
-                    <th scope="col">Eff.HP</th>
-                    <th scope="col">Sets</th>
-                    <th scope="col">Skillups</th>
-                    <th scope="col">Acquired</th>
-                    <th scope="col">Slot1</th>
-                    <th scope="col">Slot2</th>
-                    <th scope="col">Slot3</th>
-                    <th scope="col">Slot4</th>
-                    <th scope="col">Slot5</th>
-                    <th scope="col">Slot6</th>
+                    <td>{{ monster.level }}</td>
+                    <td>{{ monster.stars }}</td>
+                    <td>{{ monster.hp }}</td>
+                    <td>{{ monster.attack }}</td>
+                    <td>{{ monster.defense }}</td>
+                    <td>{{ monster.speed }}</td>
+                    <td>{{ monster.res }}</td>
+                    <td>{{ monster.acc }}</td>
+                    <td>{{ monster.crit_rate }}</td>
+                    <td>{{ monster.crit_dmg }}</td>
+                    <td>{{ monster.avg_eff }}</td>
+                    <td>{{ monster.eff_hp }}</td>
+                    <td>
+                        {% if monster.runes.count > 0 %}
+                            {% with monster.runes.all|get_sets as sets %}
+                                {% if sets %}
+                                    {{ monster.runes.all|get_set_names }}
+                                {% else %}
+                                    Broken
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    </td>
+                    <td>{{ monster.skills }}</td>
+                    <td>{{ monster.created|international_date }}</td>
+                    {% for monster_runes in monsters_runes %}
+                        {% if monster_runes.monster == monster %}
+                            {% for rune in monster_runes.runes %}
+                                <td>{{ rune.get_primary_display }}</td>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
                 </tr>
-            </thead>
-            <tbody>
-                {% for monster in monsters %}
-                    <tr>
-                        <td>{{ monster.level }}</td>
-                        <td>{{ monster.stars }}</td>
-                        <td>{{ monster.hp }}</td>
-                        <td>{{ monster.attack }}</td>
-                        <td>{{ monster.defense }}</td>
-                        <td>{{ monster.speed }}</td>
-                        <td>{{ monster.res }}</td>
-                        <td>{{ monster.acc }}</td>
-                        <td>{{ monster.crit_rate }}</td>
-                        <td>{{ monster.crit_dmg }}</td>
-                        <td>{{ monster.avg_eff }}</td>
-                        <td>{{ monster.eff_hp }}</td>
-                        <td>
-                            {% if monster.runes.count > 0 %}
-                                {% with monster.runes.all|get_sets as sets %}
-                                    {% if sets %}
-                                        {{ monster.runes.all|get_set_names }}
-                                    {% else %}
-                                        Broken
-                                    {% endif %}
-                                {% endwith %}
-                            {% endif %}
-                        </td>
-                        <td>{{ monster.skills }}</td>
-                        <td>{{ monster.created|international_date }}</td>
-                        {% for monster_runes in monsters_runes %}
-                            {% if monster_runes.monster == monster %}
-                                {% for rune in monster_runes.runes %}
-                                    <td>{{ rune.get_primary_display }}</td>
-                                {% endfor %}
-                            {% endif %}
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
+
+<script>
+$('#monster-table').DataTable({
+    dom: 'Bfrtip',
+    buttons: [
+        {
+            extend: 'csv',
+            className: 'btn btn-secondary left btn-compare'
+        },
+        {
+            extend: 'excel',
+            className: 'btn btn-secondary left btn-compare'
+        },
+        {
+            extend: 'print',
+            className: 'btn btn-secondary left btn-compare'
+        }
+    ],
+    scrollY: window.innerHeight - 200,
+    scrollX: true,
+    scrollCollapse: true,
+    "order": [[ 10, "desc"]],
+});
+</script>

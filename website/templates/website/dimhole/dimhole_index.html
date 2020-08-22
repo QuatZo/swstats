@@ -3,6 +3,8 @@
 {% block custom_script %}
 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
 	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.21/fh-3.1.7/datatables.min.css"/>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.21/fh-3.1.7/datatables.min.js"></script>
 {% endblock %}
 
 {% block content_title %}
@@ -23,14 +25,14 @@
                         MathJax.typesetPromise();
                     }
                     else if (seconds == 60){
-                        $('#content-ajax-container').html("<h2>Connection timed out.</h2>");
+                        $('#content-ajax-container').html("{% include 'website/error_timeout.html' with task_id=task_id %}");
                     }
                     else{
                         setTimeout(fetchData, 500);
                     }
                 },
                 error: function(xhr) {
-                    $('#content-ajax-container').html("<h2>There was an error while connecting. Please, refresh the page.<br>If error still exists after page refresh, contact <a href='http://reddit.com/u/quatzo'>administrator</a> and give him this: <br><center>{{ task_id }}</center></h2>");
+                    $('#content-ajax-container').html("{% include 'website/error.html' with task_id=task_id %}");
                 }
             });
         }

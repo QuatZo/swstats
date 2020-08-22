@@ -1,7 +1,5 @@
-{% load add_str %}
-{% load add_reverse_str %}
-{% load to_list %}
-{% load get_runes %}
+{% load other %}
+{% load runes %}
 
 {% include "website/decks/deck_table.html" with decks=deck|to_list text="Deck's Info" collapse_id="deck-"|add_str:deck.id collapsed="collapse"%}
 
