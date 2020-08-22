@@ -11,7 +11,7 @@
 
     <div id='view-1' class='row'>
         {% for message in messages %}
-            <div class='col-12 col-md-3 col-lg-2'>
+            <div class='col-12 col-sm-4 col-md-3 col-xl-2'>
                 <div class='card-custom'>
                     {% if message.type == 'rune' %}<a href="{% url 'rune_by_id' arg_id=message.arg %}">
                         {% elif message.type == 'monster' %}<a href="{% url 'monster_by_id' arg_id=message.arg %}">
@@ -29,7 +29,7 @@
         {% endfor %}
     </div>
     <div id='view-2' class='row' style='display: none;'>
-        <div class='col-12 col-md-4'>
+        <div class='col-12 col-md-6 col-lg-4'>
             <div class='card-custom big'>
                 <div class='card-custom-header'>
                     <h5>What’s Summoners War Statistics Web</h5>
@@ -40,7 +40,7 @@
                 </div>
             </div>
         </div>
-        <div class='col-12 col-md-4'>
+        <div class='col-12 col-md-6 col-lg-4'>
             <div class='card-custom big'>
                 <div class='card-custom-header'>
                     <h5>Data Logs Section</h5>
@@ -63,7 +63,7 @@
                 </div>
             </div>
         </div>
-        <div class='col-12 col-md-4'>
+        <div class='col-12 col-md-6 col-lg-4'>
             <div class='card-custom big'>
                 <div class='card-custom-header'>
                     <h5>Personal Section</h5>
@@ -84,7 +84,7 @@
         </div>
     </div>
     <div id='view-3' class='row' style='display: none;'>
-        <div class='col-12 col-md-4'>
+        <div class='col-12 col-md-6 col-lg-4'>
             <div class='card-custom big'>
                 <div class='card-custom-header'>
                     <h5>Data Logs Section</h5>
@@ -95,7 +95,7 @@
                 </div>
             </div>
         </div>
-        <div class='col-12 col-md-4'>
+        <div class='col-12 col-md-6 col-lg-4'>
             <div class='card-custom big'>
                 <div class='card-custom-header'>
                     <h5>Personal Section</h5>
@@ -106,7 +106,7 @@
                 </div>
             </div>
         </div>
-        <div class='col-12 col-md-4'>
+        <div class='col-12 col-md-6 col-lg-4'>
             <div class='card-custom big'>
                 <div class='card-custom-header'>
                     <h5>I don't want my data to be there</h5>

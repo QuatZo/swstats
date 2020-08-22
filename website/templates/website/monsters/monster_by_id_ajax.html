@@ -50,7 +50,7 @@
 		
 		<div class='row'>
 			{% for similar in similar_monsters %}
-				<div class='col-12 col-md-3'>
+				<div class='col-12 col-md-6 col-lg-4 col-xl-3'>
 					{% include 'website/monsters/monster_card_compressed.html' with monster=similar deep=False %}
 				</div>
 			{% endfor %}
@@ -68,7 +68,7 @@
 		
 		<div class='row'>
 			{% for similar in rta_similar %}
-				<div class='col-12 col-md-3'>
+				<div class='col-12 col-md-6 col-lg-4 col-xl-3'>
 					{% include 'website/monsters/monster_card_compressed.html' with monster=similar deep=False %}
 				</div>
 			{% endfor %}

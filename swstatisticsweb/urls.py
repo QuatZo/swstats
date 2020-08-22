@@ -89,7 +89,7 @@ urlpatterns = [
     path('oldreports/', RedirectView.as_view(url='/reports/old'), name='old_reports'), # old link, before Generate Report Update
     path('reports/old/', views.get_old_reports, name='reports_old'),
 
-    ######### NOT IN SIDEBAR MENU
+    ######### NOT IN SIDEBAR MENU, NO DARK MODE, OLD THEME
     # path('homunculus/', views.get_homunculus, name='homunculus'),
     # path('homunculus/<int:base>/', views.get_homunculus_base, name='homunculus_by_base'),
     # path('homunculus/<int:base>/<str:task_id>/', views.get_homunculus_base_ajax, name='homunculus_by_base_ajax'),
@@ -102,6 +102,11 @@ urlpatterns = [
     ######### BOT
     path('bot/monsters/<int:monster_id>', views.bot_get_monster_report, name='bot_get_monster_report'),
     #########
+
+    ##### temp
+    path('temp/rta/', views.new_rta_structure)
+
+    ####
 ]
 
 if settings.DEBUG:

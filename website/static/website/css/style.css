@@ -682,6 +682,7 @@ td{
 
 .tooltip .card-custom{
     margin: 0;
+    min-width: 200px;
 }
 
 .tooltip .width-min-200{

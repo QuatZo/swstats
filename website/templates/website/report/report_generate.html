@@ -47,7 +47,7 @@
             </div>
         </div>
     </div>
-    <div id='view-2' style='display: none;'>
+    <div id='view-2'>
         {% include "website/report/report_monster_table.html" with monsters=monsters hoh=hoh hoh_date=hoh_date fusion=fusion %}
     </div>
     <div id='view-3' style='display: none;'>
@@ -56,3 +56,9 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        $('#view-2').css('display', 'none');
+    });
+</script>

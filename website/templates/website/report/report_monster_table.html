@@ -72,7 +72,7 @@
 </div>
 
 <script>
-$('#monster-table').DataTable( {
+$('#monster-table').DataTable({
     dom: 'Bfrtip',
     buttons: [
         {
@@ -91,5 +91,6 @@ $('#monster-table').DataTable( {
     scrollY: window.innerHeight - 200,
     scrollX: true,
     scrollCollapse: true,
-} );
+    "order": [[ 10, "desc"]],
+});
 </script>
