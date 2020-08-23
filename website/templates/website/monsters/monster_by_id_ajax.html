@@ -161,27 +161,8 @@
         </div>
     </div>    
 </div>
-
+<script src="{% static 'website/js/tooltip.js' %}" />
 <script>
-    function ajaxTooltip(el_id, el_type, tooltip_id, el){
-        var prefix = '#' + el_type + '-'
-        if(!$(prefix + tooltip_id).html().includes('Loading')){
-            return;
-        }
-        var url_mask = "{% url 'object_card' obj_type='a' obj_id=1 %}".replace('a', el_type.toString()).replace('1', el_id.toString());
-        $.ajax({
-            url: url_mask,
-            type: "GET",
-            success: function(response) {
-                $(prefix + tooltip_id).html(response)
-                $(el).attr("data-original-title", response).tooltip('show');
-            },
-            error: function(xhr) {
-                $('#content-ajax-container').html("{% include 'website/error.html' with task_id='' %}");
-            }
-        });
-    }
-
     $(document).ready(function () {
         $('.tip').each(function () {
             $(this).tooltip(

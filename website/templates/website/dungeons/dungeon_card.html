@@ -1,7 +1,7 @@
 {% load static %}
 {% load dungeons %}
 
-<div class="col-12 col-sm-6 col-md-3 rank">
+<div class="col-12 col-sm-6 col-md-4 col-xl-3">
     <div class="card-custom standard">
         <div class="card-header">
             <img class="table-monster-avatar" src={% static 'website/images/dungeons/'|get_dungeon_avatar:dungeon %} />
@@ -17,20 +17,20 @@
             </div>
             <div class="card-custom-body inner {% if stage == "B10" or stage == "B5" and dungeon|dungeon_to_div_id == "rift-of-worlds" or dungeon|is_rift_beast %}show{% else %}collapse{% endif %}" id="dungeon-{{ dungeon|dungeon_to_div_id }}-{{ stage.lower }}" style='min-height: unset; text-align: inherit;' >
                 <div class="row">
-                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"><b>Quantity</b></div>
-                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"> {{ stage_info.quantity|default:"0" }} </div>
+                    <div class="col-6 col-sm-6 col-md-6 col-xl-6"><b>Quantity</b></div>
+                    <div class="col-6 col-sm-6 col-md-6 col-xl-6"> {{ stage_info.quantity|default:"0" }} </div>
                 </div>
                 <div class="row">
-                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"><b>Avg. Time</b></div>
-                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"> {{ stage_info.avg_time|default:"-" }} </div>
+                    <div class="col-6 col-sm-6 col-md-6 col-xl-6"><b>Avg. Time</b></div>
+                    <div class="col-6 col-sm-6 col-md-6 col-xl-6"> {{ stage_info.avg_time|default:"-" }} </div>
                 </div>
                 <div class="row">
-                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"><b>Wins</b></div>
-                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"> {{ stage_info.wins|default:"0" }} </div>
+                    <div class="col-6 col-sm-6 col-md-6 col-xl-6"><b>Wins</b></div>
+                    <div class="col-6 col-sm-6 col-md-6 col-xl-6"> {{ stage_info.wins|default:"0" }} </div>
                 </div>
                 <div class="row">
-                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"><b>Loses</b></div>
-                    <div class="col-6 col-sm-6 col-md-12 col-xl-6"> {{ stage_info.loses|default:"0" }} </div>
+                    <div class="col-6 col-sm-6 col-md-6 col-xl-6"><b>Loses</b></div>
+                    <div class="col-6 col-sm-6 col-md-6 col-xl-6"> {{ stage_info.loses|default:"0" }} </div>
                 </div>
             </div>
         {% endfor %}

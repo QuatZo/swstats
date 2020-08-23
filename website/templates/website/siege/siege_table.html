@@ -29,7 +29,7 @@
                                 {% for monster in monsters %}
                                     {% with monster.id|randomize as rand_mon_id %}
                                         <a href="{% url 'monster_by_id' arg_id=monster.id %}" class="table-monster-href">
-                                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar tip" data-tip="mon-{{ rand_mon_id }}" onmouseenter="ajaxTooltip({{ monster.id }}, 'mon', '{{ rand_mon_id }}', this)" />
+                                            <img src="{% static 'website/images/monsters/'|get_monster_avatar:monster %}" class="table-monster-avatar tip" data-tip="mon-{{ rand_mon_id }}" onmouseenter="ajaxTooltip({{ monster.id }}, 'mon', '{{ rand_mon_id }}', this, '{% url 'object_card' obj_type='mon' obj_id=monster.id %}')" onmouseleave="ajaxTooltipLeave(this)" />
                                         </a>
                                         <div id="mon-{{ rand_mon_id }}" class="tip-content" style='display: none;'>
                                             <div class='card-custom disclaimer'>
@@ -47,8 +47,8 @@
                         </td>
                         <td>
                             {% with record.leader.id|randomize as rand_mon_id %}
-                                <a href="{% url 'monster_by_id' arg_id=rand_mon_id %}">
-                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:record.leader %}" class="table-monster-avatar tip" data-tip="mon-{{ rand_mon_id }}" onmouseenter="ajaxTooltip({{ record.leader.id }}, 'mon', '{{ rand_mon_id }}', this)" />
+                                <a href="{% url 'monster_by_id' arg_id=record.leader.id %}">
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:record.leader %}" class="table-monster-avatar tip" data-tip="mon-{{ rand_mon_id }}" onmouseenter="ajaxTooltip({{ record.leader.id }}, 'mon', '{{ rand_mon_id }}', this, '{% url 'object_card' obj_type='mon' obj_id=record.leader.id %}')" onmouseleave="ajaxTooltipLeave(this)" />
                                 </a>
                                 <div id="mon-{{ rand_mon_id }}" class="tip-content" style='display: none;'>
                                     <div class='card-custom disclaimer'>
@@ -73,39 +73,8 @@
         </tbody>
     </table>
 </div>
+<script src="{% static 'website/js/tooltip.js' %}" />
 <script>
-    function initTableTooltips(){
-        $('.tip').each(function () {
-            $(this).tooltip(
-            {
-                html: true,
-                placement: 'top',
-                title: $('#' + $(this).data('tip')).html(),
-                boundary: "window",
-                container: 'body',
-            });
-        });
-    }
-
-    function ajaxTooltip(el_id, el_type, tooltip_id, el){
-        var prefix = '#' + el_type + '-'
-        if(!$(prefix + tooltip_id).html().includes('Loading')){
-            return;
-        }
-        var url_mask = "{% url 'object_card' obj_type='a' obj_id=1 %}".replace('a', el_type.toString()).replace('1', el_id.toString());
-        $.ajax({
-            url: url_mask,
-            type: "GET",
-            success: function(response) {
-                $(prefix + tooltip_id).html(response)
-                $(el).attr("data-original-title", response).tooltip('show');
-            },
-            error: function(xhr) {
-                $('#content-ajax-container').html("{% include 'website/error.html' with task_id='' %}");
-            }
-        });
-    }
-
     $('#table-siege').DataTable({
         scrollY: window.innerHeight - 200,
         scrollX: true,

@@ -749,19 +749,24 @@ class WizardHomunculus(models.Model):
 
 class DungeonRun(models.Model):
     """Uses 'BattleDungeonResult' command"""
-    DUNGEON_TYPES = (
-        (1001, 'Hall of Dark'),
-        (2001, 'Hall of Fire'),
-        (3001, 'Hall of Water'),
-        (4001, 'Hall of Wind'),
-        (5001, 'Hall of Magic'),
-        (6001, 'Necropolis'),
-        (7001, 'Hall of Light'),
+    DUNGEON_RUNES_TYPES = (
         (8001, 'Giants Keep'),
         (9001, 'Dragons Lair'),
+        (6001, 'Necropolis'),
         (9501, 'Steel Fortress'),
         (9502, 'Punishers Crypt'),
     )
+
+    DUNGEON_ESSENCES_TYPES = (
+        (5001, 'Hall of Magic'),
+        (2001, 'Hall of Fire'),
+        (3001, 'Hall of Water'),
+        (4001, 'Hall of Wind'),
+        (7001, 'Hall of Light'),
+        (1001, 'Hall of Dark'),
+    )
+
+    DUNGEON_TYPES = DUNGEON_RUNES_TYPES + DUNGEON_ESSENCES_TYPES
 
     id = models.BigAutoField(primary_key=True, unique=True, db_index=True)
     wizard = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL, db_index=True, blank=True) # wizard_id, response; if not exists then wizard_info in request
@@ -795,6 +800,14 @@ class DungeonRun(models.Model):
     @classmethod
     def get_all_dungeons(cls):
         return dict(cls.DUNGEON_TYPES).values()
+    
+    @classmethod
+    def get_runes_dungeons(cls):
+        return dict(cls.DUNGEON_RUNES_TYPES).values()
+    
+    @classmethod
+    def get_essences_dungeons(cls):
+        return dict(cls.DUNGEON_ESSENCES_TYPES).values()
 
 class RiftDungeonRun(models.Model):
     """Uses 'BattleRiftDungeonResult' and 'BattleRiftDungeonStart' command"""

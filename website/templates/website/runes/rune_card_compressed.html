@@ -46,7 +46,7 @@
                         {% if mon %}
                             {% with mon.id|randomize as rand_mon_id %}
                                 <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
-                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ rand_mon_id }}"{% endif %} onmouseenter="ajaxTooltip({{ mon.id }}, 'mon', '{{ rand_mon_id }}', this)" />
+                                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ rand_mon_id }}"{% endif %}  onmouseenter="ajaxTooltip({{ mon.id }}, 'mon', '{{ rand_mon_id }}', this, '{% url 'object_card' obj_type='mon' obj_id=mon.id %}')" onmouseleave="ajaxTooltipLeave(this)" />
                                 </a>
                                 {% if not deep %}
                                     <div id="mon-{{ rand_mon_id }}" class="tip-content" style='display: none;'>
@@ -74,7 +74,7 @@
                     {% if mon %}
                         {% with mon.id|randomize as rand_mon_id %}
                             <a href="{% url 'monster_by_id' arg_id=mon.id %}" class="table-monster-href">
-                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ rand_mon_id }}"{% endif %} onmouseenter="ajaxTooltip({{ mon.id }}, 'mon', '{{ rand_mon_id }}', this)" />
+                                <img src="{% static 'website/images/monsters/'|get_monster_avatar:mon %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="mon-{{ rand_mon_id }}"{% endif %} onmouseenter="ajaxTooltip({{ mon.id }}, 'mon', '{{ rand_mon_id }}', this, '{% url 'object_card' obj_type='mon' obj_id=mon.id %}')" onmouseleave="ajaxTooltipLeave(this)" />
                             </a>
                             {% if not deep %}
                                 <div id="mon-{{rand_mon_id }}" class="tip-content" style='display: none;'>

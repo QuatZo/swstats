@@ -257,7 +257,8 @@ def get_siege_records_ajax(request, task_id):
 def get_dungeons(request):
     dungeons = DungeonRun.objects.values('dungeon', 'stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('id')).order_by('dungeon', '-stage', '-win')
     rift_dungeons = RiftDungeonRun.objects.values('dungeon', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('dungeon')).order_by('dungeon', '-win')
-    dungeons_base = DungeonRun().get_all_dungeons()
+    dungeons_base = DungeonRun().get_runes_dungeons()
+    dungeons_essences_base = DungeonRun().get_essences_dungeons()
     rift_dungeons_base = RiftDungeonRun.get_all_dungeons()
     raid_dungeons = RaidDungeonRun.objects.values('stage', 'win').annotate(avg_time=Avg('clear_time')).annotate(quantity=Count('stage')).order_by('-stage')
     raid_dungeon_name = 'Rift of Worlds'
@@ -275,17 +276,6 @@ def get_dungeons(request):
                 'loses': None,
             }
         records[dungeon_base] = stages
-
-    for rift_dungeon_base in rift_dungeons_base:
-        stages = dict()
-        stages["B1"] = {
-            'avg_time': None,
-            'quantity': None,
-            'wins': None,
-            'loses': None,
-        }
-        records[rift_dungeon_base] = stages
-    
     
     raid_max_stage = 5
     stages = dict()
@@ -298,6 +288,28 @@ def get_dungeons(request):
         }
     records[raid_dungeon_name] = stages
 
+    for rift_dungeon_base in rift_dungeons_base:
+        stages = dict()
+        stages["B1"] = {
+            'avg_time': None,
+            'quantity': None,
+            'wins': None,
+            'loses': None,
+        }
+        records[rift_dungeon_base] = stages
+    
+    for dungeon_base in dungeons_essences_base:
+        stages = dict()
+        max_stage = 12 if DungeonRun().get_dungeon_id(dungeon_base) in [6001, 8001, 9001] else 10
+        for i in range(max_stage, 0, -1):
+            stages["B" + str(i)] = {
+                'avg_time': None,
+                'quantity': None,
+                'wins': None,
+                'loses': None,
+            }
+        records[dungeon_base] = stages
+    
     for dungeon in dungeons:
         dungeon_name = DungeonRun().get_dungeon_name(dungeon['dungeon'])
         if not dungeon_name:

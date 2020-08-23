@@ -71,7 +71,7 @@
                         {% for rune in monster.runes.all %}
                             {% with rune.id|randomize as rand_rune_id %}
                                 <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
-                                    <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }} {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="rune-{{ rand_rune_id }}"{% endif %} onmouseenter="ajaxTooltip({{ rune.id }}, 'rune', '{{ rand_rune_id }}', this)" >
+                                    <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }} {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="rune-{{ rand_rune_id }}"{% endif %} onmouseenter="ajaxTooltip({{ rune.id }}, 'rune', '{{ rand_rune_id }}', this, '{% url 'object_card' obj_type='rune' obj_id=rune.id %}')" onmouseleave="ajaxTooltipLeave(this)" >
                                         <div class="{{ "rune-slot"|add_str:rune.slot }}">
                                             <div class="rune">
                                                 <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
@@ -118,9 +118,9 @@
                             {% with artifact.id|randomize as rand_artifact_id %}
                                 <a href="{% url 'artifact_by_id' arg_id=artifact.id %}">
                                     {% if artifact.rtype == 1 %}
-                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this)" >
+                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this, '{% url 'object_card' obj_type='artifact' obj_id=artifact.id %}')" onmouseleave="ajaxTooltipLeave(this)" />
                                     {% else %}
-                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this)" >
+                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this, '{% url 'object_card' obj_type='artifact' obj_id=artifact.id %}')" onmouseleave="ajaxTooltipLeave(this)" />
                                     {% endif %}
                                 </a>
                                 {% if not deep %}
@@ -149,7 +149,7 @@
                         {% for rune in monster.runes_rta.all %}
                             {% with rune.id|randomize as rand_rune_id %}
                                 <a href="{% url 'rune_by_id' arg_id=rune.id %}" style="text-decoration: none;">
-                                    <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }} {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="rune-{{ rand_rune_id }}"{% endif %} onmouseenter="ajaxTooltip({{ rune.id }}, 'rune', '{{ rand_rune_id }}', this)" >
+                                    <div class="{{"rune-background "|add_str:rune.get_quality_display|ancient_to_normal }} {{ "rune-border-"|add_str:rune.get_quality_original_display|ancient_to_normal }} {% if not deep %}tip{% endif %}" {% if not deep %}data-tip="rune-{{ rand_rune_id }}"{% endif %}  onmouseenter="ajaxTooltip({{ rune.id }}, 'rune', '{{ rand_rune_id }}', this, '{% url 'object_card' obj_type='rune' obj_id=rune.id %}')" onmouseleave="ajaxTooltipLeave(this)" >
                                         <div class="{{ "rune-slot"|add_str:rune.slot }}">
                                             <div class="rune">
                                                 <img src="{% static 'website/images/runes/'|add_str:rune.rune_set|lower|add_str:".png" %}" />
@@ -197,9 +197,9 @@
                             {% with artifact.id|randomize as rand_artifact_id %}
                                 <a href="{% url 'artifact_by_id' arg_id=artifact.id %}">
                                     {% if artifact.rtype == 1 %}
-                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this)" >
+                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_attribute_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this, '{% url 'object_card' obj_type='artifact' obj_id=artifact.id %}')" onmouseleave="ajaxTooltipLeave(this)" />
                                     {% else %}
-                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this)" >
+                                        <img src="{% static 'website/images/artifacts/artifact_'|add_str:artifact.get_archetype_display|lower|add_str:".png" %}" class="table-monster-avatar-min {% if not deep %}tip{% endif %}" data-tip="artifact-{{ rand_artifact_id }}" onmouseenter="ajaxTooltip({{ artifact.id }}, 'artifact', '{{ rand_artifact_id }}', this, '{% url 'object_card' obj_type='artifact' obj_id=artifact.id %}')" onmouseleave="ajaxTooltipLeave(this)" />
                                     {% endif %}
                                 </a>
                                 {% if not deep %}
