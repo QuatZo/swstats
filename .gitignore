@@ -149,4 +149,4 @@ website/bot
 celerybeat*
 
 # static files
-static/
+static/*
