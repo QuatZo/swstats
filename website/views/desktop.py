@@ -325,6 +325,9 @@ class DesktopUploadViewSet(viewsets.ViewSet):
             if defenses:
                 defense_1 = len(defenses[0])
                 defense_2 = len(defenses[1])
+            else:
+                defense_1 = 0
+                defense_2 = 0
 
             last_login =  datetime.datetime.utcfromtimestamp(member['last_login_timestamp'])
             members.append({
