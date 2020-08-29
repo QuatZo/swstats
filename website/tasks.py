@@ -80,10 +80,20 @@ def handle_profile_upload_task(data):
         wizard = parse_wizard(temp_wizard, data['tvalue'])
         try:
             wizard['antibot_count'] = data['quiz_reward_info']['reward_count']
+        except KeyError:
+            logger.info("[Wizard]: No info about anti bot feature")
+
+        try:
             wizard['raid_level'] = data['raid_info_list'][0]['available_stage_id']
+        except KeyError:
+            logger.info("[Wizard]: No info about Raid Level feature")
+        except IndexError:
+            logger.info("[Wizard]: No info about Raid Level feature")
+
+        try:
             wizard['storage_capacity'] = data['unit_depository_slots']['number']
         except KeyError:
-            logger.info("[Wizard]: No info about anti bot feature, raid level nor storage capacity")
+            logger.info("[Wizard]: No info about storage capacity feature")
         
         if profile_guild:
             wizard_guilds = Guild.objects.filter(id=data['guild']['guild_info']['guild_id'])

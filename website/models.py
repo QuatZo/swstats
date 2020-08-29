@@ -727,7 +727,7 @@ class HomunculusBuild(models.Model):
         return '-'.join([ self.depth_1.letter, self.depth_2.letter, self.depth_3.letter, self.depth_4.letter, self.depth_5.letter ])
 
     def get_build_str(self):
-        return __str__(self)
+        return self.__str__()
     
     class Meta:
         ordering = [ 'id' ]
