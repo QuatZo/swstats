@@ -1,4 +1,4 @@
-Lushen				v
+Lushen				v				1676 / 2500
 Galleon				v
 Verdehile			v
 Fran				v
@@ -27,6 +27,19 @@ Kro (2A)			v
 Orion				v
 Feng Yan			v
 Baleygr				v
-Verad				499
-Seara				487
+Verad				v
+Seara				601
 Maruna				v
+Xiao Lin			464
+Zaiross				511
+Aegir				449
+Bulldozer			497
+Woosa				508
+Katarina			451
+Racuni				436
+Velajuel			462
+Copper				468
+Eirgar				413
+Leo					492
+Miho (2A)			480
+Elsharion			389
