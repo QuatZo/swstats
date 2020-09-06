@@ -14,6 +14,7 @@ class Command(models.Model):
     name = models.CharField(max_length=128)
     message_type = models.IntegerField(choices=COMMAND_TYPES)
 
+
 class Guild(models.Model):
     GUILD_RANKS = (
         (1011, 'Challenger'),
@@ -86,6 +87,7 @@ class Guild(models.Model):
     def get_siege_ranks(cls):
         return dict(cls.SIEGE_RANKS)
 
+
 class Wizard(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True, db_index=True) # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
     mana = models.BigIntegerField(blank=True, null=True, default=None) # wizard_mana
@@ -112,6 +114,7 @@ class Wizard(models.Model):
     def __str__(self):
         return str(self.id)
 
+
 class RuneSet(models.Model):
     id = models.IntegerField(primary_key=True, unique=True, db_index=True)
     name = models.CharField(max_length=30, db_index=True)
@@ -122,6 +125,7 @@ class RuneSet(models.Model):
 
     class Meta:
         ordering = ['name']
+
 
 class Rune(models.Model):
     RUNE_QUALITIES = (
@@ -206,6 +210,12 @@ class Rune(models.Model):
     def __str__(self):
         return str(self.get_quality_display()) + ' ' + str(self.rune_set) + ' ' + str(self.get_primary_display()) + str(self.primary_value) + ' (slot: ' + str(self.slot) + ', eff: ' + str(self.efficiency) + ')'
 
+    def get_stars_display(self):
+        return self.stars % 10
+    
+    def is_ancient(self):
+        return self.stars > 10
+
     class Meta:
         ordering = ['slot', 'rune_set', '-efficiency', '-stars']
 
@@ -239,7 +249,8 @@ class Rune(models.Model):
     @classmethod
     def get_rune_qualities(cls):
         return list(dict(cls.RUNE_QUALITIES).values())
-    
+
+
 class Artifact(models.Model):
     ARTIFACT_QUALITIES = (
         (0, 'Unknown'),
@@ -358,6 +369,10 @@ class Artifact(models.Model):
             effects = dict(self.ARTIFACT_EFFECTS_ARCHETYPE)
         return effects[substat]
 
+    def get_substats_display(self):
+        substats_dict = dict(self.ARTIFACT_EFFECTS_ALL)
+        return [substats_dict[sub_key] for sub_key in self.substats]
+
     def __str__(self):
         if self.rtype == 1:
             return str(self.get_attribute_display()) + ' ' + str(self.get_primary_display()) + str(self.primary_value) + ' (eff: ' + str(self.efficiency) + ')'
@@ -425,6 +440,10 @@ class Artifact(models.Model):
         return list(dict(cls.ARTIFACT_QUALITIES).values())
     
     @classmethod
+    def get_artifact_types(cls):
+        return list(dict(cls.ARTIFACT_TYPES).values())
+
+    @classmethod
     def get_artifact_archetypes(cls):
         return list(dict(cls.ARTIFACT_ARCHETYPES).values())
     
@@ -436,6 +455,7 @@ class Artifact(models.Model):
     def get_artifact_main_stats(cls):
         return list(dict(cls.ARTIFACT_PRIMARY_EFFECTS).values())
 
+
 class MonsterFamily(models.Model):
     id = models.IntegerField(primary_key=True, unique=True, db_index=True) # unit_master_id, first 3 characters
     name = models.CharField(max_length=30, db_index=True) # mapping
@@ -445,6 +465,7 @@ class MonsterFamily(models.Model):
 
     class Meta:
         ordering = ['name']
+
 
 class MonsterBase(models.Model):
     MONSTER_ATTRIBUTES = [
@@ -500,6 +521,12 @@ class MonsterBase(models.Model):
         return dict(cls.MONSTER_AWAKEN)
 
     @classmethod
+    def get_awaken_id(cls, name):
+        for key, awaken in dict(cls.MONSTER_AWAKEN).items():
+            if awaken == name:
+                return key
+
+    @classmethod
     def get_attribute_id(cls, name):
         for key, attribute in dict(cls.MONSTER_ATTRIBUTES).items():
             if attribute == name:
@@ -519,6 +546,7 @@ class MonsterBase(models.Model):
     def get_monster_archetypes(cls):
         return list(dict(cls.MONSTER_TYPES).values())
 
+
 class MonsterHoh(models.Model):
     monster = models.ForeignKey(MonsterBase, on_delete=models.PROTECT, db_index=True)
     date_open = models.DateField()
@@ -530,6 +558,7 @@ class MonsterHoh(models.Model):
     class Meta:
         ordering = ['date_open', 'monster']
 
+
 class MonsterFusion(models.Model):
     monster = models.ForeignKey(MonsterBase, on_delete=models.PROTECT, db_index=True)
     cost = models.IntegerField()
@@ -539,6 +568,7 @@ class MonsterFusion(models.Model):
 
     class Meta:
         ordering = ['monster']
+
 
 class MonsterSource(models.Model):
     id = models.IntegerField(primary_key=True, unique=True, db_index=True)
@@ -550,6 +580,7 @@ class MonsterSource(models.Model):
 
     class Meta:
         ordering = ['name']
+
 
 class Monster(models.Model):
     id = models.BigIntegerField(primary_key=True, unique=True, db_index=True) # unit_id
@@ -592,9 +623,11 @@ class Monster(models.Model):
     class Meta:
         ordering = ['-stars', '-level', 'base_monster']
 
+
 class MonsterRep(models.Model):
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True) # wizard_info
     monster = models.ForeignKey(Monster, on_delete=models.CASCADE, db_index=True) # rep_unit_id in profile JSON - wizard_info part
+
 
 class Deck(models.Model):
     DECK_TYPES = [
@@ -631,6 +664,7 @@ class Deck(models.Model):
             if place == name:
                 return key
 
+
 class Building(models.Model):
     AREA_TYPE = (
         (0, 'Arena'),
@@ -653,6 +687,7 @@ class Building(models.Model):
     class Meta:
         ordering = ['area', 'name']
 
+
 class WizardBuilding(models.Model):
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True)
     building = models.ForeignKey(Building, on_delete=models.CASCADE, db_index=True)
@@ -663,6 +698,7 @@ class WizardBuilding(models.Model):
 
     class Meta:
         ordering = ['wizard', '-level', 'building']
+
 
 class Arena(models.Model):
     ARENA_RANKS = (
@@ -702,6 +738,7 @@ class Arena(models.Model):
     class Meta:
         ordering = ['-rank', '-wins', 'loses']
 
+
 class HomunculusSkill(models.Model):
     id = models.IntegerField(primary_key=True, unique=True, db_index=True) # id
     name = models.CharField(max_length=50, db_index=True)  # name
@@ -714,6 +751,7 @@ class HomunculusSkill(models.Model):
 
     class Meta:
         ordering = ['depth', 'id']
+
 
 class HomunculusBuild(models.Model):
     homunculus = models.ForeignKey(MonsterBase, on_delete=models.CASCADE, db_index=True)
@@ -732,6 +770,7 @@ class HomunculusBuild(models.Model):
     class Meta:
         ordering = [ 'id' ]
 
+
 class WizardHomunculus(models.Model):
     homunculus = models.ForeignKey(Monster, on_delete=models.CASCADE, db_index=True) # homunculus_skill_list[el].unit_id
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True) # homunculus_skill_list[el].unit_id
@@ -746,6 +785,7 @@ class WizardHomunculus(models.Model):
 
     class Meta:
         ordering = ['wizard', 'homunculus']
+
 
 class DungeonRun(models.Model):
     """Uses 'BattleDungeonResult' command"""
@@ -808,6 +848,7 @@ class DungeonRun(models.Model):
     @classmethod
     def get_essences_dungeons(cls):
         return dict(cls.DUNGEON_ESSENCES_TYPES).values()
+
 
 class RiftDungeonRun(models.Model):
     """Uses 'BattleRiftDungeonResult' and 'BattleRiftDungeonStart' command"""
@@ -884,6 +925,7 @@ class RiftDungeonRun(models.Model):
     def get_rating_name(cls, id):
         return dict(cls.CLEAR_RATINGS)[id]
 
+
 class RaidDungeonRun(models.Model):
     battle_key = models.BigAutoField(primary_key=True, unique=True, db_index=True)
     wizard = models.ForeignKey(Wizard, null=True, on_delete=models.SET_NULL, db_index=True, blank=True) # wizard_id, response; if not exists then wizard_info in request
@@ -907,6 +949,7 @@ class RaidDungeonRun(models.Model):
     
     class Meta:
         ordering = ['-stage', '-clear_time', '-win']
+
 
 class SiegeRecord(models.Model):
     # id - response; defense_deck_list; deck_id
@@ -932,6 +975,7 @@ class SiegeRecord(models.Model):
 
     class Meta:
         ordering = ['-win', '-ratio']
+
 
 class DimensionHoleRun(models.Model):
     DIM_HOLE_TYPES = (

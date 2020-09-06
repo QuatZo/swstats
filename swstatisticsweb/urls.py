@@ -21,11 +21,33 @@ from website import views
 from rest_framework import routers, serializers, viewsets
 from django.views.generic.base import TemplateView, RedirectView
 
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="SWStats Public API",
+      default_version='v0.1',
+      description="Summoners War Statistics Web Public API",
+      contact=openapi.Contact(email="quatzo97@gmail.com"),
+      license=openapi.License(name="Apache 2.0"),
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
+
 router = routers.DefaultRouter()
 router.register(r'upload', views.UploadViewSet, 'upload')
 router.register(r'command', views.CommandViewSet, 'command')
 router.register(r'desktopupload', views.DesktopUploadViewSet, 'desktopupload')
 router.register(r'reportgenerator', views.ReportGeneratorViewSet, 'reportgenerator')
+
+# PUBLIC API
+router.register(r'monsters', views.MonsterViewSet, 'monsters')
+router.register(r'runes', views.RuneViewSet, 'runes')
+router.register(r'artifacts', views.ArtifactViewSet, 'artifacts')
 
 if settings.DEBUG: # upload theoritically CONST data only if DEBUG mode is enabled ( i.e. when in need to update whole Database )
     router.register(r'monsterfamilyupload', views.MonsterFamilyUploadViewSet, 'monsterfamilyupload')
@@ -88,6 +110,10 @@ urlpatterns = [
     path('reports/generate/', views.get_report, name='reports_generate'),
     path('oldreports/', RedirectView.as_view(url='/reports/old'), name='old_reports'), # old link, before Generate Report Update
     path('reports/old/', views.get_old_reports, name='reports_old'),
+
+   url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+   url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+   url(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
     ######### NOT IN SIDEBAR MENU, NO DARK MODE, OLD THEME
     # path('homunculus/', views.get_homunculus, name='homunculus'),

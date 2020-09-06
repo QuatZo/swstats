@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'website',
-    # 'cachalot', # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
