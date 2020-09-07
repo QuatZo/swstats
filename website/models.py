@@ -982,6 +982,7 @@ class DimensionHoleRun(models.Model):
         (1101, 'Ellunia'),
         (1201, 'Fairy (Ellunia)'),
         (1202, 'Pixie (Ellunia)'),
+        (1301, 'Predator (Ellunia'),
 
         (2101, 'Karzhan'),
         (2201, 'Warbear (Karzhan)'),
@@ -992,6 +993,7 @@ class DimensionHoleRun(models.Model):
         (3101, 'Lumel'),
         (3201, 'Werewolf (Lumel)'),
         (3202, 'Martial Cat (Lumel)'),
+        (3301, 'Predator (Lumel)'),
     )
 
     # id - request; battle_key
