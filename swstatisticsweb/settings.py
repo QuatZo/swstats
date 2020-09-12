@@ -182,23 +182,9 @@ LOGGING = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = None # ALL
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None # ALL
 
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/1",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient"
-#         },
-#         "KEY_PREFIX": "website"
-#     }
-# }
-
-# CACHE_TTL = 60 * 30 # 30 minutes cache # to check how it works with only Celery, Redis & AJAX without Redis 30min caching
-
 CELERY_BEAT_SCHEDULE = {
     'bot-report-generate': {
        'task': 'website.tasks.generate_bot_reports',
        'schedule': crontab(hour=0, minute=0),
-       # 'schedule': crontab(minute='*/5'),
     }, 
 }

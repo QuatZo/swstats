@@ -23,7 +23,7 @@ from website.templatetags.runes import get_sets
 
 # HELPFUL FUNCTIONS
 def get_monster_info(base_monster):
-    monsters = Monster.objects.filter(base_monster=base_monster).prefetch_related('runes')
+    monsters = Monster.objects.filter(base_monster=base_monster).prefetch_related('runes', 'runes__rune_set', )
     runes = list()
     for monster in monsters:
         monster_runes = [ None, None, None, None, None, None ]
