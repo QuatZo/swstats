@@ -13,3 +13,7 @@ def parse_artifact_substats_to_table(substats, substats_values):
         })
         
     return sub_texts
+
+@register.filter
+def parse_artifact_substats_to_cell(substats, substats_values):
+    return ', '.join([Artifact().get_artifact_substat(sub).replace('%', f'{sub_val}%') for sub, sub_val in zip(substats, substats_values)])

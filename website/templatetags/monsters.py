@@ -95,3 +95,11 @@ def check_skillups(monster):
             break
         
     return skilled_up
+
+@register.filter
+def get_monster_runes_sorted(monster, monsters_runes):
+    return monsters_runes[monster.id]
+
+@register.filter
+def get_monster_artifacts_sorted(monster, monsters_artifacts):
+    return monsters_artifacts[monster.id]

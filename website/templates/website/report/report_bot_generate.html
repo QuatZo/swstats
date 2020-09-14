@@ -8,8 +8,11 @@
     {% if most_common_builds != 'No information given' %}
         <meta name="description" content="{{ base_monster.name }} popular runes {{ most_common_builds }}
             {{ top_sets.0.message }}
-            {{ top_sets.1.message }}
-            {{ top_sets.2.message }}">
+            {{ top_sets.1.message }}{% if not artifact_best.element or not artifact_best.archetype %}
+		    {{ top_sets.2.message }}{% endif %}
+            {% if artifact_best.element %}Artifact Element top: {{ artifact_best.element }}{% endif %}
+            {% if artifact_best.element %}Artifact Archetype top: {{ artifact_best.archetype }}{% endif %}
+        ">
     {% else %}
         <meta name="description" content="No information given about {{ base_monster.name }}">
     {% endif %}
@@ -90,6 +93,16 @@
             </div>
             <div class='plots-main-right border'>
                 {{ plot_builds|safe }}
+            </div>
+        </div>
+    {% endif %}
+    {% if plot_artifacts_element_main and plot_artifacts_archetype_main %}
+        <div class='plots-main'>
+            <div class='plots-main-left border'>
+                {{ plot_artifacts_element_main|safe }}
+            </div>
+            <div class='plots-main-right border'>
+                {{ plot_artifacts_archetype_main|safe }}
             </div>
         </div>
     {% endif %}

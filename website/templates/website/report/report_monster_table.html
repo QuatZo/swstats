@@ -2,6 +2,7 @@
 {% load monsters %}
 {% load other %}
 {% load runes %}
+{% load artifacts %}
 
 <div class='comparison-table'>
     <table class="table table-dark table-striped table-bordered table-hover table-sm" id='monster-table' style='width: 100%;'>
@@ -28,6 +29,10 @@
                 <th scope="col">Slot4</th>
                 <th scope="col">Slot5</th>
                 <th scope="col">Slot6</th>
+                <th scope="col">Artifact Element</th>
+                <th scope="col">Artifact Element Substats</th>
+                <th scope="col">Artifact Type</th>
+                <th scope="col">Artifact Type Substats</th>
             </tr>
         </thead>
         <tbody>
@@ -58,12 +63,16 @@
                     </td>
                     <td>{{ monster.skills }}</td>
                     <td>{{ monster.created|international_date }}</td>
-                    {% for monster_runes in monsters_runes %}
-                        {% if monster_runes.monster == monster %}
-                            {% for rune in monster_runes.runes %}
-                                <td>{{ rune.get_primary_display }}</td>
-                            {% endfor %}
-                        {% endif %}
+                    {% for rune in monster|get_monster_runes_sorted:monsters_runes %}
+                        <td>{{ rune.get_primary_display }}</td>
+                    {% endfor %}
+                    {% for artifact in monster|get_monster_artifacts_sorted:monsters_artifacts %}
+                        <td>{{ artifact.get_primary_display }}</td>
+                        <td>
+                            {% if artifact %}
+                                {{ artifact.substats|parse_artifact_substats_to_cell:artifact.substats_values }}
+                            {% endif %}
+                        </td>
                     {% endfor %}
                 </tr>
             {% endfor %}
