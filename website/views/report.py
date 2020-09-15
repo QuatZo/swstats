@@ -245,7 +245,7 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     #################################################
 
     if not df.shape[0]:  # no builds with runes
-        return plots, no_records, None, None, top_sets
+        return plots, no_records, None, None, top_sets, None, None, None
 
     #################################################
     # SKILL-UPS DISTRIBUTION
@@ -399,7 +399,7 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     builds_count = sorted(builds_count_final,
                           key=lambda k: k['count'], reverse=True)
     builds_count = {k: [dic[k] for dic in builds_count]
-                    for k in builds_count[0]}
+                    for k in builds_count[0]} if builds_count else {'build': [], 'count': []}
     colors = create_rgb_colors(len(builds_count['build']), True)
 
     plot_builds = create_bar_plot(builds_count['build'],  builds_count['count'],
@@ -415,36 +415,40 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
 
     #################################################
     # ARTIFACTS
+    plot_artifacts_element_main = None
+    plot_artifacts_archetype_main = None
     artifact_best = { 'element': None, 'archetype': None, }
     df_artifacts_element_main = df['artifact element'].copy().value_counts()
     df_artifacts_element_substats = df['artifact element substats'].copy().dropna()
     df_artifacts_element_substats = pd.Series(list(chain.from_iterable(df_artifacts_element_substats))).value_counts()
-    artifact_best['element'] = Artifact().get_artifact_substat(df_artifacts_element_substats.index[0])
-    df_artifacts_element_substats = df_artifacts_element_substats[df_artifacts_element_substats > 5]
-    df_artifacts_element_substats = pd.DataFrame(df_artifacts_element_substats, columns=['count']).reset_index()
-    df_artifacts_element_substats['index'] = df_artifacts_element_substats['index'].apply(Artifact().get_artifact_substat)
-    df_artifacts_element_substats = df_artifacts_element_substats.to_dict(orient='list')
+    if df_artifacts_element_substats.shape[0]:
+        artifact_best['element'] = Artifact().get_artifact_substat(df_artifacts_element_substats.index[0])
+        df_artifacts_element_substats = df_artifacts_element_substats[df_artifacts_element_substats > 5]
+        df_artifacts_element_substats = pd.DataFrame(df_artifacts_element_substats, columns=['count']).reset_index()
+        df_artifacts_element_substats['index'] = df_artifacts_element_substats['index'].apply(Artifact().get_artifact_substat)
+        df_artifacts_element_substats = df_artifacts_element_substats.to_dict(orient='list')
+        
+        colors = create_rgb_colors(len(df_artifacts_element_substats['index']), True)
+        plot_artifacts_element_main = create_pie_plot(df_artifacts_element_main.index, df_artifacts_element_main, "Artifact Element Main Stat", None, bot)
+        if not bot:
+            plots.append(plot_artifacts_element_main)
+        plots.append(create_horizontal_bar_plot(df_artifacts_element_substats['count'], df_artifacts_element_substats['index'], "Artifact Element Substat Distribution<br>(only 6* with equipped runes)", colors, bot))
 
     df_artifacts_archetype_main = df['artifact type'].copy().value_counts()
     df_artifacts_archetype_substats = df['artifact type substats'].copy().dropna()
     df_artifacts_archetype_substats = pd.Series(list(chain.from_iterable(df_artifacts_archetype_substats))).value_counts()
-    artifact_best['archetype'] = Artifact().get_artifact_substat(df_artifacts_archetype_substats.index[0])
-    df_artifacts_archetype_substats = df_artifacts_archetype_substats[df_artifacts_archetype_substats > 5]
-    df_artifacts_archetype_substats = pd.DataFrame(df_artifacts_archetype_substats, columns=['count']).reset_index()
-    df_artifacts_archetype_substats['index'] = df_artifacts_archetype_substats['index'].apply(Artifact().get_artifact_substat)
-    df_artifacts_archetype_substats = df_artifacts_archetype_substats.to_dict(orient='list')
+    if df_artifacts_archetype_substats.shape[0]:
+        artifact_best['archetype'] = Artifact().get_artifact_substat(df_artifacts_archetype_substats.index[0])
+        df_artifacts_archetype_substats = df_artifacts_archetype_substats[df_artifacts_archetype_substats > 5]
+        df_artifacts_archetype_substats = pd.DataFrame(df_artifacts_archetype_substats, columns=['count']).reset_index()
+        df_artifacts_archetype_substats['index'] = df_artifacts_archetype_substats['index'].apply(Artifact().get_artifact_substat)
+        df_artifacts_archetype_substats = df_artifacts_archetype_substats.to_dict(orient='list')
 
-    colors = create_rgb_colors(len(df_artifacts_element_substats['index']), True)
-    plot_artifacts_element_main = create_pie_plot(df_artifacts_element_main.index, df_artifacts_element_main, "Artifact Element Main Stat", None, bot)
-    if not bot:
-        plots.append(plot_artifacts_element_main)
-    plots.append(create_horizontal_bar_plot(df_artifacts_element_substats['count'], df_artifacts_element_substats['index'], "Artifact Element Substat Distribution<br>(only 6* with equipped runes)", colors, bot))
-
-    colors = create_rgb_colors(len(df_artifacts_archetype_substats['index']), True)
-    plot_artifacts_archetype_main = create_pie_plot(df_artifacts_archetype_main.index, df_artifacts_archetype_main, "Artifact Archetype Main Stat", None, bot)
-    if not bot:
-        plots.append(plot_artifacts_archetype_main)
-    plots.append(create_horizontal_bar_plot(df_artifacts_archetype_substats['count'], df_artifacts_archetype_substats['index'], "Artifact Archetype Substat Distribution<br>(only 6* with equipped runes)", colors, bot))
+        colors = create_rgb_colors(len(df_artifacts_archetype_substats['index']), True)
+        plot_artifacts_archetype_main = create_pie_plot(df_artifacts_archetype_main.index, df_artifacts_archetype_main, "Artifact Archetype Main Stat", None, bot)
+        if not bot:
+            plots.append(plot_artifacts_archetype_main)
+        plots.append(create_horizontal_bar_plot(df_artifacts_archetype_substats['count'], df_artifacts_archetype_substats['index'], "Artifact Archetype Substat Distribution<br>(only 6* with equipped runes)", colors, bot))
     #################################################
 
     plots.append(eff_hp_plot)
@@ -539,14 +543,16 @@ def create_monster_report_by_bot(monster_id):
         base_monster)
 
     try:
-        plots, most_common_builds, plot_sets, plot_builds, top_sets, plot_artifact_element_main, plot_artifact_archetype_main, artifact_best = generate_plots(
-            monsters, monsters_runes, base_monster, monsters_artifacts, True)
+        plots, most_common_builds, plot_sets, plot_builds, top_sets, plot_artifact_element_main, plot_artifact_archetype_main, artifact_best = generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, True)
     except KeyError as e:  # no results
         plots = None
         most_common_builds = 'No information given'
         plot_sets = None
         plot_builds = None
         top_sets = None
+        plot_artifact_element_main = None
+        plot_artifact_archetype_main = None
+        artifact_best = None
 
     context = {
         'base_monster': base_monster,
