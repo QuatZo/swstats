@@ -12,6 +12,7 @@ import pickle
 import time
 import itertools
 import math
+import numpy as np
 from operator import itemgetter
 
 logger = logging.getLogger(__name__)
@@ -1142,21 +1143,19 @@ def get_dungeon_by_stage_task(request_get, name, stage):
 
     dungeon_runs = dungeon_runs.prefetch_related('monsters')
     
-    comps = list()
-    for _, group in itertools.groupby(list(dungeon_runs.values('id', 'dungeon', 'monsters__id')), lambda item: item["id"]):
-        results = [mon['monsters__id'] for mon in group if mon['monsters__id']]
-        if not len(results):
-            continue
-        results.sort()
-        if results and results not in comps and len(results) == 5:
-            comps.append(results)    
+    cols = ['id', 'dungeon', 'stage', 'win', 'clear_time', 'monsters']
+    df = pd.DataFrame(dungeon_runs.values_list(*cols), columns=cols)
+    df_groups = df.groupby('id')
+    df = df.drop_duplicates(subset=['id']).drop(['monsters'], axis=1)
 
-    try:
-        fastest_run = dungeon_runs_clear.order_by('clear_time').first().clear_time.total_seconds()
-    except AttributeError:
-        fastest_run = None
+    for _, df_group in df_groups:
+        mons = df_group['monsters'].tolist()
+        mons.sort()
+        for i, mon in enumerate(mons):
+            df.at[df_group.index[0], f'monster_{i + 1}'] = mon
 
-    records_personal = sorted(get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse = True)
+    records_personal = sorted(get_dungeon_runs_by_comp(df, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse = True)
+    
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs_clear)
 
     context = {
@@ -1396,20 +1395,21 @@ def get_dimension_hole_task(request_get):
 
     runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
     avg_time = dungeon_runs_clear.aggregate(avg_time=Avg('clear_time'))['avg_time']
-
-    comps = list()
-    for _, group in itertools.groupby(list(dungeon_runs.values('id', 'monsters__id')), lambda item: item["id"]):
-        mons = [mon['monsters__id'] for mon in group if mon['monsters__id']]
-        mons.sort()
-        if mons and mons not in comps and len(mons) == 4:
-            comps.append(mons)   
-
-    try:
-        fastest_run = dungeon_runs_clear.first().clear_time.total_seconds()
-    except AttributeError:
-        fastest_run = None
     
-    records_personal = sorted(get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse = True)
+    dungeon_runs = dungeon_runs.prefetch_related('monsters')
+
+    cols = ['id', 'dungeon', 'stage', 'win', 'clear_time', 'monsters']
+    df = pd.DataFrame(dungeon_runs.values_list(*cols), columns=cols)
+    df_groups = df.groupby('id')
+    df = df.drop_duplicates(subset=['id']).drop(['monsters'], axis=1)
+
+    for _, df_group in df_groups:
+        mons = df_group['monsters'].tolist()
+        mons.sort()
+        for i, mon in enumerate(mons):
+            df.at[df_group.index[0], f'monster_{i + 1}'] = mon
+
+    records_personal = sorted(get_dimhole_runs_by_comp(df, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse = True)
 
     dungeon_runs = dungeon_runs_clear # exclude failed runs
 

@@ -50,10 +50,20 @@ def handle_www_profile_upload_ajax(request, task_id):
         if data.ready():
             context = data.get()
 
-            for mon in context['comparison']['monsters']:
-                mon['obj'] = Monster.objects.get(id=mon['id'])
-            for rune in context['comparison']['runes']:
-                rune['obj'] = Rune.objects.get(id=rune['id'])
+            mons = Monster.objects.filter(id__in=[mon['id'] for mon in context['comparison']['monsters']]).prefetch_related('base_monster')
+            runes = Rune.objects.filter(id__in=[rune['id'] for rune in context['comparison']['runes']]).prefetch_related('rune_set')
+
+            for mon in mons:
+                for m in context['comparison']['monsters']:
+                    if m['id'] == mon.id:
+                        m['obj'] = mon
+                        break
+            
+            for rune in runes:
+                for r in context['comparison']['runes']:
+                    if r['id'] == rune.id:
+                        r['obj'] = rune
+                        break
 
             html = render_to_string('website/upload/upload_ranking.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -72,8 +82,8 @@ def get_runes_ajax(request, task_id):
         if data.ready():
             context = data.get()
 
-            context['best_runes'] = Rune.objects.filter(id__in=context['best_runes_ids']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster').order_by('-efficiency')
-            context['fastest_runes'] = Rune.objects.filter(id__in=context['fastest_runes_ids']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster').order_by('-sub_speed')
+            context['best_runes'] = Rune.objects.filter(id__in=context['best_runes_ids']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes_rta', 'equipped_runes_rta__base_monster').order_by('-efficiency')
+            context['fastest_runes'] = Rune.objects.filter(id__in=context['fastest_runes_ids']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes_rta', 'equipped_runes_rta__base_monster').order_by('-sub_speed')
 
             html = render_to_string('website/runes/rune_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -93,9 +103,9 @@ def get_rune_by_id_ajax(request, task_id, arg_id):
         if data.ready():
             context = data.get()
 
-            context['rune'] = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set' ), id=arg_id)
+            context['rune'] = get_object_or_404(Rune.objects.prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes__runes', 'equipped_runes__runes__rune_set', 'equipped_runes_rta', 'equipped_runes_rta__base_monster' ), id=arg_id)
             context['rta_monster'] = context['rune'].equipped_runes_rta.first()
-            context['similar_runes'] = Rune.objects.filter(id__in=context['similar_ids']).order_by('-efficiency').prefetch_related('equipped_runes', 'equipped_runes__base_monster', 'rune_set')
+            context['similar_runes'] = Rune.objects.filter(id__in=context['similar_ids']).prefetch_related('rune_set', 'equipped_runes', 'equipped_runes__base_monster', 'equipped_runes_rta', 'equipped_runes_rta__base_monster').order_by('-efficiency')
 
             html = render_to_string('website/runes/rune_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -114,7 +124,7 @@ def get_artifacts_ajax(request, task_id):
         if data.ready():
             context = data.get()
 
-            context['best_artifacts'] = Artifact.objects.filter(id__in=context['best_artifacts_ids']).order_by('-efficiency')
+            context['best_artifacts'] = Artifact.objects.filter(id__in=context['best_artifacts_ids']).prefetch_related('equipped_artifacts', 'equipped_artifacts__base_monster', 'equipped_artifacts_rta', 'equipped_artifacts_rta__base_monster').order_by('-efficiency')
             
             html = render_to_string('website/artifacts/artifact_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -134,8 +144,8 @@ def get_artifact_by_id_ajax(request, task_id, arg_id):
         if data.ready():
             context = data.get()
 
-            context['artifact'] = get_object_or_404(Artifact.objects.prefetch_related('equipped_artifacts'), id=arg_id)
-            context['similar_artifacts'] = Artifact.objects.filter(id__in=context['similar_ids']).order_by('-efficiency').prefetch_related('equipped_artifacts')
+            context['artifact'] = get_object_or_404(Artifact.objects.prefetch_related('equipped_artifacts', 'equipped_artifacts__base_monster', 'equipped_artifacts_rta', 'equipped_artifacts_rta__base_monster'), id=arg_id)
+            context['similar_artifacts'] = Artifact.objects.filter(id__in=context['similar_ids']).prefetch_related('equipped_artifacts', 'equipped_artifacts__base_monster', 'equipped_artifacts_rta', 'equipped_artifacts_rta__base_monster').order_by('-efficiency')
 
             html = render_to_string('website/artifacts/artifact_by_id_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -154,8 +164,8 @@ def get_monsters_ajax(request, task_id):
         if data.ready():
             context = data.get()
 
-            context['best_monsters'] = Monster.objects.filter(id__in=context['best_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-avg_eff')
-            context['fastest_monsters'] = Monster.objects.filter(id__in=context['fastest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set').order_by('-speed')
+            context['best_monsters'] = Monster.objects.filter(id__in=context['best_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set', 'runes_rta', 'runes_rta__rune_set', 'artifacts', 'artifacts_rta').order_by('-avg_eff')
+            context['fastest_monsters'] = Monster.objects.filter(id__in=context['fastest_monsters_ids']).prefetch_related('base_monster', 'runes', 'runes__rune_set', 'runes_rta', 'runes_rta__rune_set', 'artifacts', 'artifacts_rta').order_by('-speed')
             
             html = render_to_string('website/monsters/monster_index_ajax.html', context) # return JSON/Dict like during Desktop Upload
             return HttpResponse(html)
@@ -175,10 +185,10 @@ def get_monster_by_id_ajax(request, task_id, arg_id):
         if data.ready():
             context = data.get()
 
-            context['monster'] = get_object_or_404(Monster.objects.prefetch_related('runes', 'runes__rune_set', 'base_monster', 'runes__equipped_runes', 'runes__equipped_runes__base_monster', 'siege_defense_monsters'), id=arg_id)
+            context['monster'] = get_object_or_404(Monster.objects.prefetch_related('base_monster', 'base_monster__family', 'runes', 'runes__rune_set', 'runes_rta', 'runes_rta__rune_set', 'artifacts', 'artifacts_rta', 'siege_defense_monsters', 'dungeon_monsters', 'raid_monster_fl_1', 'raid_monster_fl_2', 'raid_monster_fl_3', 'raid_monster_fl_4', 'raid_monster_bl_1', 'raid_monster_bl_2', 'raid_monster_bl_3', 'raid_monster_bl_4', 'raid_monster_leader', 'rift_monster_fl_1', 'rift_monster_fl_2', 'rift_monster_fl_3', 'rift_monster_fl_4', 'rift_monster_bl_1', 'rift_monster_bl_2', 'rift_monster_bl_3', 'rift_monster_bl_4', 'rift_monster_leader', 'dimhole_monsters'), id=arg_id)
             
-            context['similar_monsters'] = Monster.objects.filter(id__in=context['similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
-            context['rta_similar'] = Monster.objects.filter(id__in=context['rta_similar_ids']).prefetch_related('runes', 'runes__rune_set', 'base_monster', 'base_monster__family')
+            context['similar_monsters'] = Monster.objects.filter(id__in=context['similar_ids']).prefetch_related('base_monster', 'base_monster__family', 'runes', 'runes__rune_set', 'runes_rta', 'runes_rta__rune_set', 'artifacts', 'artifacts_rta')
+            context['rta_similar'] = Monster.objects.filter(id__in=context['rta_similar_ids']).prefetch_related('base_monster', 'base_monster__family', 'runes', 'runes__rune_set', 'runes_rta', 'runes_rta__rune_set', 'artifacts', 'artifacts_rta')
             context['records'] = get_monster_records(context['monster'])
 
             html = render_to_string('website/monsters/monster_by_id_ajax.html', context)
@@ -371,10 +381,17 @@ def get_dungeon_by_stage_ajax(request, task_id, name, stage):
             if data.ready():
                 context = data.get()
 
-                for record in context['records_personal']:
-                    record['frontline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['frontline']]
-                    record['backline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['backline']]
-                    record['leader'] = Monster.objects.get(id=record['leader']) if record['leader'] else None
+                mons = Monster.objects.filter(id__in=[monster_id for record in context['records_personal'] for monster_id in (record['frontline'] + record['backline']) if monster_id is not None]).prefetch_related('base_monster')
+
+                for mon in mons:
+                    for record in context['records_personal']:
+                        if mon.id in record['frontline']:
+                            record['frontline'][record['frontline'].index(mon.id)] = mon
+                        elif mon.id in record['backline']:
+                            record['backline'][record['backline'].index(mon.id)] = mon
+                        
+                        if mon.id == record['leader']:
+                            record['leader'] = mon
                 context['monsters'] = MonsterBase.objects.all()
 
                 html = render_to_string('website/dungeons/raid_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
@@ -385,8 +402,12 @@ def get_dungeon_by_stage_ajax(request, task_id, name, stage):
             if data.ready():
                 context = data.get()
 
-                for record in context['records_personal']:
-                    record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+                mons = Monster.objects.filter(id__in=[monster_id for record in context['records_personal'] for monster_id in record['comp']]).prefetch_related('base_monster')
+
+                for mon in mons:
+                    for record in context['records_personal']:
+                        if mon.id in record['comp']:
+                            record['comp'][record['comp'].index(mon.id)] = mon
                 context['monsters'] = MonsterBase.objects.all()
 
                 html = render_to_string('website/dungeons/dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
@@ -406,11 +427,17 @@ def get_rift_dungeon_by_stage_ajax(request, task_id, name):
         if data.ready():
             context = data.get()
             
-            for record in context['records_personal']:
-                record['frontline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['frontline']]
-                record['backline'] = [Monster.objects.get(id=monster_id) if monster_id else None for monster_id in record['backline']]
-                record['leader'] = Monster.objects.get(id=record['leader']) if record['leader'] else None
+            mons = Monster.objects.filter(id__in=[monster_id for record in context['records_personal'] for monster_id in (record['frontline'] + record['backline']) if monster_id is not None]).prefetch_related('base_monster')
 
+            for mon in mons:
+                for record in context['records_personal']:
+                    if mon.id in record['frontline']:
+                        record['frontline'][record['frontline'].index(mon.id)] = mon
+                    elif mon.id in record['backline']:
+                        record['backline'][record['backline'].index(mon.id)] = mon
+                    
+                    if mon.id == record['leader']:
+                        record['leader'] = mon
             context['monsters'] = MonsterBase.objects.all()
 
             html = render_to_string('website/dungeons/rift_dungeon_by_stage_ajax.html', context) # return JSON/Dict like during Desktop Upload
@@ -430,8 +457,12 @@ def get_dimension_hole_ajax(request, task_id):
         if data.ready():
             context = data.get()
             
-            for record in context['records_personal']:
-                record['comp'] = [Monster.objects.get(id=monster_id) for monster_id in record['comp']]
+            mons = Monster.objects.filter(id__in=[monster_id for record in context['records_personal'] for monster_id in record['comp']]).prefetch_related('base_monster')
+
+            for mon in mons:
+                for record in context['records_personal']:
+                    if mon.id in record['comp']:
+                        record['comp'][record['comp'].index(mon.id)] = mon
                 
             context['monsters'] = MonsterBase.objects.all()
             context['dungeons'] = DimensionHoleRun().get_dungeon_names()

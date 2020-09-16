@@ -522,7 +522,7 @@ def log_exception(e, **kwargs):
 # endregion
 
 ########################################################## VIEWS ##########################################################
-# region RUNES - should be async and in tasks to speed things up even more
+# region RUNES
 def get_rune_list_normal_distribution(runes, parts, count):
     """Return sets of runes in specific number of parts, to make Normal Distribution chart."""
     if not count:
@@ -641,7 +641,7 @@ def get_rune_similar(runes, rune):
     return random.sample(list(similar_runes), max_count)
 # endregion
 
-# region ARTIFACTS - should be async and in tasks to speed things up even more
+# region ARTIFACTS
 def get_artifact_list_grouped_by_rtype(artifacts):
     """Return names, amount of rtypes and quantity of artifact in every rtype in given artifacts list."""
     group_by_rtype = artifacts.values('rtype').annotate(total=Count('rtype')).order_by('-total')
@@ -947,7 +947,7 @@ def get_monster_records(monster):
     }
 # endregion
 
-# region DECKS - should be async and in tasks to speed things up even more
+# region DECKS
 def get_deck_list_group_by_family(decks):
     """Return name, amount of families and quantity of monsters for every family in given decks list."""
     family_monsters = dict()
@@ -1001,7 +1001,7 @@ def get_deck_similar(deck, decks):
     return [temp_deck for temp_deck in decks if temp_deck.place == deck.place and temp_deck.id != deck.id and deck.team_runes_eff - 10 < temp_deck.team_runes_eff and deck.team_runes_eff + 10 > temp_deck.team_runes_eff]
 #endregion
 
-# region SIEGE - should be async and in tasks to speed things up even more
+# region SIEGE
 def get_siege_records_group_by_family(records):
     """Return name, amount of families and quantity of monsters for every family in given siege records."""
     family_monsters = dict()
@@ -1031,7 +1031,7 @@ def get_siege_records_group_by_ranking(records):
     return { 'ids': ranking_id, 'name': ranking_name, 'quantity': ranking_count, 'length': len(ranking_id) }
 # endregion
 
-# region DUNGEONS - should be async and in tasks to speed things up even more
+# region DUNGEONS
 def get_dungeon_runs_distribution(runs, parts):
     """Return sets of clear times in specific number of parts, to make Distribution chart."""
     if not runs.exists():
@@ -1051,23 +1051,16 @@ def get_dungeon_runs_distribution(runs, parts):
 
     return { 'distribution': distribution, 'scope': points, 'interval': parts }
 
-def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min, success_rate_max):
+def get_dungeon_runs_by_comp(df, success_rate_min, success_rate_max):
     records = list()
+    for comp, df_group in df.groupby(df.columns.str.extract('(monster_[0-9]{1})', expand=False).dropna().tolist()):
+        runs_comp = df_group.shape[0]
 
-    for comp in comps:
-        runs = dungeon_runs
-        for monster_comp in comp:
-            runs = runs.filter(monsters__id=monster_comp)
-        
-        if not runs.exists():
-            continue
-
-        runs_comp = runs.count()
-        wins_comp = runs.filter(win=True).count()
+        wins_comp = df_group[df_group['win'] == True].shape[0]
 
         record = {
-            'comp': comp,
-            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
+            'comp': [int(c) for c in comp],
+            'average_time': df_group['clear_time'].dropna().mean().total_seconds() if 'clear_time' in df_group.columns else None,
             'wins': wins_comp,
             'loses': runs_comp - wins_comp,
             'success_rate': round(wins_comp * 100 / runs_comp, 2),
@@ -1082,9 +1075,16 @@ def get_dungeon_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min,
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
-        if record['average_time'] is not None:
-            record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )), 4)
-            record['average_time'] = str(record['average_time'])
+        if not np.isnan(record['average_time']):
+            record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'] / (60 * df_group['clear_time'].dropna().min().total_seconds())), 4)
+            minutes, seconds = divmod(int(record['average_time']), 60)
+            minutes = '0' + str(int(minutes)) if minutes < 10 else str(int(minutes))
+            seconds = '0' + str(int(seconds)) if seconds < 10 else str(int(seconds))
+            record['average_time'] = minutes + ":" + seconds
+            records.append(record)
+        else:
+            record['average_time'] = None
+            record['sorting_val'] = -1
             records.append(record)
 
     return records
@@ -1231,44 +1231,45 @@ def get_rift_dungeon_runs_by_base_class(dungeon_runs):
 
 # endregion
 
-# region DIMENSION HOLE DUNGEONS - should be async and in tasks to speed things up even more
-def get_dimhole_runs_by_comp(comps, dungeon_runs, fastest_run, success_rate_min, success_rate_max):
+# region DIMENSION HOLE DUNGEONS
+def get_dimhole_runs_by_comp(df, success_rate_min, success_rate_max):
     records = list()
-    for comp in comps:
-        runs = dungeon_runs
-        
-        for monster_comp in comp:
-            runs = runs.filter(monsters=monster_comp)
-        
-        runs = runs.distinct()
-        runs_comp = runs.count()
-        wins_comp = runs.filter(win=True).count()
+    for dung_stage, df_g in df.groupby(['dungeon', 'stage']):
+        df_g_notna = df_g.dropna(how='all', axis=1)
+        for comp, df_group in df_g_notna.groupby(df_g_notna.columns.str.extract('(monster_[0-9]{1})', expand=False).dropna().tolist()):
+            runs_comp = df_group.shape[0]
+            wins_comp = df_group[df_group['win'] == True].shape[0]
 
-        first = runs.first()
+            record = {
+                'dungeon': DimensionHoleRun().get_dungeon_name(int(dung_stage[0])),
+                'stage': int(dung_stage[1]),
+                'comp': [int(c) for c in comp],
+                'average_time': df_group['clear_time'].dropna().mean().total_seconds() if 'clear_time' in df_group.columns else None,
+                'wins': wins_comp,
+                'loses': runs_comp - wins_comp,
+                'success_rate': round(wins_comp * 100 / runs_comp, 2),
+            }
+            
+            if success_rate_min > 0 and record['success_rate'] < success_rate_min:
+                continue
+            if success_rate_max > 0 and record['success_rate'] > success_rate_max:
+                continue
 
-        record = {
-            'dungeon': DimensionHoleRun().get_dungeon_name(first.dungeon),
-            'stage': first.stage,
-            'comp': comp,
-            'average_time': runs.exclude(clear_time__isnull=True).aggregate(avg_time=Avg('clear_time'))['avg_time'],
-            'wins': wins_comp,
-            'loses': runs_comp - wins_comp,
-            'success_rate': round(wins_comp * 100 / runs_comp, 2),
-        }
-        
-        if success_rate_min > 0 and record['success_rate'] < success_rate_min:
-            continue
-        if success_rate_max > 0 and record['success_rate'] > success_rate_max:
-            continue
-
-        # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
-        # 60 - seconds in one minute;
-        # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
-        # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
-        if record['average_time'] is not None:
-            record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'].total_seconds() / (60 * fastest_run )), 4)
-            record['average_time'] = str(record['average_time'])
-            records.append(record)
+            # sort descending by 'ranking' formula: (cube_root(wins) * win_rate) / math.exp(average_time.total_seconds / (60 * fastest_run ))
+            # 60 - seconds in one minute;
+            # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
+            # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
+            if record['average_time'] is not None and not np.isnan(record['average_time']):
+                record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(record['average_time'] / (60 * df_group['clear_time'].dropna().min().total_seconds())), 4)
+                minutes, seconds = divmod(int(record['average_time']), 60)
+                minutes = '0' + str(int(minutes)) if minutes < 10 else str(int(minutes))
+                seconds = '0' + str(int(seconds)) if seconds < 10 else str(int(seconds))
+                record['average_time'] = minutes + ":" + seconds
+                records.append(record)
+            else:
+                record['average_time'] = None
+                record['sorting_val'] = -1
+                records.append(record)
     
     return records
 
@@ -1313,7 +1314,7 @@ def get_dimhole_runs_per_stage(dungeon_runs):
 
 # endregion
 
-# region HOMUNCULUS - should be async and in tasks to speed things up even more
+# region HOMUNCULUS
 def get_homunculus_builds(homies):
     """Return names, amount of builds and quantity of homunculuses using specific build."""
     group_by_build = homies.values('build').annotate(total=Count('build')).order_by('build')
