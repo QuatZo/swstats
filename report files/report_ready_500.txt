@@ -1,4 +1,4 @@
-Lushen				v				1676 / 2500
+Lushen				v				1736 / 2500
 Galleon				v
 Verdehile			v
 Fran				v
@@ -34,7 +34,7 @@ Xiao Lin			464
 Zaiross				v
 Aegir				449
 Bulldozer			497
-Woosa				508
+Woosa				v
 Katarina			451
 Racuni				436
 Velajuel			462
