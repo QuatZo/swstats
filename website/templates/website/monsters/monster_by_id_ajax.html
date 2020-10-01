@@ -92,9 +92,11 @@
             <div id='dungeons' class='card-custom-body collapse show'>
                 <div class='row'>
                     {% for _, dungeon in records.dungeons.items %}
-                        <div class='col-12 col-md-6 col-lg-4 col-xl-3'>
-                            {% include 'website/dungeons/dungeon_card_compressed.html' with dungeon=dungeon %}
-                        </div>
+                        {% if dungeon|is_dungeon %}
+                            <div class='col-12 col-md-6 col-lg-4 col-xl-3'>
+                                {% include 'website/dungeons/dungeon_card_compressed.html' with dungeon=dungeon %}
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>

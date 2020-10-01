@@ -6,6 +6,8 @@ register = template.Library()
 
 @register.filter
 def dungeon_to_div_id(dungeon):
+    if not dungeon:
+        return "unknown"
     if type(dungeon) is not str:
         return str(dungeon.get_dungeon_display()).replace('\'', '').replace(' ', '-').lower()
     return dungeon.replace('\'', '').replace(' ', '-').lower()
@@ -17,10 +19,17 @@ def get_dungeon_avatar(path, dungeon):
         dungeon_name = str(dungeon.get_dungeon_display())
     elif type(dungeon) is int:
         dungeon_name = get_dungeon_name(dungeon)
+
+    if not dungeon_name:
+        return path + 'dungeon_unknown.png'
     return path + 'dungeon_' + dungeon_name.replace('\'', '').replace(' ', '_').lower() + '.png'
 
 @register.filter
 def is_dungeon(dungeon):
+    if type(dungeon) is dict:
+        if get_dungeon_name(dungeon['d_id']):
+            return True
+        return False
     if type(dungeon.get_dungeon_display()) is not str:
         return False
     return True
