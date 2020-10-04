@@ -49,7 +49,6 @@ body {
 }
 
 .navbar a img{
-    float: right;
     vertical-align: middle;
     width: 35px;
     height: 35px;
@@ -115,6 +114,7 @@ body {
 
 [role="main"] {
     padding-top: 48px; /* Space for fixed navbar */
+    transition: all 200ms ease 0s;
 }
 
 .navbar-brand {
@@ -154,23 +154,14 @@ body {
 }
 
 .navbar.toggled a img{
-    display: block;
     margin: auto;
-    float: unset;
+    display: block;
 }
 
-.navbar.toggled .text,
-.sidebar.toggled .text
-{
-    display: none;
+.navbar.toggled .text:before,
+.sidebar.toggled .text:before{
+    display: block;
 }
-
-.sidebar.toggled .feather{
-    width: 35px;
-    height: 35px;
-    font-size: 35px;
-}
-
 .sidebar ~ [role="main"] {
     max-width: calc(100% - 250px);
     flex: 0 0 calc(100% - 250px);
@@ -181,6 +172,17 @@ body {
     flex: 0 0 calc(100% - 80px);
 }
 
+.sidebar,
+.navbar-brand
+{
+    transition: all 200ms ease 0s;
+}
+
+.navbar.toggled .text,
+.sidebar.toggled .text
+{
+    display: none;
+}
 /*          NAV-, SIDE-BAR END          */
 
 .alert-compare{
@@ -953,7 +955,6 @@ td{
     .navbar.toggled a img{
         display: unset;
         margin: unset;
-        float: right;
     }
 
     .sidebar ~ [role="main"],

@@ -88,12 +88,12 @@ async function calculateArenaDays(){
         let days_max = 0;
 
         while(upgrade_next > 0){
-            if(days % 7 == 0){ upgrade_next += 180 } // devilmon
+            if(days % 7 == 0){ upgrade_next += 180; upgrade_next -= 60; } // devilmon; arena league reward
             upgrade_next -= points_per_day
             days += 1;
         }
         while(upgrade_max > 0){
-            if(days_max % 7 == 0){ upgrade_max += 180 } // devilmon
+            if(days_max % 7 == 0){ upgrade_max += 180; upgrade_max -= 60; } // devilmon; arena league reward
             upgrade_max -= points_per_day
             days_max += 1;
         }
