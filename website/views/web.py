@@ -637,18 +637,3 @@ def get_object_for_card(request, obj_type, obj_id):
             id=obj_id), 'deep': True, })  # return JSON/Dict like during Desktop Upload
 
     return HttpResponse(html)
-
-
-def recalc(request):
-    for monster in Monster.objects.all().order_by('id').prefetch_related('artifacts'):
-        print(monster.id)
-        for artifact in monster.artifacts.all():
-            if artifact.primary == 100:
-                monster.hp += artifact.primary_value
-            if artifact.primary == 101:
-                monster.attack += artifact.primary_value
-            if artifact.primary == 102:
-                monster.defense += artifact.primary_value
-        monster.save()
-
-    print("Done")

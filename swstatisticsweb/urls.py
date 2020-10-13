@@ -157,11 +157,6 @@ urlpatterns = [
     path('bot/monsters/<int:monster_id>',
          views.bot_get_monster_report, name='bot_get_monster_report'),
     #########
-
-
-    # TEMP
-    path('recalc', views.recalc, name='recalc')
-    #########
 ]
 
 if settings.DEBUG:

@@ -23,6 +23,8 @@ from website.functions import create_rgb_colors
 from website.templatetags.runes import get_sets
 
 # HELPFUL FUNCTIONS
+
+
 def get_monster_info(base_monster):
     monsters = Monster.objects.filter(
         base_monster=base_monster).prefetch_related('runes', 'runes__rune_set', 'artifacts', )
@@ -66,8 +68,8 @@ def get_monster_info(base_monster):
     family = MonsterBase.objects.filter(
         family=base_monster.family).order_by('attribute', 'id')
 
-
     return monsters, hoh_exist, hoh_date, fusion.exists(), filename, runes, family, artifacts
+
 
 def create_pie_plot(labels, values, title, colors=None, bot=False):
     fig = go.Figure()
@@ -94,6 +96,7 @@ def create_pie_plot(labels, values, title, colors=None, bot=False):
 
     return plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)
 
+
 def create_histogram_plot(x, title, bot=False):
     fig = go.Figure()
     fig.add_trace(go.Histogram(x=x))
@@ -115,6 +118,7 @@ def create_histogram_plot(x, title, bot=False):
     )
 
     return plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)
+
 
 def create_bar_plot(x, y, title, colors=None, angle=90, bot=False):
     fig = go.Figure()
@@ -158,6 +162,7 @@ def create_bar_plot(x, y, title, colors=None, angle=90, bot=False):
 
     return plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)
 
+
 def create_horizontal_bar_plot(x, y, title, colors=None, bot=False):
     fig = go.Figure()
     fig.add_trace(go.Bar(x=x, y=y, marker_color=colors, orientation='h'))
@@ -179,6 +184,7 @@ def create_horizontal_bar_plot(x, y, title, colors=None, bot=False):
     )
 
     return plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)
+
 
 def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, bot=False):
     plots = list()
@@ -209,14 +215,17 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     df["artifact element substats"] = np.nan
     df["artifact type"] = np.nan
     df["artifact type substats"] = np.nan
-    df = df.astype({'artifact element substats': 'object', 'artifact type substats': 'object',})
+    df = df.astype({'artifact element substats': 'object',
+                    'artifact type substats': 'object', })
 
     for mon_id, result in monsters_artifacts.items():
         for i, artifact in enumerate(result):
             if artifact is not None:
                 r_type = 'element' if artifact.rtype == 1 else 'type'
-                df.loc[mon_id, f"artifact {r_type}"] = artifact.get_primary_display()
-                df.at[mon_id, f"artifact {r_type} substats"] = artifact.substats
+                df.loc[mon_id,
+                       f"artifact {r_type}"] = artifact.get_primary_display()
+                df.at[mon_id,
+                      f"artifact {r_type} substats"] = artifact.substats
             else:
                 r_type = 'element' if i == 0 else 'type'
                 df.loc[mon_id, f"artifact {r_type}"] = artifact
@@ -417,38 +426,58 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     # ARTIFACTS
     plot_artifacts_element_main = None
     plot_artifacts_archetype_main = None
-    artifact_best = { 'element': None, 'archetype': None, }
+    artifact_best = {'element': None, 'archetype': None, }
     df_artifacts_element_main = df['artifact element'].copy().value_counts()
-    df_artifacts_element_substats = df['artifact element substats'].copy().dropna()
-    df_artifacts_element_substats = pd.Series(list(chain.from_iterable(df_artifacts_element_substats))).value_counts()
+    df_artifacts_element_substats = df['artifact element substats'].copy(
+    ).dropna()
+    df_artifacts_element_substats = pd.Series(
+        list(chain.from_iterable(df_artifacts_element_substats))).value_counts()
     if df_artifacts_element_substats.shape[0]:
-        artifact_best['element'] = Artifact().get_artifact_substat(df_artifacts_element_substats.index[0])
-        df_artifacts_element_substats = df_artifacts_element_substats[df_artifacts_element_substats > 5]
-        df_artifacts_element_substats = pd.DataFrame(df_artifacts_element_substats, columns=['count']).reset_index()
-        df_artifacts_element_substats['index'] = df_artifacts_element_substats['index'].apply(Artifact().get_artifact_substat)
-        df_artifacts_element_substats = df_artifacts_element_substats.to_dict(orient='list')
-        
-        colors = create_rgb_colors(len(df_artifacts_element_substats['index']), True)
-        plot_artifacts_element_main = create_pie_plot(df_artifacts_element_main.index, df_artifacts_element_main, "Artifact Element Main Stat", None, bot)
+        artifact_best['element'] = Artifact().get_artifact_substat(
+            df_artifacts_element_substats.index[0])
+        df_artifacts_element_substats = df_artifacts_element_substats[
+            df_artifacts_element_substats > 5]
+        df_artifacts_element_substats = pd.DataFrame(
+            df_artifacts_element_substats, columns=['count']).reset_index()
+        df_artifacts_element_substats['index'] = df_artifacts_element_substats['index'].apply(
+            Artifact().get_artifact_substat)
+        df_artifacts_element_substats = df_artifacts_element_substats.to_dict(
+            orient='list')
+
+        colors = create_rgb_colors(
+            len(df_artifacts_element_substats['index']), True)
+        plot_artifacts_element_main = create_pie_plot(
+            df_artifacts_element_main.index, df_artifacts_element_main, "Artifact Element Main Stat", None, bot)
         if not bot:
             plots.append(plot_artifacts_element_main)
-        plots.append(create_horizontal_bar_plot(df_artifacts_element_substats['count'], df_artifacts_element_substats['index'], "Artifact Element Substat Distribution<br>(only 6* with equipped runes)", colors, bot))
+        plots.append(create_horizontal_bar_plot(df_artifacts_element_substats['count'], df_artifacts_element_substats[
+                     'index'], "Artifact Element Substat Distribution<br>(only 6* with equipped runes)", colors, bot))
 
     df_artifacts_archetype_main = df['artifact type'].copy().value_counts()
-    df_artifacts_archetype_substats = df['artifact type substats'].copy().dropna()
-    df_artifacts_archetype_substats = pd.Series(list(chain.from_iterable(df_artifacts_archetype_substats))).value_counts()
+    df_artifacts_archetype_substats = df['artifact type substats'].copy(
+    ).dropna()
+    df_artifacts_archetype_substats = pd.Series(
+        list(chain.from_iterable(df_artifacts_archetype_substats))).value_counts()
     if df_artifacts_archetype_substats.shape[0]:
-        artifact_best['archetype'] = Artifact().get_artifact_substat(df_artifacts_archetype_substats.index[0])
-        df_artifacts_archetype_substats = df_artifacts_archetype_substats[df_artifacts_archetype_substats > 5]
-        df_artifacts_archetype_substats = pd.DataFrame(df_artifacts_archetype_substats, columns=['count']).reset_index()
-        df_artifacts_archetype_substats['index'] = df_artifacts_archetype_substats['index'].apply(Artifact().get_artifact_substat)
-        df_artifacts_archetype_substats = df_artifacts_archetype_substats.to_dict(orient='list')
+        artifact_best['archetype'] = Artifact().get_artifact_substat(
+            df_artifacts_archetype_substats.index[0])
+        df_artifacts_archetype_substats = df_artifacts_archetype_substats[
+            df_artifacts_archetype_substats > 5]
+        df_artifacts_archetype_substats = pd.DataFrame(
+            df_artifacts_archetype_substats, columns=['count']).reset_index()
+        df_artifacts_archetype_substats['index'] = df_artifacts_archetype_substats['index'].apply(
+            Artifact().get_artifact_substat)
+        df_artifacts_archetype_substats = df_artifacts_archetype_substats.to_dict(
+            orient='list')
 
-        colors = create_rgb_colors(len(df_artifacts_archetype_substats['index']), True)
-        plot_artifacts_archetype_main = create_pie_plot(df_artifacts_archetype_main.index, df_artifacts_archetype_main, "Artifact Archetype Main Stat", None, bot)
+        colors = create_rgb_colors(
+            len(df_artifacts_archetype_substats['index']), True)
+        plot_artifacts_archetype_main = create_pie_plot(
+            df_artifacts_archetype_main.index, df_artifacts_archetype_main, "Artifact Archetype Main Stat", None, bot)
         if not bot:
             plots.append(plot_artifacts_archetype_main)
-        plots.append(create_horizontal_bar_plot(df_artifacts_archetype_substats['count'], df_artifacts_archetype_substats['index'], "Artifact Archetype Substat Distribution<br>(only 6* with equipped runes)", colors, bot))
+        plots.append(create_horizontal_bar_plot(df_artifacts_archetype_substats['count'], df_artifacts_archetype_substats[
+                     'index'], "Artifact Archetype Substat Distribution<br>(only 6* with equipped runes)", colors, bot))
     #################################################
 
     plots.append(eff_hp_plot)
@@ -543,7 +572,8 @@ def create_monster_report_by_bot(monster_id):
         base_monster)
 
     try:
-        plots, most_common_builds, plot_sets, plot_builds, top_sets, plot_artifact_element_main, plot_artifact_archetype_main, artifact_best = generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, True)
+        plots, most_common_builds, plot_sets, plot_builds, top_sets, plot_artifact_element_main, plot_artifact_archetype_main, artifact_best = generate_plots(
+            monsters, monsters_runes, base_monster, monsters_artifacts, True)
     except KeyError as e:  # no results
         plots = None
         most_common_builds = 'No information given'

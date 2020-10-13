@@ -16,80 +16,86 @@ from operator import itemgetter
 
 logger = logging.getLogger(__name__)
 
+
 def log_request_data(data):
-    logger.debug(f"Error/Warning during desktop app data upload occured for request: {json.dumps(data)}")
+    logger.debug(
+        f"Error/Warning during desktop app data upload occured for request: {json.dumps(data)}")
+
 
 def get_arena_towers_cost():
     return {
-        'id_4': [ 100, 280, 460, 640, 820, 1000, 1180, 1360, 1540, 1720, ],
-        'id_5': [ 40, 90, 140, 190, 240, 290, 340, 390, 440, 490, ],
-        'id_6': [ 240, 440, 640, 840, 1040, 1240, 1440, 1640, 1840, 2040, ],
-        'id_7': [ 80, 130, 180, 230, 280, 330, 380, 430, 480, 530, ],
-        'id_8': [ 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, ],
-        'id_9': [ 150, 375, 600, 825, 1050, 1275, 1500, 1725, 1950, 2175, ],
-        'id_10': [ 20, 80, 140, 200, 260, 320, 380, 440, 500, 560, ],
-        'id_11': [ 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, ],
-        'id_15': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
-        'id_16': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
-        'id_17': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
-        'id_18': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
-        'id_19': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
-        'id_31': [ 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
-        'id_34': [ 80, 130, 180, 230, 280, 330, 380, 430, 480, 530, ],
-        'id_35': [ 30, 80, 130, 180, 230, 280, 330, 380, 430, 480, ],
+        'id_4': [100, 280, 460, 640, 820, 1000, 1180, 1360, 1540, 1720, ],
+        'id_5': [40, 90, 140, 190, 240, 290, 340, 390, 440, 490, ],
+        'id_6': [240, 440, 640, 840, 1040, 1240, 1440, 1640, 1840, 2040, ],
+        'id_7': [80, 130, 180, 230, 280, 330, 380, 430, 480, 530, ],
+        'id_8': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, ],
+        'id_9': [150, 375, 600, 825, 1050, 1275, 1500, 1725, 1950, 2175, ],
+        'id_10': [20, 80, 140, 200, 260, 320, 380, 440, 500, 560, ],
+        'id_11': [50, 100, 150, 200, 250, 300, 350, 400, 450, 500, ],
+        'id_15': [120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_16': [120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_17': [120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_18': [120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_19': [120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_31': [120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, ],
+        'id_34': [80, 130, 180, 230, 280, 330, 380, 430, 480, 530, ],
+        'id_35': [30, 80, 130, 180, 230, 280, 330, 380, 430, 480, ],
     }
+
 
 def get_guild_flags_cost():
     return {
-        'id_36': [ 280, 460, 800, 1250, 1810, 2320, 2910, 3590, 4350, 5200, ],
-        'id_37': [ 260, 410, 700, 1080, 1560, 1990, 2490, 3070, 3720, 4440, ],
-        'id_38': [ 330, 540, 930, 1450, 2100, 2680, 3360, 4140, 5020, 5990, ],
-        'id_39': [ 300, 460, 760, 1160, 1670, 2130, 2660, 3270, 3960, 4720, ],
+        'id_36': [280, 460, 800, 1250, 1810, 2320, 2910, 3590, 4350, 5200, ],
+        'id_37': [260, 410, 700, 1080, 1560, 1990, 2490, 3070, 3720, 4440, ],
+        'id_38': [330, 540, 930, 1450, 2100, 2680, 3360, 4140, 5020, 5990, ],
+        'id_39': [300, 460, 760, 1160, 1670, 2130, 2660, 3270, 3960, 4720, ],
     }
-  
+
+
 def get_siege_rewards():
     return {
         'rank_1011': {
-            'crystals': [20, 15, 10], # fixed
-            'points': [3, 2, 2], # percentage
+            'crystals': [20, 15, 10],  # fixed
+            'points': [3, 2, 2],  # percentage
         },
         'rank_2011': {
-            'crystals': [30, 25, 20], # fixed
-            'points': [6, 4, 4], # percentage
+            'crystals': [30, 25, 20],  # fixed
+            'points': [6, 4, 4],  # percentage
         },
         'rank_2012': {
-            'crystals': [40, 30, 25], # fixed
-            'points': [9, 6, 6], # percentage
+            'crystals': [40, 30, 25],  # fixed
+            'points': [9, 6, 6],  # percentage
         },
         'rank_2013': {
-            'crystals': [50, 40, 30], # fixed
-            'points': [12, 8, 8], # percentage
+            'crystals': [50, 40, 30],  # fixed
+            'points': [12, 8, 8],  # percentage
         },
         'rank_3011': {
-            'crystals': [60, 45, 35], # fixed
-            'points': [15, 11, 11], # percentage
+            'crystals': [60, 45, 35],  # fixed
+            'points': [15, 11, 11],  # percentage
         },
         'rank_3012': {
-            'crystals': [80, 65, 50], # fixed
-            'points': [18, 13, 13], # percentage
+            'crystals': [80, 65, 50],  # fixed
+            'points': [18, 13, 13],  # percentage
         },
         'rank_3013': {
-            'crystals': [100, 80, 60], # fixed
-            'points': [21, 15, 15], # percentage
+            'crystals': [100, 80, 60],  # fixed
+            'points': [21, 15, 15],  # percentage
         },
         'rank_4011': {
-            'crystals': [140, 100, 80], # fixed
-            'points': [27, 20, 20], # percentage
+            'crystals': [140, 100, 80],  # fixed
+            'points': [27, 20, 20],  # percentage
         },
         'rank_4012': {
-            'crystals': [200, 160, 130], # fixed
-            'points': [32, 25, 25], # percentage
+            'crystals': [200, 160, 130],  # fixed
+            'points': [32, 25, 25],  # percentage
         },
         'rank_4013': {
-            'crystals': [250, 200, 170], # fixed
-            'points': [37, 30, 30], # percentage
+            'crystals': [250, 200, 170],  # fixed
+            'points': [37, 30, 30],  # percentage
         },
     }
+
 
 def get_guild_war_rewards():
     return {
@@ -111,10 +117,13 @@ def get_guild_war_rewards():
         },
     }
 
+
 def get_dimhole_axp():
     return [320, 420, 560, 740, 960]
 
 # Create your views here.
+
+
 class DesktopUploadViewSet(viewsets.ViewSet):
     def calc_efficiency(self, rune):
         primary = rune['pri_eff']
@@ -123,52 +132,56 @@ class DesktopUploadViewSet(viewsets.ViewSet):
 
         # TYPE: [ 1*, 2*, 3*, 4*, 5*, 6* ]
         MAINSTAT_MAX = {
-            1: [ 804, 1092, 1380, 1704, 2088, 2448 ],
-            2: [ 18, 20, 38, 43, 51, 63 ],
-            3: [ 54, 74, 93, 113, 135, 160 ],
-            4: [ 18, 20, 38, 43, 51, 63 ],
-            5: [ 54, 74, 93, 113, 135, 160 ],
-            6: [ 18, 20, 38, 43, 51, 63 ],
+            1: [804, 1092, 1380, 1704, 2088, 2448],
+            2: [18, 20, 38, 43, 51, 63],
+            3: [54, 74, 93, 113, 135, 160],
+            4: [18, 20, 38, 43, 51, 63],
+            5: [54, 74, 93, 113, 135, 160],
+            6: [18, 20, 38, 43, 51, 63],
 
-            8: [ 18, 19, 25, 30, 39, 42 ],
-            9: [ 18, 20, 37, 41, 47, 58 ],
-            10: [ 20, 37, 43, 58, 65, 80 ],
-            11: [ 18, 20, 38, 44, 51, 64 ],
-            12: [ 18, 20, 38, 44, 51, 64 ],
+            8: [18, 19, 25, 30, 39, 42],
+            9: [18, 20, 37, 41, 47, 58],
+            10: [20, 37, 43, 58, 65, 80],
+            11: [18, 20, 38, 44, 51, 64],
+            12: [18, 20, 38, 44, 51, 64],
         }
 
         # TYPE: [ 1*, 2*, 3*, 4*, 5*, 6* ]
         SUBSTAT_MAX = {
-            1: [ 300, 525, 825, 1125, 1500, 1875 ],
-            2: [ 10, 15, 25, 30, 35, 40 ],
-            3: [ 20, 25, 40, 50, 75, 100 ],
-            4: [ 10, 15, 25, 30, 35, 40 ],
-            5: [ 20, 25, 40, 50, 75, 100 ],
-            6: [ 10, 15, 25, 30, 35, 40 ],
+            1: [300, 525, 825, 1125, 1500, 1875],
+            2: [10, 15, 25, 30, 35, 40],
+            3: [20, 25, 40, 50, 75, 100],
+            4: [10, 15, 25, 30, 35, 40],
+            5: [20, 25, 40, 50, 75, 100],
+            6: [10, 15, 25, 30, 35, 40],
 
-            8: [ 5, 10, 15, 20, 25, 30 ],
-            9: [ 5, 10, 15, 20, 25, 30 ],
-            10: [ 10, 15, 20, 25, 25, 35 ],
-            11: [ 10, 15, 20, 25, 35, 40 ],
-            12: [ 10, 15, 20, 25, 35, 40 ],
+            8: [5, 10, 15, 20, 25, 30],
+            9: [5, 10, 15, 20, 25, 30],
+            10: [10, 15, 20, 25, 25, 35],
+            11: [10, 15, 20, 25, 35, 40],
+            12: [10, 15, 20, 25, 35, 40],
         }
 
         ratio = 0.00
-        rune_class = rune['class'] % 10 # ancient runes
-        rune_class -= 1 # because 1* - 6*, but indexes starts at 0
+        rune_class = rune['class'] % 10  # ancient runes
+        rune_class -= 1  # because 1* - 6*, but indexes starts at 0
 
         # mainstat
-        ratio += MAINSTAT_MAX[primary[0]][rune_class] / MAINSTAT_MAX[primary[0]][-1] # -1: last, the biggest one
+        ratio += MAINSTAT_MAX[primary[0]][rune_class] / \
+            MAINSTAT_MAX[primary[0]][-1]  # -1: last, the biggest one
 
         # innate
-        if innate[0]: ratio += innate[1] / SUBSTAT_MAX[innate[0]][-1]
+        if innate[0]:
+            ratio += innate[1] / SUBSTAT_MAX[innate[0]][-1]
 
         # substats
         for sub in substats:
             ratio += (sub[1] + sub[3]) / SUBSTAT_MAX[sub[0]][-1]
 
         eff_curr = ratio / 2.8 * 100
-        eff_max = eff_curr + max(math.ceil((12 - rune['upgrade_curr']) / 3), 0) * 0.2 / 2.8 * 100
+        eff_max = eff_curr + \
+            max(math.ceil((12 - rune['upgrade_curr']) / 3),
+                0) * 0.2 / 2.8 * 100
 
         return round(eff_curr, 2), round(eff_max, 2)
 
@@ -193,14 +206,18 @@ class DesktopUploadViewSet(viewsets.ViewSet):
         }
 
     def parse_monsters(self, monsters, locked_monsters, rta_monsters):
-        attributes = MonsterBase().get_attributes_as_dict() # monsters[id]['attribute']
-        archetypes = MonsterBase().get_types_as_dict() # monsters[id]['unit_master_id'][MonsterBase MODEL]
+        # monsters[id]['attribute']
+        attributes = MonsterBase().get_attributes_as_dict()
+        # monsters[id]['unit_master_id'][MonsterBase MODEL]
+        archetypes = MonsterBase().get_types_as_dict()
 
         monsters_fusion = MonsterFusion.objects.all().prefetch_related('monster')
         monsters_hoh = MonsterHoh.objects.all().prefetch_related('monster')
 
-        base_monsters = list(set([monster['unit_master_id'] for monster in monsters]))
-        base_monsters = MonsterBase.objects.filter(id__in=base_monsters).values('id', 'name', 'archetype', 'attribute', 'awaken', 'base_class', 'family').order_by('id').prefetch_related('family')
+        base_monsters = list(set([monster['unit_master_id']
+                                  for monster in monsters]))
+        base_monsters = MonsterBase.objects.filter(id__in=base_monsters).values(
+            'id', 'name', 'archetype', 'attribute', 'awaken', 'base_class', 'family').order_by('id').prefetch_related('family')
 
         base_stars = {
             'star_1': [1, 0],
@@ -232,15 +249,17 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                         'monster': base_monster['name'],
                         'acquiration_date': monster['create_time'],
                     })
-            if monster['attribute'] >= 4 and base_monster['base_class'] >= 4: # l&d, 4*+
+            if monster['attribute'] >= 4 and base_monster['base_class'] >= 4:  # l&d, 4*+
                 if not monsters_hoh.filter(monster=base_monster['id']).exists() and not monsters_fusion.filter(monster=base_monster['id']).exists():
                     ld_nat4plus_non_fusion_nor_hoh.append({
                         'monster': base_monster['name'],
                         'acquiration_date': monster['create_time'],
                     })
 
-        last_nat5 = sorted(nat5_non_fusion, key=itemgetter('acquiration_date'), reverse = True)[0]
-        last_nat4_ld = sorted(ld_nat4plus_non_fusion_nor_hoh, key=itemgetter('acquiration_date'), reverse = True)[0]
+        last_nat5 = sorted(nat5_non_fusion, key=itemgetter(
+            'acquiration_date'), reverse=True)[0]
+        last_nat4_ld = sorted(ld_nat4plus_non_fusion_nor_hoh, key=itemgetter(
+            'acquiration_date'), reverse=True)[0]
 
         return {
             'all': monsters,
@@ -260,22 +279,25 @@ class DesktopUploadViewSet(viewsets.ViewSet):
         }
 
     def parse_runes(self, runes_unequipped, runes_equipped, runes_locked, runes_rta):
-        runes = [*runes_unequipped, *runes_equipped] # unpack both and create one list
+        # unpack both and create one list
+        runes = [*runes_unequipped, *runes_equipped]
 
-        efficiencies = [self.calc_efficiency(rune)[0] for rune in runes] # only current efficiency
+        # only current efficiency
+        efficiencies = [self.calc_efficiency(rune)[0] for rune in runes]
         eff_min = min(efficiencies)
         eff_max = max(efficiencies)
         eff_mean = round(statistics.mean(efficiencies), 2)
         eff_median = round(statistics.median(efficiencies), 2)
         eff_st_dev = round(statistics.stdev(efficiencies), 2)
-        maxed = len([True for rune in runes if rune['upgrade_curr'] == 15 ])
+        maxed = len([True for rune in runes if rune['upgrade_curr'] == 15])
 
         runes_len = len(runes)
         runes_unequipped_len = len(runes_unequipped)
         runes_equipped_len = len(runes_equipped)
         runes_locked_len = len(runes_locked)
 
-        sets = {row['id']:[row['name'].lower(), 0] for row in RuneSet.objects.values('id', 'name') if row['id'] != 99} # all sets except immemorial
+        sets = {row['id']: [row['name'].lower(), 0] for row in RuneSet.objects.values(
+            'id', 'name') if row['id'] != 99}  # all sets except immemorial
         slots = {
             'slot_1': [1, 0],
             'slot_2': [2, 0],
@@ -303,7 +325,7 @@ class DesktopUploadViewSet(viewsets.ViewSet):
             'equipped_percentage': round(runes_equipped_len * 100 / runes_len, 2),
             'locked_count': runes_locked_len,
             'locked_percentage': round(runes_locked_len * 100 / runes_len, 2),
-            
+
             'eff_min': eff_min,
             'eff_max': eff_max,
             'eff_mean': eff_mean,
@@ -316,12 +338,13 @@ class DesktopUploadViewSet(viewsets.ViewSet):
             'sets': sets,
             'slots': slots,
         }
-    
+
     def parse_guild_members(self, guild_members, guild_member_defenses):
         members = list()
         for temp_member in guild_members.keys():
             member = guild_members[temp_member]
-            defenses = [row['unit_list'] for row in guild_member_defenses if row['wizard_id'] == member['wizard_id']][0]
+            defenses = [row['unit_list']
+                        for row in guild_member_defenses if row['wizard_id'] == member['wizard_id']][0]
             if defenses:
                 defense_1 = len(defenses[0])
                 defense_2 = len(defenses[1])
@@ -329,7 +352,8 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                 defense_1 = 0
                 defense_2 = 0
 
-            last_login =  datetime.datetime.utcfromtimestamp(member['last_login_timestamp'])
+            last_login = datetime.datetime.utcfromtimestamp(
+                member['last_login_timestamp'])
             members.append({
                 'name': member['wizard_name'],
                 'joined': datetime.datetime.utcfromtimestamp(member['join_timestamp']),
@@ -338,8 +362,9 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                 'defense_1': defense_1,
                 'defense_2': defense_2,
             })
-        
-            members = sorted(members, key=itemgetter('last_login'), reverse = True)
+
+            members = sorted(members, key=itemgetter(
+                'last_login'), reverse=True)
         return members
 
     def parse_guild(self, guild, ranking, guild_member_defenses):
@@ -362,7 +387,8 @@ class DesktopUploadViewSet(viewsets.ViewSet):
             'members_max': guild_info['member_max'],
             'members_gw': gw_members_count,
             'defenses_count': gw_members_defense_count,
-            'defenses_max': gw_members_count * 2 * 3, # 2 defenses and 3 monsters per defense
+            # 2 defenses and 3 monsters per defense
+            'defenses_max': gw_members_count * 2 * 3,
             'members': self.parse_guild_members(guild['guild_members'], guild_member_defenses),
         }
 
@@ -370,7 +396,8 @@ class DesktopUploadViewSet(viewsets.ViewSet):
         friends = list()
 
         for friend in friend_list:
-            last_login = datetime.datetime.utcfromtimestamp(friend['last_login_timestamp'])
+            last_login = datetime.datetime.utcfromtimestamp(
+                friend['last_login_timestamp'])
             friends.append({
                 'name': friend['wizard_name'],
                 'last_login': last_login,
@@ -382,21 +409,23 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                 },
             })
 
-        friends = sorted(friends, key=itemgetter('last_login'), reverse = True)
+        friends = sorted(friends, key=itemgetter('last_login'), reverse=True)
 
-        return friends 
+        return friends
 
     def create(self, request):
         # upload by using ajax, focused on stuff that Desktop App had
-        context = { }
+        context = {}
 
         if request.is_ajax():
             data = request.data
             if 'command' in data.keys() and data['command'] != 'HubUserLogin':
-                context = {'error': "Given File is an invalid Summoners War JSON File."}
+                context = {
+                    'error': "Given File is an invalid Summoners War JSON File."}
             else:
-                try: # basically, it's really bad idea to put whole thing in KeyError, need to think about other error handling later
-                    runes_equipped = [rune for monster in data['unit_list'] for rune in monster['runes']]
+                try:  # basically, it's really bad idea to put whole thing in KeyError, need to think about other error handling later
+                    runes_equipped = [rune for monster in data['unit_list']
+                                      for rune in monster['runes']]
                     context = {
                         'date': datetime.datetime.utcfromtimestamp(data['tvalue']).strftime("%Y-%m-%d %H:%M:%S"),
                         'wizard': self.parse_wizard(data['wizard_info'], data['dimension_hole_info']['energy']),
@@ -408,17 +437,22 @@ class DesktopUploadViewSet(viewsets.ViewSet):
                     }
                 except KeyError as e:
                     if 'world_arena_rune_equip_list' in str(e):
-                        context = {'error': "Given JSON File is before Separate Rune Management Update, please update your JSON profile."}
+                        context = {
+                            'error': "Given JSON File is before Separate Rune Management Update, please update your JSON profile."}
                     else:
-                        context = {'error': "Given File is an invalid Summoners War JSON File."}
+                        context = {
+                            'error': "Given File is an invalid Summoners War JSON File."}
                         logger.debug(e)
-            html = render_to_string('website/desktopapp/desktopapp_content.html', context)
+            html = render_to_string(
+                'website/desktopapp/desktopapp_content.html', context)
             return HttpResponse(html)
+
 
 def get_desktop(request):
     """Return the Desktop page."""
-    return render( request, 'website/desktopapp/desktopapp_index.html')
- 
+    return render(request, 'website/desktopapp/desktopapp_index.html')
+
+
 def get_buildings_calculator(request):
     buildings_cost = get_arena_towers_cost()
     buildings_cost.update(get_guild_flags_cost())
@@ -435,7 +469,8 @@ def get_buildings_calculator(request):
         'gw': gw_rewards,
     }
 
-    return render( request, 'website/desktopapp/buildings_index.html', context)
+    return render(request, 'website/desktopapp/buildings_index.html', context)
+
 
 def get_dimhole_calculator(request):
     monsters = dict(MonsterBase.objects.values_list('id', 'name'))
@@ -445,4 +480,4 @@ def get_dimhole_calculator(request):
         'axp_per_level': json.dumps(get_dimhole_axp()),
     }
 
-    return render( request, 'website/desktopapp/dimholecalc_index.html', context)
+    return render(request, 'website/desktopapp/dimholecalc_index.html', context)

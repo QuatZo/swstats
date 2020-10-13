@@ -25,7 +25,7 @@ $(document).ready(function () {
         localStorage.setItem('toggled', toggled)
     });
 });
-
+ 
 // http://jsfiddle.net/bknE4/81/
 function addParam(url, param, value) {
     var a = document.createElement('a'), regex = /(?:\?|&amp;|&)+([^=]+)(?:=([^&]*))*/g;

@@ -1,125 +1,123 @@
-.body{
-    background-color: #ffffff!important;
-    color: #000!important;
+.body {
+  background-color: #ffffff !important;
+  color: #000 !important;
 }
 
-.table-monster-avatar{
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+.table-monster-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
 }
 
-.report-generator{
-    width: 80%;
-    height: calc(100vh - 50px);
-    margin: auto;
+.report-generator {
+  width: 80%;
+  height: calc(100vh - 50px);
+  margin: auto;
 }
 
-.monster-family{
-    margin-top: 25px;
+.monster-family {
+  margin-top: 25px;
 }
 
-.monster-family-images{
-    text-align: center;
-    margin-bottom: 10px;
+.monster-family-images {
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.monster-info{
-    margin-top: 25px;
+.monster-info {
+  margin-top: 25px;
 }
 
-.monster-info-content{
-    display: flex;
-    width: 100%;
-    padding: 1vw;
+.monster-info-content {
+  display: flex;
+  width: 100%;
+  padding: 1vw;
 }
 
 .monster-info-left,
-.monster-info-right{
-    width: 35%;
-    display: flex;
+.monster-info-right {
+  width: 35%;
+  display: flex;
 }
 
-.monster-info-mid{
-    width: 30%;
-    margin: auto;
-    text-align: center;
+.monster-info-mid {
+  width: 30%;
+  margin: auto;
+  text-align: center;
 }
 
-.plots-container .btn{
-    width: 100%;
-    background-color: #343a40;
-    border-color: #343a40;
-    margin-bottom: 40px;
+.plots-container .btn {
+  width: 100%;
+  background-color: #343a40;
+  border-color: #343a40;
+  margin-bottom: 40px;
 }
 
-.plots-main{
-    display: flex;
-    margin: 25px 0;
+.plots-main {
+  display: flex;
+  margin: 25px 0;
 }
 
-.plots-main-left{
-    width: 45%;
-    margin-right: 5%;
+.plots-main-left {
+  width: 45%;
+  margin-right: 5%;
 }
 
-.plots-main-right{
-    width: 45%;
-    margin-left: 5%;
+.plots-main-right {
+  width: 45%;
+  margin-left: 5%;
 }
 
-.footer{
-    width: 80%;
-    height: 25px;
-    position: fixed;
-    bottom: 0;
-    text-align: center;
-    left: 10%;
-    background-color: white;
+.footer {
+  width: 80%;
+  height: 25px;
+  position: fixed;
+  bottom: 0;
+  text-align: center;
+  left: 10%;
+  background-color: white;
 }
 
 @media (max-width: 1024px) {
-    .report-generator{
-        width: 95%;
-    }
+  .report-generator {
+    width: 95%;
+  }
 
-    .monster-info-content{
-        display: unset;
-    }
-    .monster-info-left, 
-    .monster-info-right
-    {
-        width: 100%;
-        display: unset;
-    }
+  .monster-info-content {
+    display: unset;
+  }
+  .monster-info-left,
+  .monster-info-right {
+    width: 100%;
+    display: unset;
+  }
 
-    .monster-info-left .row,
-    .monster-info-right .row{
-        margin: 0;
-    }
+  .monster-info-left .row,
+  .monster-info-right .row {
+    margin: 0;
+  }
 
-    .plots-main{
-        display: unset;
-        margin: 25px 0;
-    }
+  .plots-main {
+    display: unset;
+    margin: 25px 0;
+  }
 
-    .plots-main-left,
-    .plots-main-right
-    {
-        width: 100%;
-        margin: 0;
-    }
+  .plots-main-left,
+  .plots-main-right {
+    width: 100%;
+    margin: 0;
+  }
 
-    .plots-main-left{
-        margin: 25px 0;
-    }
-    .plots-main-right{
-        margin-bottom: 25px;
-    }
+  .plots-main-left {
+    margin: 25px 0;
+  }
+  .plots-main-right {
+    margin-bottom: 25px;
+  }
 
-    .footer{
-        width: 95%;
-        left: 2.5%;
-        font-size: x-small;
-    }
+  .footer {
+    width: 95%;
+    left: 2.5%;
+    font-size: x-small;
+  }
 }

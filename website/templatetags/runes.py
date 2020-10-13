@@ -7,6 +7,7 @@ import math
 
 register = template.Library()
 
+
 @register.filter
 def rune_grinded_val(stat, zeros=False):
     if stat == None or stat == '' or not stat:
@@ -18,6 +19,7 @@ def rune_grinded_val(stat, zeros=False):
     elif stat[0] and not stat[1]:
         return stat[0]
 
+
 @register.filter
 def substat_to_number(text):
     try:
@@ -28,19 +30,22 @@ def substat_to_number(text):
         pass
     return text
 
+
 @register.filter
 def symbol_to_percentage_plus_text(text):
     return text.replace('%', 'percent').replace('+', 'plus')
+
 
 @register.filter
 def percentage_plus_text_to_symbol(text):
     return text.replace('percent', '%').replace('plus', '+')
 
+
 @register.filter
 def get_sets(runes, bot=False):
     sets = dict()
     broken = False
-    
+
     for rune in runes:
         if rune is None:
             continue
@@ -67,6 +72,7 @@ def get_sets(runes, bot=False):
         return set_names, broken
     return set_names
 
+
 @register.filter
 def get_set_names(runes):
     sets = dict()
@@ -89,6 +95,7 @@ def get_set_names(runes):
 
     return ' + '.join(set_names)
 
+
 @register.filter
 def get_runes(monsters):
     runes = list()
@@ -96,20 +103,22 @@ def get_runes(monsters):
     for monster in monsters:
         for rune in monster.runes.all():
             runes.append(rune)
-    
+
     return runes
+
 
 @register.filter
 def get_rune_stat_row(primary, value):
     if isinstance(primary, int):
         return ""
-        
+
     value = str(value)
     if '%' in primary:
         value += '%'
     primary = primary.replace('%', '').replace('+', '')
 
     return primary + ' +' + value
+
 
 @register.filter
 def ancient_to_normal(quality):

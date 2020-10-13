@@ -8,7 +8,8 @@ from celery.schedules import crontab
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'swstatisticsweb.settings')
 
-app = Celery('swstatisticsweb', backend='redis://localhost', broker='redis://localhost')
+app = Celery('swstatisticsweb', backend='redis://localhost',
+             broker='redis://localhost')
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
 # - namespace='CELERY' means all celery-related configuration keys
@@ -16,13 +17,14 @@ app = Celery('swstatisticsweb', backend='redis://localhost', broker='redis://loc
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.update(
-    result_expires=1800, # 1800 secs = 30 minutes
+    result_expires=1800,  # 1800 secs = 30 minutes
 )
 
-app.conf.timezone = 'UTC' # UTC server time
+app.conf.timezone = 'UTC'  # UTC server time
 
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
+
 
 @app.task(bind=True)
 def debug_task(self):

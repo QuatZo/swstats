@@ -23,7 +23,7 @@ function ajaxTooltip(el_id, el_type, tooltip_id, el, url){
 function ajaxTooltipLeave(el){
     $(el).removeClass('in-check')
 }
-
+ 
 function initTableTooltips(){
     $('.tip').each(function () {
         $(this).tooltip(

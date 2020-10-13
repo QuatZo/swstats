@@ -3,6 +3,7 @@ from website.models import Artifact
 
 register = template.Library()
 
+
 @register.filter
 def parse_artifact_substats_to_table(substats, substats_values):
     sub_texts = list()
@@ -11,8 +12,9 @@ def parse_artifact_substats_to_table(substats, substats_values):
             'name': Artifact().get_artifact_substat(sub_key).replace('%', ''),
             'value': sub_val
         })
-        
+
     return sub_texts
+
 
 @register.filter
 def parse_artifact_substats_to_cell(substats, substats_values):

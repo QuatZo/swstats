@@ -73,7 +73,7 @@ async function calculateArenaDays(){
     if(!arena_wings || arena_wings == "" ){ $('#arena-wings').val(0); arena_wings = 0 }
 
     let points_per_day = arena_wings * arena_ranking // wings per day * arena points per win, assume farming (all wins)
-
+ 
     for (const [key, value] of Object.entries(buildings)) {
         if($("#" + key + " #area").text() != "Arena"){ continue; }
 

@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import dj_database_url
 import dotenv
-from celery.schedules import crontab  
+from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,7 +31,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == 'True'
 
-ALLOWED_HOSTS = ['www.swstats.info', 'swstats.info', 'localhost', '51.83.129.23']
+ALLOWED_HOSTS = ['www.swstats.info',
+                 'swstats.info', 'localhost', '51.83.129.23']
 
 
 # Application definition
@@ -195,12 +196,12 @@ LOGGING = {
     }
 }
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = None # ALL
-DATA_UPLOAD_MAX_NUMBER_FIELDS = None # ALL
+DATA_UPLOAD_MAX_MEMORY_SIZE = None  # ALL
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None  # ALL
 
 CELERY_BEAT_SCHEDULE = {
     'bot-report-generate': {
-       'task': 'website.tasks.generate_bot_reports',
-       'schedule': crontab(hour=0, minute=0),
-    }, 
+        'task': 'website.tasks.generate_bot_reports',
+        'schedule': crontab(hour=0, minute=0),
+    },
 }
