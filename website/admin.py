@@ -50,7 +50,7 @@ class MonsterAdmin(admin.ModelAdmin):
         'avg_eff_total', 'eff_hp', 'eff_hp_def_break', 'skills', 'get_runes', 'get_runes_rta', 'get_artifacts', 'get_artifacts_rta', 'created', 'source', 'transmog', 'storage', 'locked'
     )
 
-    filter_horizontal = ('runes', 'artifacts')
+    filter_horizontal = ('runes', 'artifacts', 'runes_rta', 'artifacts_rta')
 
     def get_runes(self, obj):
         return "\n".join([str(rune) for rune in obj.runes.all()])
