@@ -590,6 +590,7 @@ def parse_decks(decks, wizard_id):
             continue
 # endregion
 
+
 # region OTHER
 logger = logging.getLogger(__name__)
 
@@ -1223,13 +1224,18 @@ def get_siege_records_group_by_ranking(records):
 # region DUNGEONS
 
 
-def get_dungeon_runs_distribution(runs, parts):
+def get_dungeon_runs_distribution(runs, parts, raids=True):
     """Return sets of clear times in specific number of parts, to make Distribution chart."""
-    if not runs.exists():
-        return {'distribution': [], 'scope': [], 'interval': parts}
+    if raids:
+        if not runs.exists():
+            return {'distribution': [], 'scope': [], 'interval': parts}
+        runs_seconds = [clear_time.total_seconds() for clear_time in list(
+            runs.values_list('clear_time', flat=True))]
+    else:
+        if not len(runs):
+            return {'distribution': [], 'scope': [], 'interval': parts}
+        runs_seconds = runs['clear_time'].dropna().dt.total_seconds()
 
-    runs_seconds = [clear_time.total_seconds() for clear_time in list(
-        runs.values_list('clear_time', flat=True))]
     fastest = min(runs_seconds)
     slowest = max(runs_seconds)
 
@@ -1247,15 +1253,20 @@ def get_dungeon_runs_distribution(runs, parts):
 
 def get_dungeon_runs_by_comp(df, success_rate_min, success_rate_max):
     records = list()
-    # here -> dropna() drops Tricaru teams, also check how fast it is WITH and WITHOUT Points formula
-    for comp, df_group in df.groupby(df.columns.str.extract('(monster_[0-9]{1})', expand=False).dropna().tolist()):
+    for comp, df_group in df.groupby('monsters'):
+        avg_time = df_group['clear_time'].dropna().mean(
+        ).total_seconds() if 'clear_time' in df_group.columns else np.nan
+
+        if np.isnan(avg_time):
+            continue
+
         runs_comp = df_group.shape[0]
 
         wins_comp = df_group[df_group['win'] == True].shape[0]
 
         record = {
-            'comp': [int(c) for c in comp],
-            'average_time': df_group['clear_time'].dropna().mean().total_seconds() if 'clear_time' in df_group.columns else None,
+            'comp': [int(c) for c in comp.split(', ')],
+            'average_time': avg_time,
             'wins': wins_comp,
             'loses': runs_comp - wins_comp,
             'success_rate': round(wins_comp * 100 / runs_comp, 2),
@@ -1270,21 +1281,15 @@ def get_dungeon_runs_by_comp(df, success_rate_min, success_rate_max):
         # 60 - seconds in one minute;
         # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
         # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
-        if not np.isnan(record['average_time']):
-            record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(
-                record['average_time'] / (60 * df_group['clear_time'].dropna().min().total_seconds())), 4)
-            minutes, seconds = divmod(int(record['average_time']), 60)
-            minutes = '0' + \
-                str(int(minutes)) if minutes < 10 else str(int(minutes))
-            seconds = '0' + \
-                str(int(seconds)) if seconds < 10 else str(int(seconds))
-            record['average_time'] = minutes + ":" + seconds
-            records.append(record)
-        # Do we really need teams with NO wins?
-        else:
-            record['average_time'] = None
-            record['sorting_val'] = -1
-            records.append(record)
+        record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(
+            record['average_time'] / (60 * df_group['clear_time'].dropna().min().total_seconds())), 4)
+        minutes, seconds = divmod(int(record['average_time']), 60)
+        minutes = '0' + \
+            str(int(minutes)) if minutes < 10 else str(int(minutes))
+        seconds = '0' + \
+            str(int(seconds)) if seconds < 10 else str(int(seconds))
+        record['average_time'] = minutes + ":" + seconds
+        records.append(record)
 
     return records
 
@@ -1453,15 +1458,21 @@ def get_dimhole_runs_by_comp(df, success_rate_min, success_rate_max):
     records = list()
     for dung_stage, df_g in df.groupby(['dungeon', 'stage']):
         df_g_notna = df_g.dropna(how='all', axis=1)
-        for comp, df_group in df_g_notna.groupby(df_g_notna.columns.str.extract('(monster_[0-9]{1})', expand=False).dropna().tolist()):
+        for comp, df_group in df_g_notna.groupby('monsters'):
+            avg_time = df_group['clear_time'].dropna().mean().total_seconds(
+            ) if 'clear_time' in df_group.columns else np.nan
+
+            if np.isnan(avg_time):
+                continue
+
             runs_comp = df_group.shape[0]
             wins_comp = df_group[df_group['win'] == True].shape[0]
 
             record = {
                 'dungeon': DimensionHoleRun().get_dungeon_name(int(dung_stage[0])),
                 'stage': int(dung_stage[1]),
-                'comp': [int(c) for c in comp],
-                'average_time': df_group['clear_time'].dropna().mean().total_seconds() if 'clear_time' in df_group.columns else None,
+                'comp': [int(c) for c in comp.split(', ')],
+                'average_time': avg_time,
                 'wins': wins_comp,
                 'loses': runs_comp - wins_comp,
                 'success_rate': round(wins_comp * 100 / runs_comp, 2),
@@ -1476,20 +1487,15 @@ def get_dimhole_runs_by_comp(df, success_rate_min, success_rate_max):
             # 60 - seconds in one minute;
             # visualization for fastest_run = 15: https://www.wolframalpha.com/input/?i=y%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+y%3D0..1
             # visualization for difference between 100% success rate runs: https://www.wolframalpha.com/input/?i=sqrt%28z%29+*+1%2Fexp%28x%2F%2860*15%29%29+for+x%3D15..300%2C+z%3D1..1000
-            if record['average_time'] is not None and not np.isnan(record['average_time']):
-                record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(
-                    record['average_time'] / (60 * df_group['clear_time'].dropna().min().total_seconds())), 4)
-                minutes, seconds = divmod(int(record['average_time']), 60)
-                minutes = '0' + \
-                    str(int(minutes)) if minutes < 10 else str(int(minutes))
-                seconds = '0' + \
-                    str(int(seconds)) if seconds < 10 else str(int(seconds))
-                record['average_time'] = minutes + ":" + seconds
-                records.append(record)
-            else:
-                record['average_time'] = None
-                record['sorting_val'] = -1
-                records.append(record)
+            record['sorting_val'] = round((min(record['wins'], 1000)**(1./3.) * record['success_rate'] / 100) / math.exp(
+                record['average_time'] / (60 * df_group['clear_time'].dropna().min().total_seconds())), 4)
+            minutes, seconds = divmod(int(record['average_time']), 60)
+            minutes = '0' + \
+                str(int(minutes)) if minutes < 10 else str(int(minutes))
+            seconds = '0' + \
+                str(int(seconds)) if seconds < 10 else str(int(seconds))
+            record['average_time'] = minutes + ":" + seconds
+            records.append(record)
 
     return records
 

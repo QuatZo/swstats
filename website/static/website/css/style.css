@@ -70,7 +70,7 @@ body {
   white-space: nowrap;
 }
 
-.sidebar.toggled .nav-link {
+.sidebar .nav-link {
   width: 40px;
   padding: 5px 0;
   margin-left: 20px;
@@ -105,14 +105,6 @@ body {
 
 [role="main"] {
   transition: all 200ms ease 0s;
-}
-
-.sidebar .nav-item {
-  padding-left: 1vw;
-}
-
-.sidebar.toggled .nav-item {
-  padding-left: 0;
 }
 
 .sidebar {

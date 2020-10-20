@@ -1284,30 +1284,28 @@ def get_dungeon_by_stage_task(request_get, name, stage):
                        request_get['success_rate_max'][0])
         success_rate_max = float(request_get['success_rate_max'][0])
 
-    dungeon_runs_clear = dungeon_runs.exclude(
-        clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
-    runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
-    avg_time = dungeon_runs_clear.aggregate(
-        avg_time=Avg('clear_time'))['avg_time']
-
     dungeon_runs = dungeon_runs.prefetch_related('monsters')
 
     cols = ['id', 'dungeon', 'stage', 'win', 'clear_time', 'monsters']
-    df = pd.DataFrame(dungeon_runs.values_list(*cols), columns=cols)
-    df_groups = df.groupby('id')
-    df = df.drop_duplicates(subset=['id']).drop(['monsters'], axis=1)
+    df = pd.DataFrame(dungeon_runs.values_list(*cols),
+                      columns=cols).dropna(subset=['monsters']).sort_values('monsters')
+    df['monsters'] = df['monsters'].astype('int64').apply(str)
+    df_mons = df.groupby('id')['monsters'].apply(', '.join)
+    df = df.set_index('id', drop=True)
+    df['monsters'] = df_mons
 
-    for _, df_group in df_groups:
-        mons = df_group['monsters'].tolist()
-        mons.sort()
-        for i, mon in enumerate(mons):
-            df.at[df_group.index[0], f'monster_{i + 1}'] = mon
+    runs_distribution = get_dungeon_runs_distribution(df, 20, False)
 
     records_personal = sorted(get_dungeon_runs_by_comp(
         df, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse=True)
 
-    base_names, base_quantities = get_dungeon_runs_by_base_class(
-        dungeon_runs_clear)
+    base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
+
+    avg_time = str(df['clear_time'].dropna().mean())
+    if avg_time != "nan":
+        avg_s = avg_time.index(':') + 1
+        avg_e = min(avg_time.index('.') + 3, len(avg_time))
+        avg_time = avg_time[avg_s:avg_e]
 
     context = {
         # filters
@@ -1318,7 +1316,7 @@ def get_dungeon_by_stage_task(request_get, name, stage):
         # all
         'name': name,
         'stage': stage,
-        'avg_time': str(avg_time),
+        'avg_time': avg_time,
 
         # chart distribution
         'runs_distribution': runs_distribution['distribution'],
@@ -1572,37 +1570,31 @@ def get_dimension_hole_task(request_get):
                        request_get['success_rate_max'][0])
         success_rate_max = float(request_get['success_rate_max'][0])
 
-    dungeon_runs = dungeon_runs.prefetch_related(
-        'monsters', 'monsters__base_monster')
-    dungeon_runs_clear = dungeon_runs.exclude(
-        clear_time__isnull=True).prefetch_related('monsters', 'monsters__base_monster')
-
-    runs_distribution = get_dungeon_runs_distribution(dungeon_runs_clear, 20)
-    avg_time = dungeon_runs_clear.aggregate(
-        avg_time=Avg('clear_time'))['avg_time']
-
     dungeon_runs = dungeon_runs.prefetch_related('monsters')
 
     cols = ['id', 'dungeon', 'stage', 'win', 'clear_time', 'monsters']
-    df = pd.DataFrame(dungeon_runs.values_list(*cols), columns=cols)
-    df_groups = df.groupby('id')
-    df = df.drop_duplicates(subset=['id']).drop(['monsters'], axis=1)
+    df = pd.DataFrame(dungeon_runs.values_list(*cols),
+                      columns=cols).dropna(subset=['monsters']).sort_values('monsters')
+    df['monsters'] = df['monsters'].astype('int64').apply(str)
+    df_mons = df.groupby('id')['monsters'].apply(', '.join)
+    df = df.set_index('id', drop=True)
+    df['monsters'] = df_mons
 
-    for _, df_group in df_groups:
-        mons = df_group['monsters'].tolist()
-        mons.sort()
-        for i, mon in enumerate(mons):
-            df.at[df_group.index[0], f'monster_{i + 1}'] = mon
+    runs_distribution = get_dungeon_runs_distribution(df, 20, False)
 
     records_personal = sorted(get_dimhole_runs_by_comp(
         df, success_rate_min, success_rate_max), key=itemgetter('sorting_val'), reverse=True)
-
-    dungeon_runs = dungeon_runs_clear  # exclude failed runs
 
     base_names, base_quantities = get_dungeon_runs_by_base_class(dungeon_runs)
     runs_per_dungeon = get_dimhole_runs_per_dungeon(dungeon_runs)
     runs_per_practice = get_dimhole_runs_per_practice(dungeon_runs)
     runs_per_stage = get_dimhole_runs_per_stage(dungeon_runs)
+
+    avg_time = str(df['clear_time'].dropna().mean())
+    if avg_time != "nan":
+        avg_s = avg_time.index(':') + 1
+        avg_e = min(avg_time.index('.') + 3, len(avg_time))
+        avg_time = avg_time[avg_s:avg_e]
 
     context = {
         # filters
@@ -1611,7 +1603,7 @@ def get_dimension_hole_task(request_get):
         'request': request_get,
 
         # all
-        'avg_time': str(avg_time),
+        'avg_time': avg_time,
 
         # chart distribution
         'runs_distribution': runs_distribution['distribution'],
