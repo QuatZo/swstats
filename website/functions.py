@@ -590,7 +590,6 @@ def parse_decks(decks, wizard_id):
             continue
 # endregion
 
-
 # region OTHER
 logger = logging.getLogger(__name__)
 
@@ -1248,6 +1247,7 @@ def get_dungeon_runs_distribution(runs, parts):
 
 def get_dungeon_runs_by_comp(df, success_rate_min, success_rate_max):
     records = list()
+    # here -> dropna() drops Tricaru teams, also check how fast it is WITH and WITHOUT Points formula
     for comp, df_group in df.groupby(df.columns.str.extract('(monster_[0-9]{1})', expand=False).dropna().tolist()):
         runs_comp = df_group.shape[0]
 
@@ -1280,6 +1280,7 @@ def get_dungeon_runs_by_comp(df, success_rate_min, success_rate_max):
                 str(int(seconds)) if seconds < 10 else str(int(seconds))
             record['average_time'] = minutes + ":" + seconds
             records.append(record)
+        # Do we really need teams with NO wins?
         else:
             record['average_time'] = None
             record['sorting_val'] = -1

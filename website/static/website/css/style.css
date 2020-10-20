@@ -67,6 +67,7 @@ body {
   color: #ffffff;
   padding: 5px;
   height: 50px;
+  white-space: nowrap;
 }
 
 .sidebar.toggled .nav-link {
@@ -898,11 +899,15 @@ td {
   }
 
   .sidebar#sidebar-upper {
+    position: -webkit-sticky;
+    position: sticky;
     display: unset !important;
     min-width: 100% !important;
     width: 100% !important;
     max-width: 100% !important;
     min-height: 50px;
+    top: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.33);
   }
   .sidebar#sidebar-upper .text {
     opacity: 1;
