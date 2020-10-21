@@ -14,6 +14,7 @@ import itertools
 import math
 import numpy as np
 from operator import itemgetter
+import itertools
 
 logger = logging.getLogger(__name__)
 
@@ -1288,11 +1289,13 @@ def get_dungeon_by_stage_task(request_get, name, stage):
 
     cols = ['id', 'dungeon', 'stage', 'win', 'clear_time', 'monsters']
     df = pd.DataFrame(dungeon_runs.values_list(*cols),
-                      columns=cols).dropna(subset=['monsters']).sort_values('monsters')
-    df['monsters'] = df['monsters'].astype('int64').apply(str)
-    df_mons = df.groupby('id')['monsters'].apply(', '.join)
-    df = df.set_index('id', drop=True)
-    df['monsters'] = df_mons
+                    columns=cols).dropna(subset=['monsters']).sort_values(['id', 'monsters'])
+    df['monsters'] = df['monsters'].astype('int64')
+    mons = []
+    for k, g in itertools.groupby(df[['id', 'monsters']].values, lambda x: x[0]):
+        mons.append(', '.join([str(m[1]) for m in list(g)]))
+    df = df.drop_duplicates(subset=['id'])
+    df['monsters'] = mons
 
     runs_distribution = get_dungeon_runs_distribution(df, 20, False)
 
@@ -1574,11 +1577,13 @@ def get_dimension_hole_task(request_get):
 
     cols = ['id', 'dungeon', 'stage', 'win', 'clear_time', 'monsters']
     df = pd.DataFrame(dungeon_runs.values_list(*cols),
-                      columns=cols).dropna(subset=['monsters']).sort_values('monsters')
-    df['monsters'] = df['monsters'].astype('int64').apply(str)
-    df_mons = df.groupby('id')['monsters'].apply(', '.join)
-    df = df.set_index('id', drop=True)
-    df['monsters'] = df_mons
+                    columns=cols).dropna(subset=['monsters']).sort_values(['id', 'monsters'])
+    df['monsters'] = df['monsters'].astype('int64')
+    mons = []
+    for k, g in itertools.groupby(df[['id', 'monsters']].values, lambda x: x[0]):
+        mons.append(', '.join([str(m[1]) for m in list(g)]))
+    df = df.drop_duplicates(subset=['id'])
+    df['monsters'] = mons
 
     runs_distribution = get_dungeon_runs_distribution(df, 20, False)
 
