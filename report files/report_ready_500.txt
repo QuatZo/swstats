@@ -1,4 +1,4 @@
-Lushen				v				1736 / 2500
+Lushen				v				1847 / 2500
 Galleon				v
 Verdehile			v
 Fran				v
@@ -30,7 +30,7 @@ Baleygr				v
 Verad				v
 Seara				v
 Maruna				v
-Xiao Lin			464
+Xiao Lin			next
 Zaiross				v
 Aegir				449
 Bulldozer			v
