@@ -341,7 +341,10 @@ def handle_dungeon_run_upload_task(data_resp, data_req):
         data_monsters = data_req['unit_id_list']
 
         for temp_monster in data_monsters:
-            mon = Monster.objects.filter(id=temp_monster['unit_id'])
+            mon_id = temp_monster['unit_id']
+            if isinstance(mon_id, dict):
+                mon_id = mon_id['unit_id']
+            mon = Monster.objects.filter(id=mon_id)
             if mon.count() > 0:
                 monsters.append(mon.first())
 
