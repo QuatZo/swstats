@@ -596,13 +596,18 @@ def parse_decks(decks, wizard_id):
 logger = logging.getLogger(__name__)
 
 
-def log_request_data(fn, key, data):
+def log_request_data(fn, key, data, txt=False):
     folder = os.path.join(os.getcwd(), 'logs', 'json')
     Path(folder).mkdir(parents=True, exist_ok=True)
-    filename = fn + key + '.json'
+    ext = '.txt' if txt else '.json'
+    filename = fn + key + ext
+    
     full_path = os.path.join(folder, filename)
     with open(full_path, 'a+') as f:
-        json.dump(data, f, indent=4)
+        if txt:
+            f.write(data)
+        else:
+            json.dump(data, f, indent=4)
 
 
 def has_banned_words(text):
@@ -624,6 +629,8 @@ def log_exception(e, **kwargs):
     for key, val in kwargs.items():
         logger.error(key)
         log_request_data(filename, key, val)
+
+    log_request_data(filename, 'traceback', str(trace_back), txt=True)
 # endregion
 
 ########################################################## VIEWS ##########################################################
