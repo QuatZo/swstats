@@ -620,7 +620,7 @@ def log_exception(e, **kwargs):
         str(e) + " " + str(trace_back)
     logger.error(message)
     logger.error(f"Error parts: {len(kwargs)}")
-    filename = f'error-{datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")-'
+    filename = f'error-{datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")}-'
     for key, val in kwargs.items():
         logger.error(key)
         log_request_data(filename, key, val)
