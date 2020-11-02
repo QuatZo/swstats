@@ -12,6 +12,8 @@ import traceback
 import json
 import random
 import time
+import os
+from pathlib import Path
 
 from datetime import timedelta
 
@@ -590,15 +592,17 @@ def parse_decks(decks, wizard_id):
             continue
 # endregion
 
-
 # region OTHER
 logger = logging.getLogger(__name__)
 
 
-def log_request_data(data):
-    text = "Error/Warning during upload occured for request: " + \
-        json.dumps(data)
-    logger.debug(text)
+def log_request_data(fn, key, data):
+    folder = os.path.join(os.getcwd(), 'logs', 'json')
+    Path(folder).mkdir(parents=True, exist_ok=True)
+    filename = fn + key + '.json'
+    full_path = os.path.join(folder, filename)
+    with open(full_path, 'a+') as f:
+        json.dump(data, f, indent=4)
 
 
 def has_banned_words(text):
@@ -616,9 +620,10 @@ def log_exception(e, **kwargs):
         str(e) + " " + str(trace_back)
     logger.error(message)
     logger.error(f"Error parts: {len(kwargs)}")
+    filename = f'error-{datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")-'
     for key, val in kwargs.items():
         logger.error(key)
-        log_request_data(val)
+        log_request_data(filename, key, val)
 # endregion
 
 ########################################################## VIEWS ##########################################################

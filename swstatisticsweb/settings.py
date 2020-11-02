@@ -183,12 +183,18 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'formatter': 'file',
             'filename': 'logs/debug.log'
+        },
+        'file_err': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'formatter': 'file',
+            'filename': 'logs/error.log'
         }
     },
     'loggers': {
         '': {
             'level': 'DEBUG',
-            'handlers': ['console', 'file']
+            'handlers': ['console', 'file', 'file_err']
         },
         'matplotlib': {
             'level': 'WARNING'

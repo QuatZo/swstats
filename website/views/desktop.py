@@ -17,11 +17,6 @@ from operator import itemgetter
 logger = logging.getLogger(__name__)
 
 
-def log_request_data(data):
-    logger.debug(
-        f"Error/Warning during desktop app data upload occured for request: {json.dumps(data)}")
-
-
 def get_arena_towers_cost():
     return {
         'id_4': [100, 280, 460, 640, 820, 1000, 1180, 1360, 1540, 1720, ],
