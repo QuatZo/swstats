@@ -121,7 +121,7 @@ def parse_rune(temp_rune, rune_lock=None):
                 'base_value', 'sell_value', 'quality_original']
     rune = dict()
     # some strange strings instead of dictionaries, happened only once since website launch
-    if not isinstance(rune, dict):
+    if not isinstance(temp_rune, dict):
         return
     temp_rune_keys = temp_rune.keys()
 
