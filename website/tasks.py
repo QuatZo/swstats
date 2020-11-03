@@ -1,9 +1,11 @@
-from celery import shared_task
+from celery import shared_task, group
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 
 from .models import *
 from .functions import *
+from .views.report import get_monster_info, generate_plots
 
 import requests
 import logging
@@ -1292,7 +1294,7 @@ def get_dungeon_by_stage_task(request_get, name, stage):
 
     cols = ['id', 'dungeon', 'stage', 'win', 'clear_time', 'monsters']
     df = pd.DataFrame(dungeon_runs.values_list(*cols),
-                    columns=cols).dropna(subset=['monsters']).sort_values(['id', 'monsters'])
+                      columns=cols).dropna(subset=['monsters']).sort_values(['id', 'monsters'])
     df['monsters'] = df['monsters'].astype('int64')
     mons = []
     for k, g in itertools.groupby(df[['id', 'monsters']].values, lambda x: x[0]):
@@ -1580,7 +1582,7 @@ def get_dimension_hole_task(request_get):
 
     cols = ['id', 'dungeon', 'stage', 'win', 'clear_time', 'monsters']
     df = pd.DataFrame(dungeon_runs.values_list(*cols),
-                    columns=cols).dropna(subset=['monsters']).sort_values(['id', 'monsters'])
+                      columns=cols).dropna(subset=['monsters']).sort_values(['id', 'monsters'])
     df['monsters'] = df['monsters'].astype('int64')
     mons = []
     for k, g in itertools.groupby(df[['id', 'monsters']].values, lambda x: x[0]):
@@ -1919,6 +1921,58 @@ def handle_profile_upload_and_rank_task(data):
 
 
 @shared_task
+def create_monster_report_by_bot(monster_id):
+    base_monster = MonsterBase.objects.get(id=monster_id)
+
+    monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes, monster_family, monsters_artifacts = get_monster_info(
+        base_monster)
+
+    try:
+        plots, most_common_builds, plot_sets, plot_builds, top_sets, plot_artifact_element_main, plot_artifact_archetype_main, artifact_best = generate_plots(
+            monsters, monsters_runes, base_monster, monsters_artifacts, True)
+    except KeyError as e:  # no results
+        plots = None
+        most_common_builds = 'No information given'
+        plot_sets = None
+        plot_builds = None
+        top_sets = None
+        plot_artifact_element_main = None
+        plot_artifact_archetype_main = None
+        artifact_best = None
+
+    context = {
+        'base_monster': base_monster,
+        'monsters': monsters,
+        'family': monster_family,
+        'hoh': hoh_exist,
+        'hoh_date': hoh_date,
+        'fusion': fusion_exist,
+        'plots': plots,
+        'most_common_builds': most_common_builds,
+        'date_update': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'plot_sets': plot_sets,
+        'plot_builds': plot_builds,
+        'top_sets': top_sets,
+        'plot_artifacts_element_main': plot_artifact_element_main,
+        'plot_artifacts_archetype_main': plot_artifact_archetype_main,
+        'artifact_best': artifact_best,
+    }
+
+    html = render_to_string('website/report/report_bot_generate.html', context)
+
+    try:
+        html_file = open("website/bot/monsters/" +
+                         str(monster_id) + '.html', "w")
+        html_file.write(html)
+        html_file.close()
+        print("[Bot][Periodic Task] Created report about " + str(monster_id))
+        return True
+    except:
+        print("[Bot][Periodic Task] Error has been raised while creating report about " + str(monster_id))
+        return False
+
+
+@shared_task
 def generate_bot_reports(monster_id=None):
     # import locally because of circular import
     from .views import create_monster_report_by_bot
@@ -1930,12 +1984,6 @@ def generate_bot_reports(monster_id=None):
             'id', flat=True))  # archetype=5 -> Material Monsters
         monsters_base.sort()
 
-    for monster_id in monsters_base:
-        if(create_monster_report_by_bot(monster_id)):
-            text = "[Bot][Periodic Task] Created report about " + \
-                str(monster_id)
-            print(text)
-        else:
-            text = "[Bot][Periodic Task] Error has been raised while creating report about " + \
-                str(monster_id)
-            print(text)
+    g = group(create_monster_report_by_bot.s(monster_id)
+              for monster_id in monsters_base)
+    g.apply_async()

@@ -1,3 +1,3 @@
 @echo off
-pipenv run celery -A website worker --pool=solo -l INFO -E --autoscale=10,3
+pipenv run celery -A website worker -l INFO -E
 pause

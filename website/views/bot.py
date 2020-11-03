@@ -3,6 +3,8 @@ from django.http import HttpResponse
 
 from website.tasks import generate_bot_reports
 
+import time
+
 
 def bot_get_monster_report(request, monster_id):
     return HttpResponse(open('website/bot/monsters/' + str(monster_id) + '.html', 'r').read())
@@ -13,3 +15,9 @@ def bot_get_monster_report(request, monster_id):
 def bot_debug_get_monster_report(request, monster_id):
     generate_bot_reports.apply(args=[monster_id])
     return HttpResponse(open('website/bot/monsters/' + str(monster_id) + '.html', 'r').read())
+
+
+def bot_debug_get_all_monster_report(request):
+    x = generate_bot_reports.apply()
+
+    return 200, {}

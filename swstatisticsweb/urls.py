@@ -165,6 +165,8 @@ if settings.DEBUG:
         path('__debug__/', include(debug_toolbar.urls)),
 
         # BOT DEBUG
+        path('debug/bot/monsters/',
+             views.bot_debug_get_all_monster_report, name='bot_debug_get_monster_report'),
         path('debug/bot/monsters/<int:monster_id>',
              views.bot_debug_get_monster_report, name='bot_debug_get_monster_report'),
     ] + urlpatterns
