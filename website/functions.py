@@ -120,6 +120,9 @@ def parse_rune(temp_rune, rune_lock=None):
     map_keys = ['id', 'slot', 'quality', 'stars', 'upgrade_curr',
                 'base_value', 'sell_value', 'quality_original']
     rune = dict()
+    # some strange strings instead of dictionaries, happened only once since website launch
+    if not isinstance(rune, dict):
+        return
     temp_rune_keys = temp_rune.keys()
 
     for db, c2u in zip(map_keys, com2us_keys):
@@ -592,6 +595,7 @@ def parse_decks(decks, wizard_id):
             continue
 # endregion
 
+
 # region OTHER
 logger = logging.getLogger(__name__)
 
@@ -601,7 +605,7 @@ def log_request_data(fn, key, data, txt=False):
     Path(folder).mkdir(parents=True, exist_ok=True)
     ext = '.txt' if txt else '.json'
     filename = fn + key + ext
-    
+
     full_path = os.path.join(folder, filename)
     with open(full_path, 'a+') as f:
         if txt:
