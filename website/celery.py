@@ -20,6 +20,8 @@ app.conf.update(
     result_expires=1800,  # 1800 secs = 30 minutes
 )
 
+app.conf.broker_transport_options = {"visibility_timeout": 7200} # 2h
+
 app.conf.timezone = 'UTC'  # UTC server time
 
 # Load task modules from all registered Django app configs.
