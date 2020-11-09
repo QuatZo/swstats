@@ -305,20 +305,27 @@ def calc_stats(monster, runes, artifacts):
     }
 
     if len(runes) == 0:
-        return base_stats
+        return base_stats, []
 
     stats = copy.deepcopy(base_stats)
 
     sets = dict()
+    rune_ids = list()
     for rune in runes:
-        if rune['set_id'] not in sets.keys():
-            sets[rune['set_id']] = 1
+        if isinstance(rune, dict):
+            temp_rune = rune
         else:
-            sets[rune['set_id']] += 1
+            temp_rune = runes[rune]
 
-        add_stat(stats, base_stats, rune['pri_eff'])
-        add_stat(stats, base_stats, rune['prefix_eff'])
-        for substat in rune['sec_eff']:
+        rune_ids.append(temp_rune['rune_id'])
+        if temp_rune['set_id'] not in sets.keys():
+            sets[temp_rune['set_id']] = 1
+        else:
+            sets[temp_rune['set_id']] += 1
+
+        add_stat(stats, base_stats, temp_rune['pri_eff'])
+        add_stat(stats, base_stats, temp_rune['prefix_eff'])
+        for substat in temp_rune['sec_eff']:
             add_stat(stats, base_stats, substat, True)
 
     for artifact in artifacts:
@@ -361,7 +368,7 @@ def calc_stats(monster, runes, artifacts):
     for stat in stats:
         stats[stat] = math.ceil(stats[stat])
 
-    return stats
+    return stats, rune_ids
 
 
 def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta=list(), artifacts_rta=list()):
@@ -381,7 +388,7 @@ def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta
     ####################
     # Stats calc
     if 'runes' in temp_monster_keys:
-        stats = calc_stats(
+        stats, rune_ids = calc_stats(
             temp_monster, temp_monster['runes'], temp_monster['artifacts'])
         monster['hp'] = stats['hp']
         monster['attack'] = stats['attack']
@@ -392,8 +399,10 @@ def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta
         monster['crit_rate'] = stats['crit_rate']
         monster['crit_dmg'] = stats['crit_dmg']
 
-        monster_runes = [Rune.objects.get(
-            id=rune['rune_id']) for rune in temp_monster['runes']]
+        monster_runes = [Rune.objects.filter(
+            id=rune_id) for rune_id in rune_ids]
+        monster_runes = [monster_rune.first()
+                         for monster_rune in monster_runes if monster_rune.exists()]
         sum_eff = 0
         for monster_rune in monster_runes:
             sum_eff += monster_rune.efficiency
@@ -1248,7 +1257,7 @@ def get_dungeon_runs_distribution(runs, parts, raids=True):
         runs_seconds = [clear_time.total_seconds() for clear_time in list(
             runs.values_list('clear_time', flat=True))]
     else:
-        if not len(runs):
+        if not len(runs) or not len(runs['clear_time'].dropna()):
             return {'distribution': [], 'scope': [], 'interval': parts}
         runs_seconds = runs['clear_time'].dropna().dt.total_seconds()
 

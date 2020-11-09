@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 @shared_task
 def handle_profile_upload_task(data):
     try:
+        if 'guild' not in data:
+            return
         profile_guild = True
         if data['guild']['guild_info'] is None:
             logger.debug(
