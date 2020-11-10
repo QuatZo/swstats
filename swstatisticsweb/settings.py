@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'bugsnag.django.middleware.BugsnagMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -210,4 +211,9 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'website.tasks.generate_bot_reports',
         'schedule': crontab(hour=0, minute=0),
     },
+}
+
+BUGSNAG = {
+    'api_key': '5398ca806063433022cef8eea8b17c22',
+    'project_root': '/opt/swstats/repo',
 }
