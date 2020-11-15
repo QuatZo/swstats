@@ -173,8 +173,9 @@ def handle_profile_upload_task(data):
 
         parse_decks(data['deck_list'], wizard['id'])
         parse_wizard_buildings(data['deco_list'], wizard['id'])
-        parse_arena_records(
-            data['pvp_info'], data['defense_unit_list'], wizard['id'])
+        if 'pvp_info' in data:
+            parse_arena_records(
+                data['pvp_info'], data['defense_unit_list'], wizard['id'])
         parse_wizard_homunculus(data['homunculus_skill_list'])
 
         logger.debug(
@@ -325,6 +326,8 @@ def handle_dungeon_run_upload_task(data_resp, data_req):
 
         if data_resp['win_lose'] == 1:
             dungeon['win'] = True
+            if 'clear_time' not in data_resp:
+                return  # HOH Dungeon
             time_str = str(data_resp['clear_time']['current_time'])
             _time = {
                 'hour': 0 if int(time_str[:-3]) < 3600 else math.floor(int(time_str[:-3]) / 3600),
@@ -421,12 +424,16 @@ def handle_rift_dungeon_run_upload_task(data_resp, data_req):
         if len(dmg_records) > 2:
             dungeon['dmg_phase_2'] = dmg_records[2][1]
 
+        _ = RiftDungeonRun.get(battle_key=data_req['battle_key'])
+
         obj, created = RiftDungeonRun.objects.update_or_create(
             battle_key=data_req['battle_key'], defaults=dungeon)
         logger.debug(
             f"Successfuly created Rift Dungeon Result (ID: {data_req['battle_key']})")
     except Exception as e:  # to find all exceptions and fix them without breaking the whole app, it is a temporary solution
         log_exception(e, data_resp=data_resp, data_req=data_req)
+    except RiftDungeonRun.DoesNotExist:
+        return
 
 
 @shared_task
