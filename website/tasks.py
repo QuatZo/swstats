@@ -424,7 +424,7 @@ def handle_rift_dungeon_run_upload_task(data_resp, data_req):
         if len(dmg_records) > 2:
             dungeon['dmg_phase_2'] = dmg_records[2][1]
 
-        _ = RiftDungeonRun.get(battle_key=data_req['battle_key'])
+        _ = RiftDungeonRun.objects.get(battle_key=data_req['battle_key'])
 
         obj, created = RiftDungeonRun.objects.update_or_create(
             battle_key=data_req['battle_key'], defaults=dungeon)
@@ -516,6 +516,8 @@ def handle_dimension_hole_run_upload_task(data_resp, data_req):
 
         if data_resp['win_lose'] == 1:
             dungeon['win'] = True
+            if 'clear_time' not in data_resp or not isinstance(data_resp['clear_time'], dict):
+                return # Predator -_-
             time_str = str(data_resp['clear_time']['current_time'])
             _time = {
                 'hour': 0 if int(time_str[:-3]) < 3600 else math.floor(int(time_str[:-3]) / 3600),
