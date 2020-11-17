@@ -14,6 +14,7 @@ import os
 import dj_database_url
 import dotenv
 from celery.schedules import crontab
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,8 +34,8 @@ DEBUG = os.getenv("DEBUG") == 'True'
 
 ALLOWED_HOSTS = [
     'www.swstats.info',
-    'swstats.info', 
-    'localhost', 
+    'swstats.info',
+    'localhost',
     '51.83.129.23',
     'www.web.swstats.info',
     'web.swstats.info',
@@ -230,5 +231,9 @@ if not DEBUG:
 
 # Allow all for Public API, only subdomain (and localhost) for Web API
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'swstats-web-ts',
+    'swstats-web-api',
+]
 
 SWSTATS_WEB_SALT = os.getenv("SWSTATS_WEB_SALT")
