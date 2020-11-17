@@ -31,8 +31,14 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == 'True'
 
-ALLOWED_HOSTS = ['www.swstats.info',
-                 'swstats.info', 'localhost', '51.83.129.23']
+ALLOWED_HOSTS = [
+    'www.swstats.info',
+    'swstats.info', 
+    'localhost', 
+    '51.83.129.23',
+    'www.web.swstats.info',
+    'web.swstats.info',
+]
 
 
 # Application definition
@@ -47,10 +53,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'website',
     'drf_yasg',
+
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'bugsnag.django.middleware.BugsnagMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -213,7 +222,13 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-BUGSNAG = {
-    'api_key': '5398ca806063433022cef8eea8b17c22',
-    'project_root': '/opt/swstats/repo',
-}
+if not DEBUG:
+    BUGSNAG = {
+        'api_key': '5398ca806063433022cef8eea8b17c22',
+        'project_root': '/opt/swstats/repo',
+    }
+
+# Allow all for Public API, only subdomain (and localhost) for Web API
+CORS_ALLOW_ALL_ORIGINS = True
+
+SWSTATS_WEB_SALT = os.getenv("SWSTATS_WEB_SALT")
