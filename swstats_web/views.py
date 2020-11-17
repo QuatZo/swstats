@@ -17,7 +17,7 @@ class Homepage(APIView):
                 "animated": False,
                 "format": "string",
                 "w": 3,  # 1-12, card width
-                "title": "Summoners War Statistics Web",
+                "title": "Introduction",
                 "desc": "Summoners War Statistics Web is a website which stores, analyse and shows in a friendly way contributors data but also implements the most important features from Summoners War Statistics Windows App which had been discontinued because of technology limits.",
             },
             {
