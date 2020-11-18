@@ -1,9 +1,17 @@
 from django.shortcuts import render
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from celery.result import AsyncResult
+from website.celery import app as celery_app
+
 from swstats_web.permissions import IsSwstatsWeb
+
 from website.models import Monster, Rune, Artifact, DungeonRun
+from website.tasks import handle_profile_upload_and_rank_task
+
+import json
 # Create your views here.
 
 
@@ -138,7 +146,50 @@ class Homepage(APIView):
                 "title": "Fastest PB10",
                 "desc": DungeonRun.objects.filter(win=True, dungeon=9502, stage=10).order_by('clear_time').first().clear_time.total_seconds(),
             },
-
         ]
 
         return Response(cards)
+
+
+class Upload(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def post(self, request, format=None):
+        data = json.loads(request.body)
+        if data['command'] != 'HubUserLogin':
+            return Response({'error': 'Invalid JSON File'}, status=status.HTTP_400_BAD_REQUEST)
+
+        task = handle_profile_upload_and_rank_task.delay(data)
+
+        return Response({'status': task.state, 'task_id': task.id})
+
+
+class Status(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        if not request.GET or 'task_id' not in request.GET:
+            return Response({'error': 'Task doesn`t exist'}, status=status.HTTP_400_BAD_REQUEST)
+        task = AsyncResult(request.GET, app=celery_app)
+        if task.state == 'PENDING':
+            response = {
+                'status': task.state,
+                'step': task.info.get('step', ''),
+            }
+        elif task.state == 'SUCCESS':
+            response = {
+                'status': task.state,
+                'step': task.info.get('step', ''),
+            }
+        elif task.state == 'PROGRESS':
+            response = {
+                'status': task.state,
+                'step': task.info.get('step', ''),
+            }
+        else:
+            response = {
+                'status': task.state,
+                'step': task.info.get('step', ''),
+            }
+
+        return jsonify(response)

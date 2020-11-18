@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from .models import *
 from .functions import *
 from .views.report import get_monster_info, generate_plots
+from .celery import app as celery_app
 
 import requests
 import logging
@@ -517,7 +518,7 @@ def handle_dimension_hole_run_upload_task(data_resp, data_req):
         if data_resp['win_lose'] == 1:
             dungeon['win'] = True
             if 'clear_time' not in data_resp or not isinstance(data_resp['clear_time'], dict):
-                return # Predator -_-
+                return  # Predator -_-
             time_str = str(data_resp['clear_time']['current_time'])
             _time = {
                 'hour': 0 if int(time_str[:-3]) < 3600 else math.floor(int(time_str[:-3]) / 3600),
@@ -1916,9 +1917,12 @@ def get_homunculus_base_task(request_get, base):
     return context
 
 
-@shared_task
-def handle_profile_upload_and_rank_task(data):
+@celery_app.task(name="handle_profile_upload_and_rank_task", bind=True)
+def handle_profile_upload_and_rank_task(self, data):
+    self.update_state(state='PROGRESS', meta={'step': 'Creating profile'})
     handle_profile_upload_task.s(data).apply()
+    self.update_state(state='PROGRESS', meta={
+                      'step': 'Comparing profile to database'})
 
     content = {
         'points': get_scoring_for_profile(data['wizard_info']['wizard_id']),
