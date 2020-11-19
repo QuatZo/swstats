@@ -167,19 +167,19 @@ class Upload(APIView):
 class Status(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
-    def get(self, request, format=None):
-        if not request.GET or 'task_id' not in request.GET:
+    def get(self, request, format=None, task_id=None):
+        if not task_id:
             return Response({'error': 'Task doesn`t exist'}, status=status.HTTP_400_BAD_REQUEST)
-        task = AsyncResult(request.GET, app=celery_app)
+        task = AsyncResult(task_id, app=celery_app)
         if task.state == 'PENDING':
             response = {
                 'status': task.state,
-                'step': task.info.get('step', ''),
+                'step': 'Waiting in Queue',
             }
         elif task.state == 'SUCCESS':
             response = {
                 'status': task.state,
-                'step': task.info.get('step', ''),
+                'step': task.result,
             }
         elif task.state == 'PROGRESS':
             response = {
@@ -189,7 +189,7 @@ class Status(APIView):
         else:
             response = {
                 'status': task.state,
-                'step': task.info.get('step', ''),
+                'step': str(task.info),
             }
 
-        return jsonify(response)
+        return Response(response)
