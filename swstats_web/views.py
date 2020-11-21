@@ -9,7 +9,8 @@ from website.celery import app as celery_app
 from swstats_web.permissions import IsSwstatsWeb
 
 from website.models import Monster, Rune, Artifact, DungeonRun
-from website.tasks import handle_profile_upload_and_rank_task
+from .tasks import handle_profile_upload_and_rank_task
+from .functions import get_scoring_system
 
 import json
 # Create your views here.
@@ -150,6 +151,11 @@ class Homepage(APIView):
 
         return Response(cards)
 
+class Scoring(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        return Response({'points': get_scoring_system(), 'comparison': {}})
 
 class Upload(APIView):
     permission_classes = [IsSwstatsWeb, ]
