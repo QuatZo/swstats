@@ -3,6 +3,7 @@ from django.conf import settings
 
 import hashlib
 import hmac
+import time
 
 
 class IsSwstatsWeb(BasePermission):
@@ -16,6 +17,10 @@ class IsSwstatsWeb(BasePermission):
         referer_url = request.META.get('HTTP_REFERER', '')
         target_url = 'localhost' if settings.DEBUG else 'web.swstats.info'
         if not target_url in referer_url:
+            return False
+
+        # 30s difference between both timestamps
+        if abs(round(time.time() * 1000) - int(request.headers['SWStats-Web-TS'])) > 30000:
             return False
 
         gen_key = hmac.new(

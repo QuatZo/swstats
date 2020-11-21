@@ -86,7 +86,7 @@ def get_scoring_system():
             },
             "attack": {
                 'total': [5, 15, 50],
-                'threshold': [1750, 2250, 2500],
+                'threshold': [2000, 2500, 3000],
             },
             "crit_dmg": {
                 'total': [5, 15, 50],
@@ -94,11 +94,11 @@ def get_scoring_system():
             },
             "crit_rate": {
                 'total': [5, 15, 50],
-                'threshold': [70, 85, 100],
+                'threshold': [80, 90, 100],
             },
             "acc": {
                 'total': [5, 15, 50],
-                'threshold': [45, 65, 85],
+                'threshold': [55, 70, 85],
             },
             "res": {
                 'total': [5, 15, 50],
@@ -227,13 +227,14 @@ def get_scoring_for_profile(wizard_id):
 
     monsters = monsters.exclude(base_monster__archetype=5).exclude(
         base_monster__archetype=0)  # material monsters
-    monsters = pd.DataFrame(list(monsters.values(*['runes', 'skills', 'base_monster__max_skills', 'speed', 'hp', 'attack',
-                                                   'defense', 'crit_rate', 'crit_dmg', 'res', 'acc']))).applymap(lambda x: sum(x) if isinstance(x, list) else x)
+    monsters = pd.DataFrame(list(monsters.values(*['id', 'runes', 'skills', 'base_monster__max_skills', 'speed', 'hp', 'attack',
+                                                   'defense', 'crit_rate', 'crit_dmg', 'res', 'acc']))).applymap(lambda x: sum(x) if isinstance(x, list) else x).drop_duplicates('id')
 
     points['monsters']['with_runes'] *= monsters[monsters['runes'] == 6].shape[0]
     points['monsters']['skillups_max'] *= monsters[monsters['skills']
                                                    == monsters['base_monster__max_skills']].shape[0]
     points['monsters']['skillup'] *= monsters['skills'].sum()
+    points['monsters']['skillup'] = round(points['monsters']['skillup'], 2)
 
     for m_s in ['speed', 'hp', 'attack', 'defense', 'crit_rate', 'crit_dmg', 'res', 'acc']:
         points['monsters'][m_s]['total'] = [monsters[monsters[m_s] > points['monsters'][m_s]['threshold'][j]].shape[0]
@@ -261,7 +262,6 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
     }
     m_stats = {
         'id': id_,
-        'img_url': Monster.objects.get(id=id_).get_image(),  # placeholder
         'rank': dict()
     }
     for key, val in kw.items():
@@ -298,14 +298,12 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
     rune_obj = Rune.objects.get(id=id_)
     r_stats = {
         'id': id_,
-        'img_classes': rune_obj.get_image_classes(),
-        'img_url': rune_obj.get_image(),
         'mainstat': rune_obj.get_primary_display(),
         'rank': dict()
     }
     for key, val in kw.items():
         r_stats['rank'][key] = {
-            'top': round(len(df_group[df_group[key] > val]) / df_group_len * 100, 2) if val else 100,
+            'top': round(len(df_group[df_group[key] > val]) / df_group_len * 100, 2) if val else None,
             'avg': val - df_means[key] if val else None,
             'val': val if val else None,
         }
