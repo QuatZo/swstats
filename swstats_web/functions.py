@@ -1,8 +1,12 @@
 import pandas as pd
 import numpy as np
+import datetime
+import math
+import time
 
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
 from website.models import *
+
 
 def get_scoring_system():
     points = {
@@ -117,22 +121,23 @@ def get_scoring_system():
 
 def _calc_total_per_category(points):
     total = points['total']
-    sum = points['sum']
     for key, val in points.items():
-        if key == 'total' or 'sum':
+        if key == 'total' or key == 'sum':
             continue
-        for kval, vval in val.items():
+        for _, vval in val.items():
             if isinstance(vval, float) or isinstance(vval, int):
                 total[key] += vval
             else:
                 total[key] += sum(vval['total'])
-    
-    points['total'] = round(total, 2)
+
+    points['total'] = {k: round(v, 2) for k, v in total.items()}
     points['sum'] = round(sum(total.values()), 2)
 
     return points
 
+
 def get_scoring_for_profile(wizard_id):
+    start = time.time()
     points = get_scoring_system()
     wiz = Wizard.objects.get(id=wizard_id)
     runes = Rune.objects.filter(wizard=wiz)
@@ -141,22 +146,25 @@ def get_scoring_for_profile(wizard_id):
     buildings = WizardBuilding.objects.filter(
         wizard=wiz).prefetch_related('building')
 
-    last_week = datetime.datetime.now() - timedelta(days=7)
+    last_week = datetime.datetime.now() - datetime.timedelta(days=7)
     # active contributor
     active_contributor = sum([
         DungeonRun.objects.filter(wizard=wiz, date__gte=last_week).count(),
-        DimensionHoleRun.objects.filter(wizard=wiz, date__gte=last_week).count(),
+        DimensionHoleRun.objects.filter(
+            wizard=wiz, date__gte=last_week).count(),
         RaidDungeonRun.objects.filter(wizard=wiz, date__gte=last_week).count(),
         RiftDungeonRun.objects.filter(wizard=wiz, date__gte=last_week).count(),
     ])
 
     if active_contributor < 50:
-        points['wizard']['active_contributor'] =  0
+        points['wizard']['active_contributor'] = 0
     ####
 
     # guild
-    points['guild']['gw_rank'] = math.floor(wiz.guild.gw_best_ranking / 1000) * points['guild']['gw_rank'] if wiz.guild.gw_best_ranking else 0
-    points['guild']['siege_rank'] = math.floor(wiz.guild.siege_ranking / 1000) * points['guild']['siege_rank'] if wiz.guild.siege_ranking else 0
+    points['guild']['gw_rank'] = math.floor(
+        wiz.guild.gw_best_ranking / 1000) * points['guild']['gw_rank'] if wiz.guild.gw_best_ranking else 0
+    points['guild']['siege_rank'] = math.floor(
+        wiz.guild.siege_ranking / 1000) * points['guild']['siege_rank'] if wiz.guild.siege_ranking else 0
     ####
 
     # wizard
@@ -182,7 +190,7 @@ def get_scoring_for_profile(wizard_id):
     g_b_max_count = g_b.filter(level=10).count()
     points['flags']['max'] *= g_b_max_count
     if g_b_max_count != g_b.count():
-        points['flags']['max_all']['count'] = 0
+        points['flags']['max_all'] = 0
     ####
 
     # runes
@@ -198,10 +206,13 @@ def get_scoring_for_profile(wizard_id):
     points['runes']['upgrade_15'] *= runes.filter(
         upgrade_curr=15).count()
 
-    runes_substats = ['sub_speed', 'sub_hp', 'sub_atk', 'sub_def', 'sub_crit_rate', 'sub_crit_dmg']
-    df_runes = pd.DataFrame(list(runes.values(runes_substats))).applymap(lambda x: sum(x))
+    runes_substats = ['sub_speed', 'sub_hp', 'sub_atk',
+                      'sub_def', 'sub_crit_rate', 'sub_crit_dmg']
+    df_runes = pd.DataFrame(
+        list(runes.values(*runes_substats))).applymap(lambda x: sum(x) if x else None)
     for r_s in runes_substats:
-        points['runes'][r_s]['total'] = [df_runes[df_runes[r_s] > points['runes'][r_s]['threshold'][j]].shape[0] * points['runes'][r_s]['total'][j] for j in range(len(points['runes'][r_s]['threshold']))]
+        points['runes'][r_s]['total'] = [df_runes[df_runes[r_s] > points['runes'][r_s]['threshold'][j]].shape[0]
+                                         * points['runes'][r_s]['total'][j] for j in range(len(points['runes'][r_s]['threshold']))]
     ####
 
     # monsters
@@ -214,21 +225,19 @@ def get_scoring_for_profile(wizard_id):
     points['monsters']['transmog'] *= monsters.filter(
         transmog=True).count()
 
-    monsters = pd.DataFrame(list(monsters.values(['runes', 'skills', 'base_monster__max_skills', 'speed', 'hp', 'attack', 'defense', 'crit_rate', 'crit_dmg', 'res', 'acc']))).applymap(lambda x: sum(x) if isinstance(x, list) else x)
-    for monster in monsters:
-        mons_with_runes += 1 if monster.runes.count() == 6 else 0
-        if monster.base_monster.archetype == 5:
-            continue
-        if monster.skills == monster.base_monster.max_skills:
-            mons_max_skill += 1
-        mons_skillups += sum([skillup - 1 for skillup in monster.skills])
+    monsters = monsters.exclude(base_monster__archetype=5).exclude(
+        base_monster__archetype=0)  # material monsters
+    monsters = pd.DataFrame(list(monsters.values(*['runes', 'skills', 'base_monster__max_skills', 'speed', 'hp', 'attack',
+                                                   'defense', 'crit_rate', 'crit_dmg', 'res', 'acc']))).applymap(lambda x: sum(x) if isinstance(x, list) else x)
 
     points['monsters']['with_runes'] *= monsters[monsters['runes'] == 6].shape[0]
-    points['monsters']['skillups_max'] *= monsters[monsters['skills'] == monsters['base_monster__max_skills']].shape[0]
+    points['monsters']['skillups_max'] *= monsters[monsters['skills']
+                                                   == monsters['base_monster__max_skills']].shape[0]
     points['monsters']['skillup'] *= monsters['skills'].sum()
 
-    for m_s in ['speed', 'hp', 'attack', 'defense', 'crit_rate_', 'crit_dmg', 'res', 'acc']:
-        points['monsters'][m_s]['total'] = [monsters[monsters[m_s] > points['monsters'][m_s]['threshold'][j]].shape[0] * points['monsters'][m_s]['total'][j] for j in range(len(points['monsters'][m_s]['threshold']))]
+    for m_s in ['speed', 'hp', 'attack', 'defense', 'crit_rate', 'crit_dmg', 'res', 'acc']:
+        points['monsters'][m_s]['total'] = [monsters[monsters[m_s] > points['monsters'][m_s]['threshold'][j]].shape[0]
+                                            * points['monsters'][m_s]['total'][j] for j in range(len(points['monsters'][m_s]['threshold']))]
     ####
 
     points = _calc_total_per_category(points)
@@ -252,12 +261,14 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
     }
     m_stats = {
         'id': id_,
+        'img_url': Monster.objects.get(id=id_).get_image(),  # placeholder
         'rank': dict()
     }
     for key, val in kw.items():
         m_stats['rank'][key] = {
             'top': round(len(df_group[df_group[key] > val]) / df_group_len * 100, 2),
             'avg': val - df_means[key],
+            'val': val,
         }
 
         if key == 'avg_eff_total':
@@ -284,14 +295,19 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
         'sub_crit_dmg': c_dmg,
         'efficiency': eff
     }
+    rune_obj = Rune.objects.get(id=id_)
     r_stats = {
         'id': id_,
+        'img_classes': rune_obj.get_image_classes(),
+        'img_url': rune_obj.get_image(),
+        'mainstat': rune_obj.get_primary_display(),
         'rank': dict()
     }
     for key, val in kw.items():
         r_stats['rank'][key] = {
-            'top': round(len(df_group[df_group[key] > val]) / df_group_len * 100, 2) if val else None,
+            'top': round(len(df_group[df_group[key] > val]) / df_group_len * 100, 2) if val else 100,
             'avg': val - df_means[key] if val else None,
+            'val': val if val else None,
         }
         if key == 'efficiency':
             r_stats['rank'][key]['avg'] = round(r_stats['rank'][key]['avg'], 2)
@@ -335,7 +351,6 @@ def get_profile_comparison_with_database(wizard_id):
     comparison = {
         "monsters": [],
         "runes": [],
-        "artifacts": [],
     }
 
     df_groups = df_monsters.groupby('base_monster__name', axis=0)
@@ -351,10 +366,5 @@ def get_profile_comparison_with_database(wizard_id):
         df_means = df_group.mean()
         comparison['runes'] += [calc_rune_comparison_stats(*row, df_group, len(df_group), df_means) for row in zip(df_wiz['id'], df_wiz['sub_hp_flat'], df_wiz['sub_hp'], df_wiz['sub_atk_flat'],
                                                                                                                    df_wiz['sub_atk'], df_wiz['sub_def_flat'], df_wiz['sub_def'], df_wiz['sub_speed'], df_wiz['sub_res'], df_wiz['sub_acc'], df_wiz['sub_crit_rate'], df_wiz['sub_crit_dmg'], df_wiz['efficiency'])]
-
-    # Future Artifact Update
-    # artifacts = Artifact.objects.all()
-    # wiz_artifacts = Artifact.objects.filter(wizard=wiz)
-    ########
 
     return comparison

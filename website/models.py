@@ -245,6 +245,16 @@ class Rune(models.Model):
         db_index=True, blank=True, default=False)
     locked = models.BooleanField(db_index=True)  # rune_lock_list
 
+    def get_image_classes(self):
+        return [
+            f'rune-quality {self.get_quality_display().replace("Ancient ", "")}',
+            f'rune-quality-original {self.get_quality_original_display().replace("Ancient ", "")}',
+            f'rune-slot-{self.slot}'
+        ]
+
+    def get_image(self):
+        return f'https://swstats.info/static/website/runes/{self.rune_set.name.lower()}.png'
+
     def get_substats_display(self):
         effects = dict(self.RUNE_EFFECTS)
         strings = list()
@@ -717,6 +727,23 @@ class Monster(models.Model):
     locked = models.BooleanField()  # unit_lock_list - if it's in the array
     # building_id, need to check which one is storage building
     storage = models.BooleanField()
+
+    def get_image(self):
+        filename = 'monster_'
+        monster_id = self.base_monster.id
+        monster_name = self.base_monster.name
+
+        if monster_id % 100 > 10:
+            if monster_id % 100 > 20:
+                filename += 'second'
+            filename += 'awakened_' + monster_name.lower().replace('(2a)', '').replace(' ', '')
+            if 'homunculus' in filename:
+                filename = filename.replace(
+                    '-', '_').replace('(', '_').replace(')', '')
+        else:
+            filename += monster_name.lower().replace(' (', '_').replace(')', '').replace(' ', '')
+
+        return 'https://swstats.info/static/website/images/monsters/' + filename + '.png'
 
     def __str__(self):
         return str(self.base_monster) + ' (ID: ' + str(self.id) + ')'
