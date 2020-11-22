@@ -55,7 +55,15 @@ def handle_profile_upload_task(data):
                 logger.debug(
                     f"Guild profile does NOT exists. Starting first-time guild profile upload for {data['guild']['guild_info']['guild_id']}")
 
-        if profile_guild and not guild_uptodate:
+        if (
+            profile_guild 
+            and not guild_uptodate 
+            and 'guild' in data 
+            and 'guild_info' in data['guild'] 
+            and 'guildwar_ranking_stat' in data 
+            and 'best' in data['guildwar_ranking_stat'] 
+            and 'tvalue' in data
+        ):
             parse_guild(data['guild']['guild_info'],
                         data['guildwar_ranking_stat']['best'], data['tvalue'])
 
