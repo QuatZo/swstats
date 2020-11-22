@@ -11,12 +11,13 @@ from swstats_web.permissions import IsSwstatsWeb
 from website.models import Monster, Rune, Artifact, DungeonRun
 from .tasks import handle_profile_upload_and_rank_task
 from .functions import get_scoring_system
+from .serializers import MonsterSerializer
 
 import json
 # Create your views here.
 
 
-class Homepage(APIView):
+class HomepageView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None):
@@ -151,13 +152,15 @@ class Homepage(APIView):
 
         return Response(cards)
 
-class Scoring(APIView):
+
+class ScoringView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None):
         return Response({'points': get_scoring_system(), 'comparison': {}})
 
-class Upload(APIView):
+
+class UploadView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def post(self, request, format=None):
@@ -170,7 +173,24 @@ class Upload(APIView):
         return Response({'status': task.state, 'task_id': task.id})
 
 
-class Status(APIView):
+class MonsterView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None, mon_id=None):
+        if not mon_id:
+            return Response({'error', 'No Monster ID given.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            mon = Monster.objects.get(id=mon_id)
+        except Monster.DoesNotExist:
+            return Response({'error': 'Monster doesn`t exist.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = MonsterSerializer(mon)
+
+        return Response(serializer.data)
+
+
+class StatusView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None, task_id=None):

@@ -725,7 +725,7 @@ class Monster(models.Model):
         MonsterSource, on_delete=models.PROTECT)  # source
     transmog = models.BooleanField()  # costume_master_id
     locked = models.BooleanField()  # unit_lock_list - if it's in the array
-    # building_id, need to check which one is storage building
+    # building_id
     storage = models.BooleanField()
 
     def get_image(self):

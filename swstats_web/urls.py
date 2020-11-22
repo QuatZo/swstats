@@ -2,10 +2,12 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('homepage/', views.Homepage.as_view(), name='web_homepage'),
+    path('homepage/', views.HomepageView.as_view(), name='web_homepage'),
 
-    path('scoring/', views.Scoring.as_view(), name='web_scoring_system'),
-    path('upload/', views.Upload.as_view(), name='web_upload'),
-    
-    path('status/<str:task_id>/', views.Status.as_view(), name='web_status'),
+    path('scoring/', views.ScoringView.as_view(), name='web_scoring_system'),
+    path('upload/', views.UploadView.as_view(), name='web_upload'),
+
+    path('monster/<int:mon_id>/', views.MonsterView.as_view(), name='web_monster'),
+
+    path('status/<str:task_id>/', views.StatusView.as_view(), name='web_status'),
 ]

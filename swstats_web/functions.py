@@ -262,6 +262,7 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
     }
     m_stats = {
         'id': id_,
+        'img_url': Monster.objects.get(id=id_).get_image(),
         'rank': dict()
     }
     for key, val in kw.items():
@@ -298,6 +299,8 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
     rune_obj = Rune.objects.get(id=id_)
     r_stats = {
         'id': id_,
+        'img_classes': rune_obj.get_image_classes(),
+        'img_url': rune_obj.get_image(),
         'mainstat': rune_obj.get_primary_display(),
         'rank': dict()
     }
