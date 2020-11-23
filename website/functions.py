@@ -1343,6 +1343,8 @@ def get_raid_dungeon_records_personal(dungeon_runs, fastest_run, success_rate_mi
 
         records_temp = dungeon_runs.filter(win__isnull=False, **run)
         records_count = records_temp.count()
+        if not records_count:
+            continue
         wins_count = records_temp.filter(win=True).count()
         avg_time = records_temp.filter(clear_time__isnull=False).aggregate(
             avg_time=Avg('clear_time'))['avg_time']
