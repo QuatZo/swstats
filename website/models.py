@@ -245,25 +245,23 @@ class Rune(models.Model):
         db_index=True, blank=True, default=False)
     locked = models.BooleanField(db_index=True)  # rune_lock_list
 
-    def get_image_classes(self):
-        return [
-            f'rune-quality {self.get_quality_display().replace("Ancient ", "")}',
-            f'rune-quality-original {self.get_quality_original_display().replace("Ancient ", "")}',
-            f'rune-slot-{self.slot}'
-        ]
-
     def get_image(self):
-        return f'https://swstats.info/static/website/runes/{self.rune_set.name.lower()}.png'
+        return f'https://swstats.info/static/website/images/runes/{self.rune_set.name.lower()}.png'
 
-    def get_substats_display(self):
-        effects = dict(self.RUNE_EFFECTS)
-        strings = list()
-        for substat in self.substats:
-            if substat != 0:
-                strings.append(effects[substat])
-            else:
-                strings.append('-')
-        return strings
+    def get_substats(self):
+        return {
+            'HP F': self.sub_hp_flat,
+            'HP': self.sub_hp,
+            'ATK F': self.sub_atk_flat,
+            'ATK': self.sub_atk,
+            'DEF F': self.sub_def_flat,
+            'DEF': self.sub_def,
+            'SPD': self.sub_speed,
+            'CRATE': self.sub_crit_rate,
+            'CDMG': self.sub_crit_dmg,
+            'RES': self.sub_res,
+            'ACC': self.sub_acc,
+        }
 
     def get_substat_display(self, substat):
         effects = dict(self.RUNE_EFFECTS)
