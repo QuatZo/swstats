@@ -442,6 +442,17 @@ class Artifact(models.Model):
         db_index=True, blank=True, default=False)
     locked = models.BooleanField(db_index=True)  # locked
 
+    def get_slot_type(self):
+        if self.rtype == 1:
+            return dict(self.ARTIFACT_ATTRIBUTES)[self.attribute]
+
+        return dict(self.ARTIFACT_ARCHETYPES)[self.archetype] 
+
+    def get_image(self):
+        if self.rtype == 1:
+            return "https://swstats.info/static/website/images/artifacts/artifact_element_" + self.get_quality_display().lower() + ".png"
+        return "https://swstats.info/static/website/images/artifacts/artifact_archetype_" + self.get_quality_display().lower() + ".png"    
+
     def get_substat_display(self, substat):
         effects = dict(self.ARTIFACT_EFFECTS_ATTRIBUTE)
         if self.rtype == 2:

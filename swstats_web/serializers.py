@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from website.models import Monster, MonsterBase, MonsterFamily, Rune, RuneSet
+from website.models import Monster, MonsterBase, MonsterFamily, Rune, RuneSet, Artifact
 
 
 class RuneSerializer(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class RuneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rune
         fields = [
-            'slot', 'quality', 'quality_original', 'stars', 'rune_set', 'level', 'primary',
+            'id', 'slot', 'quality', 'quality_original', 'stars', 'rune_set', 'level', 'primary',
             'primary_value', 'innate', 'innate_value', 'substats', 'efficiency', 'efficiency_max',
             'equipped', 'equipped_rta', 'locked', 'image', 'ancient'
         ]
@@ -31,6 +31,31 @@ class RuneSerializer(serializers.ModelSerializer):
     def get_ancient(self, obj):
         return obj.is_ancient()
 
+
+class ArtifactSerializer(serializers.ModelSerializer):
+    type = serializers.SerializerMethodField()
+    primary = serializers.CharField(source='get_primary_display')
+    substats = serializers.SerializerMethodField()
+    quality = serializers.CharField(source='get_quality_display')
+    quality_original = serializers.CharField(
+        source='get_quality_original_display')
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Artifact
+        fields = [
+            'id', 'type', 'level', 'primary', 'primary_value', 'substats', 'quality', 'quality_original',
+            'efficiency', 'efficiency_max', 'equipped', 'equipped_rta', 'locked', 'image'
+        ]
+    
+    def get_type(self, obj):
+        return obj.get_slot_type()
+    
+    def get_substats(self, obj):
+        return obj.get_substats_display()
+
+    def get_image(self, obj):
+        return obj.get_image()
 
 class MonsterBaseSerializer(serializers.ModelSerializer):
     family = serializers.StringRelatedField()
@@ -50,6 +75,8 @@ class MonsterSerializer(serializers.ModelSerializer):
     base_monster = MonsterBaseSerializer()
     runes = RuneSerializer(many=True)
     runes_rta = RuneSerializer(many=True)
+    artifacts = ArtifactSerializer(many=True)
+    artifacts_rta = ArtifactSerializer(many=True)
 
     class Meta:
         model = Monster
