@@ -299,7 +299,7 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
     rune_obj = Rune.objects.get(id=id_)
     r_stats = {
         'id': id_,
-        'img_url': rune_obj.get_image(),
+        'img_url': rune_obj.get_full_image(),
         'mainstat': rune_obj.get_primary_display(),
         'rank': dict()
     }

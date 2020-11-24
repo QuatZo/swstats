@@ -11,7 +11,7 @@ from swstats_web.permissions import IsSwstatsWeb
 from website.models import Monster, Rune, Artifact, DungeonRun
 from .tasks import handle_profile_upload_and_rank_task
 from .functions import get_scoring_system
-from .serializers import MonsterSerializer
+from .serializers import MonsterSerializer, RuneSerializer
 
 import json
 # Create your views here.
@@ -176,6 +176,16 @@ class UploadView(APIView):
         task = handle_profile_upload_and_rank_task.delay(data)
 
         return Response({'status': task.state, 'task_id': task.id})
+
+
+class RunesView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        runes = Rune.objects.first()
+        serializer = RuneSerializer(runes)
+
+        return Response(serializer.data)
 
 
 class MonsterView(APIView):

@@ -248,6 +248,15 @@ class Rune(models.Model):
     def get_image(self):
         return f'https://swstats.info/static/website/images/runes/{self.rune_set.name.lower()}.png'
 
+    def get_full_image(self):
+        return {
+            'id': self.id,
+            'slot': self.slot,
+            'quality': self.get_quality_display(),
+            'quality_original': self.get_quality_original_display(),
+            'image': self.get_image(),
+        }
+
     def get_substats(self):
         return {
             'HP F': self.sub_hp_flat,
@@ -446,12 +455,12 @@ class Artifact(models.Model):
         if self.rtype == 1:
             return dict(self.ARTIFACT_ATTRIBUTES)[self.attribute]
 
-        return dict(self.ARTIFACT_ARCHETYPES)[self.archetype] 
+        return dict(self.ARTIFACT_ARCHETYPES)[self.archetype]
 
     def get_image(self):
         if self.rtype == 1:
             return "https://swstats.info/static/website/images/artifacts/artifact_element_" + self.get_quality_display().lower() + ".png"
-        return "https://swstats.info/static/website/images/artifacts/artifact_archetype_" + self.get_quality_display().lower() + ".png"    
+        return "https://swstats.info/static/website/images/artifacts/artifact_archetype_" + self.get_quality_display().lower() + ".png"
 
     def get_substat_display(self, substat):
         effects = dict(self.ARTIFACT_EFFECTS_ATTRIBUTE)
