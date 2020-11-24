@@ -9,7 +9,7 @@ from website.celery import app as celery_app
 from swstats_web.permissions import IsSwstatsWeb
 
 from website.models import Monster, Rune, Artifact, DungeonRun
-from .tasks import handle_profile_upload_and_rank_task
+from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data
 from .functions import get_scoring_system
 from .serializers import MonsterSerializer, RuneSerializer
 
@@ -182,13 +182,10 @@ class RunesView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None):
-        runes = Rune.objects.all().select_related('rune_set', ).defer(
-            'wizard', 'base_value', 'sell_value').order_by()
-        serializer = RuneSerializer(runes, many=True)
+        # there should be something to group filters, then task call
+        task = fetch_runes_data.delay(request.GET)
 
-        print("WTF")
-
-        return Response(serializer.data)
+        return Response({'status': task.state, 'task_id': task.id})
 
 
 class MonsterView(APIView):
