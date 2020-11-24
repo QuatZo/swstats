@@ -182,8 +182,11 @@ class RunesView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None):
-        runes = Rune.objects.first()
-        serializer = RuneSerializer(runes)
+        runes = Rune.objects.all().select_related('rune_set', ).defer(
+            'wizard', 'base_value', 'sell_value').order_by()
+        serializer = RuneSerializer(runes, many=True)
+
+        print("WTF")
 
         return Response(serializer.data)
 
