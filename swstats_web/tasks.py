@@ -28,6 +28,10 @@ def fetch_runes_data(self, filters):
     # filters here
     # runes.filter(**filters)
 
+    # prepare filters to show in Form
+    form_filters = Rune.get_filter_fields()
+    #
+
     stars = runes.values('stars').annotate(count=Count('stars'))
     rune_stars = {}
     for star in stars:
@@ -73,21 +77,24 @@ def fetch_runes_data(self, filters):
         }
 
     content = {
-        'rune_set': [{
-            'name': rune_set['rune_set__name'],
-            'count': rune_set['count'],
-        } for rune_set in runes.values('rune_set__name').annotate(count=Count('rune_set__name'))],
-        'rune_slot': [{
-            'name': rune_slot['slot'],
-            'count': rune_slot['count'],
-        } for rune_slot in runes.values('slot').annotate(count=Count('slot'))],
-        'rune_level': [{
-            'name': rune_level['upgrade_curr'],
-            'count': rune_level['count'],
-        } for rune_level in runes.values('upgrade_curr').annotate(count=Count('upgrade_curr'))],
-        'rune_stars': list(rune_stars.values()),
-        'rune_qualities': list(rune_qualities.values()),
-        'rune_primaries': list(rune_primaries.values()),
+        'chart_data': {
+            'rune_set': [{
+                'name': rune_set['rune_set__name'],
+                'count': rune_set['count'],
+            } for rune_set in runes.values('rune_set__name').annotate(count=Count('rune_set__name'))],
+            'rune_slot': [{
+                'name': rune_slot['slot'],
+                'count': rune_slot['count'],
+            } for rune_slot in runes.values('slot').annotate(count=Count('slot'))],
+            'rune_level': [{
+                'name': rune_level['upgrade_curr'],
+                'count': rune_level['count'],
+            } for rune_level in runes.values('upgrade_curr').annotate(count=Count('upgrade_curr'))],
+            'rune_stars': list(rune_stars.values()),
+            'rune_qualities': list(rune_qualities.values()),
+            'rune_primaries': list(rune_primaries.values()),
+        },
+        'filters': form_filters,
     }
 
     return content

@@ -289,6 +289,77 @@ class Rune(models.Model):
         ordering = ['slot', 'rune_set', '-efficiency', '-stars']
 
     @classmethod
+    def get_filter_fields(cls):
+        filters = {}
+        # multi select
+        filters['slot'] = [{'id': i, 'name': i} for i in range(1, 7)]
+        filters['stars'] = [{'id': i, 'name': i} for i in range(1, 7)]
+        filters['quality'] = [{'id': q[0], 'name': q[1]}
+                              for q in cls.RUNE_QUALITIES]
+        filters['quality_original'] = [
+            {'id': q[0], 'name': q[1]} for q in cls.RUNE_QUALITIES]
+        filters['rune_set'] = list(RuneSet.objects.values('id', 'name'))
+        filters['primary'] = [{'id': q[0], 'name': q[1]}
+                              for q in cls.RUNE_EFFECTS]
+        filters['innate'] = [{'id': q[0], 'name': q[1]}
+                             for q in cls.RUNE_EFFECTS]
+        filters['substats'] = [
+            {
+                'id': 1,
+                'name': 'sub_hp_flat',
+            },
+            {
+                'id': 2,
+                'name': 'sub_hp',
+            },
+            {
+                'id': 3,
+                'name': 'sub_atk_flat',
+            },
+            {
+                'id': 4,
+                'name': 'sub_atk',
+            },
+            {
+                'id': 5,
+                'name': 'sub_def_flat',
+            },
+            {
+                'id': 6,
+                'name': 'sub_def',
+            },
+            {
+                'id': 8,
+                'name': 'sub_speed',
+            },
+            {
+                'id': 9,
+                'name': 'sub_crit_rate',
+            },
+            {
+                'id': 10,
+                'name': 'sub_crit_dmg',
+            },
+            {
+                'id': 11,
+                'name': 'sub_res',
+            },
+            {
+                'id': 12,
+                'name': 'sub_acc',
+            },
+        ]
+
+        # slider min-max
+        filters['upgrade_curr'] = {'min': 0, 'max': 15}
+        filters['efficiency'] = {'min': 0, 'max': Rune.objects.all().order_by(
+            '-efficiency').first().efficiency}
+
+        filters['boolean'] = ['equipped', 'equipped_rta', 'locked']
+
+        return filters
+
+    @classmethod
     def get_rune_quality(cls, number):
         return dict(cls.RUNE_QUALITIES)[number]
 
