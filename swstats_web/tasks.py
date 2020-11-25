@@ -1,3 +1,5 @@
+from django.db.models import Count, Q, F, Avg
+
 from website.celery import app as celery_app
 from website.tasks import handle_profile_upload_task
 from website.models import Rune, RuneSet
@@ -27,13 +29,13 @@ def fetch_runes_data(self, filters):
     # runes.filter(**filters)
 
     # temp
-    rune_set_names = list(RuneSet.objects.values_list('name', flat=True))
+    rune_set_names = runes.values('rune_set__name').annotate(count=Count('rune_set__name'))
 
     content = {
         'rune_set': [{
-            'name': name,
-            'value': runes.filter(rune_set__name=name).count(),
-        } for name in rune_set_names]
+            'name': rune_set['rune_set__name'],
+            'count': rune_set['count'],
+        } for rune_set in rune_set_names]
     }
 
     return content
