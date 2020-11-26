@@ -25,8 +25,23 @@ def handle_profile_upload_and_rank_task(self, data):
 def fetch_runes_data(self, filters):
     runes = Rune.objects.all().select_related('rune_set', ).defer(
         'wizard', 'base_value', 'sell_value').order_by()
+
     # filters here
-    # runes.filter(**filters)
+    proper_filters = {}
+    for key, val in filters:
+        if key in ['innate', 'primary', 'quality', 'quality_original', 'rune_set_id', 'slot', 'stars']:
+            proper_filters[key + '__in'] = val
+        elif key in ['efficiency', 'upgrade_curr']:
+            proper_val = [float(v) for v in val]
+            proper_val.sort()
+            proper_filters[key + '__gte'] = proper_val[0]
+            proper_filters[key + '__lte'] = proper_val[1]
+        elif key in ['equipped', 'equipped_rta', 'locked']:
+            proper_filters[key] = val == 'true'
+        elif key == 'substats':
+            for substat in val:
+                proper_filters[substat + '__isnull'] = False
+    runes = runes.filter(**proper_filters)
 
     # prepare filters to show in Form
     form_filters = Rune.get_filter_fields()

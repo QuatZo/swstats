@@ -183,7 +183,7 @@ class RunesView(APIView):
 
     def get(self, request, format=None):
         # there should be something to group filters, then task call
-        task = fetch_runes_data.delay(request.GET)
+        task = fetch_runes_data.delay(list(request.GET.lists()))
 
         return Response({'status': task.state, 'task_id': task.id})
 
