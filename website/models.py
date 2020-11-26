@@ -176,8 +176,8 @@ class Rune(models.Model):
         (5, 'DEF+'),
         (6, 'DEF%'),
         (8, 'SPD'),
-        (9, 'CRate%'),
-        (10, 'CDmg%'),
+        (9, 'CRATE%'),
+        (10, 'CDMG%'),
         (11, 'RES%'),
         (12, 'ACC%'),
     )
@@ -305,57 +305,99 @@ class Rune(models.Model):
                              for q in cls.RUNE_EFFECTS]
         filters['substats'] = [
             {
-                'id': 1,
-                'name': 'sub_hp_flat',
+                'id': 'sub_hp_flat',
+                'name': 'HP+',
             },
             {
-                'id': 2,
-                'name': 'sub_hp',
+                'id': 'sub_hp',
+                'name': 'HP%',
             },
             {
-                'id': 3,
-                'name': 'sub_atk_flat',
+                'id': 'sub_atk_flat',
+                'name': 'ATK+',
             },
             {
-                'id': 4,
-                'name': 'sub_atk',
+                'id': 'sub_atk',
+                'name': 'ATK%',
             },
             {
-                'id': 5,
-                'name': 'sub_def_flat',
+                'id': 'sub_def_flat',
+                'name': 'DEF+',
             },
             {
-                'id': 6,
-                'name': 'sub_def',
+                'id': 'sub_def',
+                'name': 'DEF%',
             },
             {
-                'id': 8,
-                'name': 'sub_speed',
+                'id': 'sub_speed',
+                'name': 'SPD',
             },
             {
-                'id': 9,
-                'name': 'sub_crit_rate',
+                'id': 'sub_crit_rate',
+                'name': 'CRATE%',
             },
             {
-                'id': 10,
-                'name': 'sub_crit_dmg',
+                'id': 'sub_crit_dmg',
+                'name': 'CDMG%',
             },
             {
-                'id': 11,
-                'name': 'sub_res',
+                'id': 'sub_res',
+                'name': 'RES%',
             },
             {
-                'id': 12,
-                'name': 'sub_acc',
+                'id': 'sub_acc',
+                'name': 'ACC%',
             },
         ]
 
         # slider min-max
-        filters['upgrade_curr'] = {'min': 0, 'max': 15}
-        filters['efficiency'] = {'min': 0, 'max': Rune.objects.all().order_by(
-            '-efficiency').first().efficiency}
+        filters['upgrade_curr'] = [0, 15]
+        filters['efficiency'] = [0, Rune.objects.all().order_by(
+            '-efficiency').first().efficiency]
 
-        filters['boolean'] = ['equipped', 'equipped_rta', 'locked']
+        # select
+        filters['equipped'] = [
+            {
+                'id': '',
+                'name': 'Any'
+            },
+            {
+                'id': 'false',
+                'name': 'Unequipped'
+            },
+            {
+                'id': 'true',
+                'name': 'Equipped'
+            }
+        ]
+        filters['equipped_rta'] = [
+            {
+                'id': '',
+                'name': 'Any'
+            },
+            {
+                'id': 'false',
+                'name': 'Unequipped'
+            },
+            {
+                'id': 'true',
+                'name': 'Equipped'
+            }
+        ]
+        filters['locked'] = [
+            {
+                'id': '',
+                'name': 'Any'
+            },
+            {
+                'id': 'false',
+                'name': 'Unlocked'
+            },
+            {
+                'id': 'true',
+                'name': 'Locked'
+            }
+        ]
 
         return filters
 
