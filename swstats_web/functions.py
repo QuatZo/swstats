@@ -5,7 +5,9 @@ import math
 import time
 
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
+
 from website.models import *
+from .serializers import RuneFullSerializer
 
 
 def get_scoring_system():
@@ -368,3 +370,66 @@ def get_profile_comparison_with_database(wizard_id):
                                                                                                                    df_wiz['sub_atk'], df_wiz['sub_def_flat'], df_wiz['sub_def'], df_wiz['sub_speed'], df_wiz['sub_res'], df_wiz['sub_acc'], df_wiz['sub_crit_rate'], df_wiz['sub_crit_dmg'], df_wiz['efficiency'])]
 
     return comparison
+
+
+def filter_runes(filters):
+    proper_filters = {}
+    for key, val in filters:
+        if key in ['innate', 'primary', 'quality', 'quality_original', 'rune_set_id', 'slot', 'stars']:
+            proper_filters[key + '__in'] = val
+        elif key in ['efficiency', 'upgrade_curr']:
+            proper_val = [float(v) for v in val]
+            proper_val.sort()
+            proper_filters[key + '__gte'] = proper_val[0]
+            proper_filters[key + '__lte'] = proper_val[1]
+        elif key in ['equipped', 'equipped_rta', 'locked']:
+            proper_filters[key] = val == 'true'
+        elif key == 'substats':
+            for substat in val:
+                proper_filters[substat + '__isnull'] = False
+    return proper_filters
+
+
+def get_runes_table(request, filters=None):
+    runes = Rune.objects.all().select_related('rune_set', ).defer(
+        'wizard', 'base_value', 'sell_value').order_by()
+
+    if request:  # ajax call on page change
+        filters = list(request.GET.lists())
+
+        proper_filters = filter_runes(filters)
+        runes = runes.filter(**proper_filters)
+
+        sort_order = request.GET['sort_order'] if 'sort_order' in request.GET else None
+        if sort_order:
+            if '-' in sort_order:
+                runes = runes.order_by(F(sort_order[1:]).desc(nulls_last=True))
+            else:
+                runes = runes.order_by(F(sort_order).asc(nulls_first=True))
+
+        page = int(request.GET['page']) if 'page' in request.GET else 1
+        count = runes.count()
+        PER_PAGE = 10
+        start = PER_PAGE * (page - 1)
+        end = start + 10
+        serializer = RuneFullSerializer(
+            runes[start:min(end, count)], many=True)
+
+        return {
+            'count': count,
+            'page': page,
+            'data': serializer.data,
+        }
+
+    # filters here
+    if filters:
+        proper_filters = filter_runes(filters)
+        runes = runes.filter(**proper_filters)
+
+    serializer = RuneFullSerializer(runes[:10], many=True)
+
+    return {
+        'count': runes.count(),
+        'page': 1,
+        'data': serializer.data,
+    }

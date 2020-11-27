@@ -3,7 +3,7 @@ from django.db.models import Count, Q, F, Avg
 from website.celery import app as celery_app
 from website.tasks import handle_profile_upload_task
 from website.models import Rune, RuneSet
-from .functions import get_scoring_for_profile, get_profile_comparison_with_database
+from .functions import get_scoring_for_profile, get_profile_comparison_with_database, filter_runes, get_runes_table
 
 
 @celery_app.task(name="profile.compare", bind=True)
@@ -27,20 +27,7 @@ def fetch_runes_data(self, filters):
         'wizard', 'base_value', 'sell_value').order_by()
 
     # filters here
-    proper_filters = {}
-    for key, val in filters:
-        if key in ['innate', 'primary', 'quality', 'quality_original', 'rune_set_id', 'slot', 'stars']:
-            proper_filters[key + '__in'] = val
-        elif key in ['efficiency', 'upgrade_curr']:
-            proper_val = [float(v) for v in val]
-            proper_val.sort()
-            proper_filters[key + '__gte'] = proper_val[0]
-            proper_filters[key + '__lte'] = proper_val[1]
-        elif key in ['equipped', 'equipped_rta', 'locked']:
-            proper_filters[key] = val == 'true'
-        elif key == 'substats':
-            for substat in val:
-                proper_filters[substat + '__isnull'] = False
+    proper_filters = filter_runes(filters)
     runes = runes.filter(**proper_filters)
 
     # prepare filters to show in Form
@@ -110,6 +97,7 @@ def fetch_runes_data(self, filters):
             'rune_primaries': list(rune_primaries.values()),
         },
         'filters': form_filters,
+        'table': get_runes_table(None, filters)
     }
 
     return content

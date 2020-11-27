@@ -10,7 +10,7 @@ from swstats_web.permissions import IsSwstatsWeb
 
 from website.models import Monster, Rune, Artifact, DungeonRun
 from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data
-from .functions import get_scoring_system
+from .functions import get_scoring_system, get_runes_table
 from .serializers import MonsterSerializer, RuneSerializer
 
 import json
@@ -186,6 +186,16 @@ class RunesView(APIView):
         task = fetch_runes_data.delay(list(request.GET.lists()))
 
         return Response({'status': task.state, 'task_id': task.id})
+
+
+class RunesTableView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        runes_table = get_runes_table(request)
+        if 'error' in runes_table:
+            return Response(runes_table, status=status.HTTP_400_BAD_REQUEST)
+        return Response(runes_table)
 
 
 class MonsterView(APIView):

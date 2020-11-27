@@ -272,6 +272,21 @@ class Rune(models.Model):
             'ACC': self.sub_acc,
         }
 
+    def get_substats_row(self):
+        return {
+            'sub_hp_flat': sum(self.sub_hp_flat) if self.sub_hp_flat else None,
+            'sub_hp': sum(self.sub_hp) if self.sub_hp else None,
+            'sub_atk_flat': sum(self.sub_atk_flat) if self.sub_atk_flat else None,
+            'sub_atk': sum(self.sub_atk) if self.sub_atk else None,
+            'sub_def_flat': sum(self.sub_def_flat) if self.sub_def_flat else None,
+            'sub_def': sum(self.sub_def) if self.sub_def else None,
+            'sub_speed': sum(self.sub_speed) if self.sub_speed else None,
+            'sub_crit_rate': sum(self.sub_crit_rate) if self.sub_crit_rate else None,
+            'sub_crit_dmg': sum(self.sub_crit_dmg) if self.sub_crit_dmg else None,
+            'sub_res': sum(self.sub_res) if self.sub_res else None,
+            'sub_acc': sum(self.sub_acc) if self.sub_acc else None,
+        }
+
     def get_substat_display(self, substat):
         effects = dict(self.RUNE_EFFECTS)
         return effects[substat]

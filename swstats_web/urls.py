@@ -8,6 +8,7 @@ urlpatterns = [
     path('upload/', views.UploadView.as_view(), name='web_upload'),
 
     path('runes/', views.RunesView.as_view(), name='web_runes'),
+    path('runes/table/', views.RunesTableView.as_view(), name='web_runes_table'),
 
     path('monster/<int:mon_id>/', views.MonsterView.as_view(), name='web_monster'),
 
