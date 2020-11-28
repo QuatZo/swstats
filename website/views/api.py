@@ -222,7 +222,7 @@ class MonsterViewSet(viewsets.ModelViewSet):
             openapi.Parameter('base_monster', openapi.IN_QUERY, "Base Monster", type=openapi.TYPE_STRING, enum=list(
                 MonsterBase.objects.values_list('name', flat=True))),
             openapi.Parameter('awaken', openapi.IN_QUERY, "Monster Awaken Status",
-                              type=openapi.TYPE_STRING, enum=list(MonsterBase().get_awaken_as_dict().values())),
+                              type=openapi.TYPE_STRING, enum=MonsterBase.get_monster_awakens),
             openapi.Parameter('level_min', openapi.IN_QUERY,
                               "Monster Minimum Level", type=openapi.TYPE_INTEGER),
             openapi.Parameter('stars', openapi.IN_QUERY, "Monster Stars",
@@ -246,8 +246,6 @@ class MonsterViewSet(viewsets.ModelViewSet):
                               type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_INTEGER), min_items=2, max_items=2),
             openapi.Parameter('eff_hp', openapi.IN_QUERY, "Monster Effective HP (min,max)", type=openapi.TYPE_ARRAY,
                               items=openapi.Items(type=openapi.TYPE_INTEGER), min_items=2, max_items=2),
-            openapi.Parameter('eff_hp_def_break', openapi.IN_QUERY, "Monster Effective HP with Def Break (min,max)",
-                              type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_INTEGER), min_items=2, max_items=2),
             openapi.Parameter('avg_eff', openapi.IN_QUERY, "Monster Average Efficiency (min,max)",
                               type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_NUMBER), min_items=2, max_items=2),
 
@@ -290,8 +288,6 @@ class MonsterViewSet(viewsets.ModelViewSet):
         crit_rate = self.request.query_params.get('crit_rate', None)
         crit_dmg = self.request.query_params.get('crit_dmg', None)
         eff_hp = self.request.query_params.get('eff_hp', None)
-        eff_hp_def_break = self.request.query_params.get(
-            'eff_hp_def_break', None)
         avg_eff = self.request.query_params.get('avg_eff', None)
         transmog = self.request.query_params.get('transmog', None)
         storage = self.request.query_params.get('storage', None)
@@ -362,12 +358,6 @@ class MonsterViewSet(viewsets.ModelViewSet):
                 eff_hp_min, eff_hp_max = eff_hp.split(',')
                 queryset = queryset.filter(
                     eff_hp__gte=eff_hp_min, eff_hp__lte=eff_hp_max)
-        if eff_hp_def_break is not None and ',' in eff_hp_def_break:
-            if len(eff_hp_def_break.split(',')) == 2:
-                eff_hp_def_break_min, eff_hp_def_break_max = eff_hp_def_break.split(
-                    ',')
-                queryset = queryset.filter(
-                    eff_hp_def_break__gte=eff_hp_def_break_min, eff_hp_def_break__lte=eff_hp_def_break_max)
         if avg_eff is not None and ',' in avg_eff:
             if len(avg_eff.split(',')) == 2:
                 avg_eff_total_min, avg_eff_total_max = avg_eff.split(',')

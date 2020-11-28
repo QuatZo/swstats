@@ -410,9 +410,6 @@ def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta
             sum_eff / len(monster_runes), 2) if len(monster_runes) > 0 else 0.00
         monster['eff_hp'] = stats['hp'] * \
             (1140 + (stats['defense'] * 1 * 3.5)) / 1000
-        monster['eff_hp_def_break'] = stats['hp'] * \
-            (1140 + (stats['defense'] * .3 * 3.5)) / \
-            1000  # defense break = -70% defense
     else:
         monster_runes = list()
         monster['avg_eff'] = 0.00
@@ -1087,7 +1084,6 @@ def get_monster_rank_stats(monsters, monster, stat, count):
         'crit_rate': monsters.filter(crit_rate__gte=monster.crit_rate).count(),
         'crit_dmg': monsters.filter(crit_dmg__gte=monster.crit_dmg).count(),
         'eff_hp': monsters.filter(eff_hp__gte=monster.eff_hp).count(),
-        'eff_hp_def_break': monsters.filter(eff_hp_def_break__gte=monster.eff_hp_def_break).count(),
     }
 
     return stats[stat] + 1

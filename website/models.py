@@ -1,9 +1,11 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+from django.db.models import Max
 
 # Create your models here.
+
+
 class Command(models.Model):
     COMMAND_TYPES = (
         (1, 'Request'),
@@ -748,16 +750,28 @@ class MonsterBase(models.Model):
         ordering = ['name']
 
     @classmethod
-    def get_attributes_as_dict(cls):
-        return dict(cls.MONSTER_ATTRIBUTES)
+    def get_attribute_name(cls, number):
+        return dict(cls.MONSTER_ATTRIBUTES)[number]
 
     @classmethod
-    def get_types_as_dict(cls):
-        return dict(cls.MONSTER_TYPES)
+    def get_archetype_name(cls, number):
+        return dict(cls.MONSTER_TYPES)[number]
+
+    @classmethod
+    def get_awaken_name(cls, number):
+        return dict(cls.MONSTER_AWAKEN)[number]
+
+    @classmethod
+    def get_attributes_as_dict(cls):
+        return [{"id": key, "name": val} for key, val in dict(cls.MONSTER_ATTRIBUTES).items()]
+
+    @classmethod
+    def get_archetypes_as_dict(cls):
+        return [{"id": key, "name": val} for key, val in dict(cls.MONSTER_TYPES).items()]
 
     @classmethod
     def get_awaken_as_dict(cls):
-        return dict(cls.MONSTER_AWAKEN)
+        return [{"id": key, "name": val} for key, val in dict(cls.MONSTER_AWAKEN).items()]
 
     @classmethod
     def get_awaken_id(cls, name):
@@ -784,6 +798,10 @@ class MonsterBase(models.Model):
     @classmethod
     def get_monster_archetypes(cls):
         return list(dict(cls.MONSTER_TYPES).values())
+
+    @classmethod
+    def get_monster_awakens(cls):
+        return list(dict(cls.MONSTER_AWAKEN).values())
 
 
 class MonsterHoh(models.Model):
@@ -852,8 +870,6 @@ class Monster(models.Model):
         validators=[MinValueValidator(0.00)], db_index=True)
     eff_hp = models.IntegerField(
         validators=[MinValueValidator(0.00)], db_index=True)
-    eff_hp_def_break = models.IntegerField(
-        validators=[MinValueValidator(0.00)], db_index=True)
     ############################################
 
     # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already
@@ -874,6 +890,9 @@ class Monster(models.Model):
     # building_id
     storage = models.BooleanField()
 
+    def is_skilled_up(self):
+        return self.skills == self.base_monster.max_skills
+
     def get_image(self):
         filename = 'monster_'
         monster_id = self.base_monster.id
@@ -893,6 +912,65 @@ class Monster(models.Model):
 
     def __str__(self):
         return str(self.base_monster) + ' (ID: ' + str(self.id) + ')'
+
+    @classmethod
+    def get_filter_fields(cls):
+        filters = {}
+        # text
+        filters['base_monster__name'] = ""
+
+        # multi select
+        filters['stars'] = [{'id': i, 'name': i} for i in range(1, 7)]
+        filters['base_monster__base_class'] = [
+            {'id': i, 'name': i} for i in range(1, 7)]
+        filters['base_monster__attribute'] = MonsterBase.get_attributes_as_dict()
+        filters['base_monster__archetype'] = MonsterBase.get_archetypes_as_dict()
+        filters['base_monster__awaken'] = MonsterBase.get_awaken_as_dict()
+        families = MonsterFamily.objects.all()
+        filters['base_monster__family'] = [
+            {"id": family.id, "name": family.name} for family in families]
+
+        # slider
+        sliders = Monster.objects.all().aggregate(
+            Max('hp'),
+            Max('attack'),
+            Max('defense'),
+            Max('speed'),
+            Max('res'),
+            Max('acc'),
+            Max('crit_rate'),
+            Max('crit_dmg'),
+            Max('eff_hp'),
+            Max('avg_eff_total'),
+        )
+        filters['hp'] = [0, sliders['hp__max']]
+        filters['attack'] = [0, sliders['attack__max']]
+        filters['defense'] = [0, sliders['defense__max']]
+        filters['speed'] = [0, sliders['speed__max']]
+        filters['res'] = [0, sliders['res__max']]
+        filters['acc'] = [0, sliders['acc__max']]
+        filters['crit_rate'] = [0, sliders['crit_rate__max']]
+        filters['crit_dmg'] = [0, sliders['crit_dmg__max']]
+        filters['eff_hp'] = [0, sliders['eff_hp__max']]
+        filters['avg_eff_total'] = [0, sliders['avg_eff_total__max']]
+
+        # select
+        filters['locked'] = [
+            {
+                'id': '',
+                'name': 'Any'
+            },
+            {
+                'id': 'false',
+                'name': 'Unlocked'
+            },
+            {
+                'id': 'true',
+                'name': 'Locked'
+            }
+        ]
+
+        return filters
 
     class Meta:
         ordering = ['-stars', '-level', 'base_monster']

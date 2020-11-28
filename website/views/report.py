@@ -284,8 +284,6 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     # EFFECTIVE HP & EFFECTIVE HP WHILE DEF BROKEN
     eff_hp_plot = create_histogram_plot(
         df['eff_hp'], "Effective HP Distribution<br>(only 6* with equipped runes)", bot)
-    eff_hp_def_plot = create_histogram_plot(
-        df['eff_hp_def_break'], "Effective HP with Defense Break<br>(only 6* with equipped runes)", bot)
     #################################################
 
     #################################################

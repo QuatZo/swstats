@@ -67,6 +67,6 @@ class MonsterSerializer(serializers.ModelSerializer):
         model = Monster
         fields = (
             'id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg',
-            'eff_hp', 'eff_hp_def_break', 'avg_eff', 'avg_eff_artifacts', 'avg_eff_total', 'skills', 'created', 'transmog',
+            'eff_hp', 'avg_eff', 'avg_eff_artifacts', 'avg_eff_total', 'skills', 'created', 'transmog',
             'locked', 'storage', 'runes', 'artifacts', 'runes_rta', 'artifacts_rta',
         )

@@ -47,7 +47,7 @@ class MonsterSourceAdmin(admin.ModelAdmin):
 class MonsterAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'wizard', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'avg_eff_artifacts',
-        'avg_eff_total', 'eff_hp', 'eff_hp_def_break', 'skills', 'get_runes', 'get_runes_rta', 'get_artifacts', 'get_artifacts_rta', 'created', 'source', 'transmog', 'storage', 'locked'
+        'avg_eff_total', 'eff_hp', 'skills', 'get_runes', 'get_runes_rta', 'get_artifacts', 'get_artifacts_rta', 'created', 'source', 'transmog', 'storage', 'locked'
     )
 
     filter_horizontal = ('runes', 'artifacts', 'runes_rta', 'artifacts_rta')

@@ -9,8 +9,8 @@ from website.celery import app as celery_app
 from swstats_web.permissions import IsSwstatsWeb
 
 from website.models import Monster, Rune, Artifact, DungeonRun
-from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data
-from .functions import get_scoring_system, get_runes_table
+from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data, fetch_monsters_data
+from .functions import get_scoring_system, get_runes_table, get_monsters_table
 from .serializers import MonsterSerializer, RuneSerializer
 
 import json
@@ -196,6 +196,26 @@ class RunesTableView(APIView):
         if 'error' in runes_table:
             return Response(runes_table, status=status.HTTP_400_BAD_REQUEST)
         return Response(runes_table)
+
+
+class MonstersView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        # there should be something to group filters, then task call
+        task = fetch_monsters_data.delay(list(request.GET.lists()))
+
+        return Response({'status': task.state, 'task_id': task.id})
+
+
+class MonstersTableView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        monsters_table = get_monsters_table(request)
+        if 'error' in monsters_table:
+            return Response(monsters_table, status=status.HTTP_400_BAD_REQUEST)
+        return Response(monsters_table)
 
 
 class MonsterView(APIView):

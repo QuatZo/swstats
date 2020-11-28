@@ -7,7 +7,7 @@ import time
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
 
 from website.models import *
-from .serializers import RuneFullSerializer
+from .serializers import RuneFullSerializer, MonsterSerializer
 
 
 def get_scoring_system():
@@ -248,7 +248,7 @@ def get_scoring_for_profile(wizard_id):
     return points
 
 
-def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, crit_rate, crit_dmg, avg_eff_total, eff_hp, eff_hp_def_break, df_group, df_group_len, df_means):
+def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, crit_rate, crit_dmg, avg_eff_total, eff_hp, df_group, df_group_len, df_means):
     kw = {
         'hp': hp,
         'attack': attack,
@@ -260,7 +260,6 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
         'crit_dmg': crit_dmg,
         'avg_eff_total': avg_eff_total,
         'eff_hp': eff_hp,
-        'eff_hp_def_break': eff_hp_def_break
     }
     m_stats = {
         'id': id_,
@@ -324,7 +323,7 @@ def get_profile_comparison_with_database(wizard_id):
     monsters = Monster.objects.exclude(base_monster__archetype=5).exclude(base_monster__archetype=0).filter(
         stars=6).order_by('base_monster__name')  # w/o material, unknown; only 6*
     monsters_cols = ['id', 'wizard__id', 'base_monster__name', 'hp', 'attack', 'defense', 'speed',
-                     'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp', 'eff_hp_def_break']
+                     'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp']
     df_monsters = pd.DataFrame(monsters.values_list(
         *monsters_cols), columns=monsters_cols).drop_duplicates(subset=['id'])
 
@@ -360,7 +359,7 @@ def get_profile_comparison_with_database(wizard_id):
         df_wiz = df_group[df_group['wizard__id'] == wizard_id]
         df_means = df_group.mean()
         comparison['monsters'] += [calc_monster_comparison_stats(*row, df_group, len(df_group), df_means) for row in zip(df_wiz['id'], df_wiz['hp'], df_wiz['attack'], df_wiz['defense'],
-                                                                                                                         df_wiz['speed'], df_wiz['res'], df_wiz['acc'], df_wiz['crit_rate'], df_wiz['crit_dmg'], df_wiz['avg_eff_total'], df_wiz['eff_hp'], df_wiz['eff_hp_def_break'])]
+                                                                                                                         df_wiz['speed'], df_wiz['res'], df_wiz['acc'], df_wiz['crit_rate'], df_wiz['crit_dmg'], df_wiz['avg_eff_total'], df_wiz['eff_hp'])]
 
     df_groups = df_runes.groupby(['slot', 'rune_set__id', 'primary'])
     for _, df_group in df_groups:
@@ -383,7 +382,7 @@ def filter_runes(filters):
             proper_filters[key + '__gte'] = proper_val[0]
             proper_filters[key + '__lte'] = proper_val[1]
         elif key in ['equipped', 'equipped_rta', 'locked']:
-            proper_filters[key] = val == 'true'
+            proper_filters[key] = val[0] == 'true'
         elif key == 'substats':
             for substat in val:
                 proper_filters[substat + '__isnull'] = False
@@ -430,6 +429,104 @@ def get_runes_table(request, filters=None):
 
     return {
         'count': runes.count(),
+        'page': 1,
+        'data': serializer.data,
+    }
+
+
+def filter_monsters(filters):
+    proper_filters = {}
+    for key, val in filters:
+        # multi select
+        if key in ['stars', 'base_monster__base_class', 'base_monster__attribute', 'base_monster__archetype', 'base_monster__awaken', 'base_monster__family']:
+            proper_filters[key + '__in'] = val
+        # slider
+        elif key in [
+            'hp',
+            'attack',
+            'defense',
+            'speed',
+            'res',
+            'acc',
+            'crit_rate',
+            'crit_dmg',
+            'eff_hp',
+            'avg_eff_total',
+        ]:
+            proper_val = [float(v) for v in val]
+            proper_val.sort()
+            proper_filters[key + '__gte'] = proper_val[0]
+            proper_filters[key + '__lte'] = proper_val[1]
+        # select
+        elif key in ['locked']:
+            proper_filters[key] = val[0] == 'true'
+
+    return proper_filters
+
+
+def get_monsters_table(request, filters=None):
+    monsters = Monster.objects.all().select_related('base_monster', 'base_monster__family', ).prefetch_related(
+        'runes', 'runes_rta', 'artifacts', 'artifacts_rta', 'runes__rune_set', 'runes_rta__rune_set', ).defer('wizard', 'source', 'transmog', ).order_by()
+
+    if request:  # ajax call on page change
+        filters = list(request.GET.lists())
+
+        # filters here
+        proper_filters = filter_monsters(filters)
+        # text for multi field, can't be in dict like others
+        try:
+            filter_keys = [f[0] for f in filters]
+            b_m = filter_keys.index('base_monster__name')
+            name_filter = (
+                Q(base_monster__name__icontains=filters[b_m][1][0])
+                | Q(base_monster__family__name__icontains=filters[b_m][1][0])
+            )
+            monsters = monsters.filter(name_filter, **proper_filters)
+        except ValueError:
+            monsters = monsters.filter(**proper_filters)
+
+        sort_order = request.GET['sort_order'].replace(
+            '.', '__') if 'sort_order' in request.GET else None
+        if sort_order:
+            if '-' in sort_order:
+                monsters = monsters.order_by(
+                    F(sort_order[1:]).desc(nulls_last=True))
+            else:
+                monsters = monsters.order_by(
+                    F(sort_order).asc(nulls_first=True))
+
+        page = int(request.GET['page']) if 'page' in request.GET else 1
+        count = monsters.count()
+        PER_PAGE = 10
+        start = PER_PAGE * (page - 1)
+        end = start + 10
+        serializer = MonsterSerializer(
+            monsters[start:min(end, count)], many=True)
+
+        return {
+            'count': count,
+            'page': page,
+            'data': serializer.data,
+        }
+
+    # filters here
+    proper_filters = filter_monsters(filters)
+    # text for multi field, can't be in dict like others
+    try:
+        filter_keys = [f[0] for f in filters]
+        b_m = filter_keys.index('base_monster__name')
+        name_filter = (
+            Q(base_monster__name__icontains=filters[b_m][1][0])
+            | Q(base_monster__family__name__icontains=filters[b_m][1][0])
+        )
+        monsters = monsters.filter(name_filter, **proper_filters)
+    except ValueError:
+        monsters = monsters.filter(**proper_filters)
+
+    serializer = MonsterSerializer(monsters[:10], many=True)
+
+    return {
+        'count': monsters.count(),
         'page': 1,
         'data': serializer.data,
     }

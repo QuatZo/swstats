@@ -56,12 +56,12 @@ def handle_profile_upload_task(data):
                     f"Guild profile does NOT exists. Starting first-time guild profile upload for {data['guild']['guild_info']['guild_id']}")
 
         if (
-            profile_guild 
-            and not guild_uptodate 
-            and 'guild' in data 
-            and 'guild_info' in data['guild'] 
-            and 'guildwar_ranking_stat' in data 
-            and 'best' in data['guildwar_ranking_stat'] 
+            profile_guild
+            and not guild_uptodate
+            and 'guild' in data
+            and 'guild_info' in data['guild']
+            and 'guildwar_ranking_stat' in data
+            and 'best' in data['guildwar_ranking_stat']
             and 'tvalue' in data
         ):
             parse_guild(data['guild']['guild_info'],
@@ -1048,18 +1048,6 @@ def get_monsters_task(request_get):
         filters.append('Effective HP Maximum: ' + request_get['eff_hp_max'][0])
         monsters = monsters.filter(eff_hp__lte=request_get['eff_hp_max'][0])
 
-    if 'eff_hp_def_min' in request_get.keys() and request_get['eff_hp_def_min'][0] and request_get['eff_hp_def_min'][0] != '0':
-        filters.append('E. HP Def Break Minimum: ' +
-                       request_get['eff_hp_def_min'][0])
-        monsters = monsters.filter(
-            eff_hp_def_break__gte=request_get['eff_hp_def_min'][0])
-
-    if 'eff_hp_def_max' in request_get.keys() and request_get['eff_hp_def_max'][0] and request_get['eff_hp_def_max'][0] != '0':
-        filters.append('E. HP Def Break Maximum: ' +
-                       request_get['eff_hp_def_max'][0])
-        monsters = monsters.filter(
-            eff_hp_def_break__lte=request_get['eff_hp_def_max'][0])
-
     if 'storage' in request_get.keys() and request_get['storage'][0] and request_get['storage'][0] != '0':
         filters.append('Storage: ' + request_get['storage'][0])
         monsters = monsters.filter(storage=request_get['storage'][0])
@@ -1179,14 +1167,14 @@ def get_monster_by_id_task(request_get, arg_id):
         rta_mon_similar_builds, min(MAX_COUNT, len(rta_mon_similar_builds)))
 
     monsters_cols = ['id', 'hp', 'attack', 'defense', 'speed', 'res', 'acc',
-                     'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp', 'eff_hp_def_break']
+                     'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp']
     df_monsters = pd.DataFrame(monsters.values_list(
         *monsters_cols), columns=monsters_cols).drop_duplicates(subset=['id'])
 
     df_means = df_monsters.mean()
 
     ranks = calc_monster_comparison_stats(monster.id, monster.hp, monster.attack, monster.defense, monster.speed, monster.res, monster.acc, monster.crit_rate,
-                                          monster.crit_dmg, monster.avg_eff_total, monster.eff_hp, monster.eff_hp_def_break, df_monsters, len(df_monsters), df_means)['rank']
+                                          monster.crit_dmg, monster.avg_eff_total, monster.eff_hp, df_monsters, len(df_monsters), df_means)['rank']
 
     context = {
         'ranks': ranks,
