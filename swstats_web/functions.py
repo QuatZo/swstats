@@ -320,14 +320,14 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
 
 
 def get_profile_comparison_with_database(wizard_id):
-    monsters = Monster.objects.exclude(base_monster__archetype=5).exclude(base_monster__archetype=0).filter(
+    monsters = Monster.objects.select_related('base_monster', 'base_monster__family', ).exclude(base_monster__archetype=5).exclude(base_monster__archetype=0).filter(
         stars=6).order_by('base_monster__name')  # w/o material, unknown; only 6*
     monsters_cols = ['id', 'wizard__id', 'base_monster__name', 'hp', 'attack', 'defense', 'speed',
                      'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp']
     df_monsters = pd.DataFrame(monsters.values_list(
         *monsters_cols), columns=monsters_cols).drop_duplicates(subset=['id'])
 
-    runes = Rune.objects.filter(upgrade_curr__gte=12).order_by(
+    runes = Rune.objects.select_related('rune_set', ).filter(upgrade_curr__gte=12).order_by(
         'slot', 'rune_set', '-quality_original')  # only +12-+15
     runes_kw = {
         'sub_hp_flat_sum': Func(F('sub_hp_flat'), function='unnest'),
