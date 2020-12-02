@@ -75,7 +75,7 @@ class RuneSerializer(serializers.ModelSerializer):
 
 
 class ArtifactSerializer(serializers.ModelSerializer):
-    type = serializers.SerializerMethodField()
+    rtype = serializers.SerializerMethodField()
     primary = serializers.CharField(source='get_primary_display')
     substats = serializers.SerializerMethodField()
     quality = serializers.CharField(source='get_quality_display')
@@ -86,15 +86,15 @@ class ArtifactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artifact
         fields = [
-            'id', 'type', 'level', 'primary', 'primary_value', 'substats', 'quality', 'quality_original',
+            'id', 'rtype', 'level', 'primary', 'primary_value', 'substats', 'quality', 'quality_original',
             'efficiency', 'efficiency_max', 'equipped', 'equipped_rta', 'locked', 'image'
         ]
 
-    def get_type(self, obj):
+    def get_rtype(self, obj):
         return obj.get_slot_type()
 
     def get_substats(self, obj):
-        return obj.get_substats_display()
+        return obj.get_substats_with_values()
 
     def get_image(self, obj):
         return obj.get_image()

@@ -14,6 +14,10 @@ urlpatterns = [
     path('monsters/table/', views.MonstersTableView.as_view(),
          name='web_monsters_table'),
 
+    path('artifacts/', views.ArtifactsView.as_view(), name='web_artifacts'),
+    path('artifacts/table/', views.ArtifactsTableView.as_view(),
+         name='web_artifacts_table'),
+
     path('monster/<int:mon_id>/', views.MonsterView.as_view(), name='web_monster'),
 
     path('status/<str:task_id>/', views.StatusView.as_view(), name='web_status'),

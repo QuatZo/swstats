@@ -602,6 +602,13 @@ class Artifact(models.Model):
         substats_dict = dict(self.ARTIFACT_EFFECTS_ALL)
         return [substats_dict[sub_key] for sub_key in self.substats]
 
+    def get_substats_with_values(self):
+        subs = []
+        for sub, val in zip(self.get_substats_display(), self.substats_values):
+            subs.append(sub.replace('%', f'{val}%'))
+
+        return subs
+
     def __str__(self):
         if self.rtype == 1:
             return str(self.get_attribute_display()) + ' ' + str(self.get_primary_display()) + str(self.primary_value) + ' (eff: ' + str(self.efficiency) + ')'
@@ -610,6 +617,72 @@ class Artifact(models.Model):
     class Meta:
         ordering = ['rtype', 'attribute', 'archetype',
                     '-efficiency', '-quality_original']
+
+    @classmethod
+    def get_filter_fields(cls):
+        filters = {}
+        # multi select
+        filters['rtype'] = [{'id': t[0], 'name': t[1]}
+                            for t in cls.ARTIFACT_TYPES]
+        filters['quality'] = [{'id': q[0], 'name': q[1]}
+                              for q in cls.ARTIFACT_QUALITIES]
+        filters['quality_original'] = [
+            {'id': q[0], 'name': q[1]} for q in cls.ARTIFACT_QUALITIES]
+        filters['primary'] = [{'id': q[0], 'name': q[1]}
+                              for q in cls.ARTIFACT_PRIMARY_EFFECTS]
+        filters['substats'] = [{'id': q[0], 'name': q[1]}
+                               for q in cls.ARTIFACT_EFFECTS_ALL]
+
+        # slider min-max
+        filters['level'] = [0, 15]
+        filters['efficiency'] = [0, Artifact.objects.all().order_by(
+            '-efficiency').first().efficiency]
+
+        # select
+        filters['equipped'] = [
+            {
+                'id': '',
+                'name': 'Any'
+            },
+            {
+                'id': 'false',
+                'name': 'Unequipped'
+            },
+            {
+                'id': 'true',
+                'name': 'Equipped'
+            }
+        ]
+        filters['equipped_rta'] = [
+            {
+                'id': '',
+                'name': 'Any'
+            },
+            {
+                'id': 'false',
+                'name': 'Unequipped'
+            },
+            {
+                'id': 'true',
+                'name': 'Equipped'
+            }
+        ]
+        filters['locked'] = [
+            {
+                'id': '',
+                'name': 'Any'
+            },
+            {
+                'id': 'false',
+                'name': 'Unlocked'
+            },
+            {
+                'id': 'true',
+                'name': 'Locked'
+            }
+        ]
+
+        return filters
 
     @classmethod
     def get_artifact_rtype(cls, number):

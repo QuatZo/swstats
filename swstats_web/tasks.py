@@ -2,8 +2,8 @@ from django.db.models import Count, Q, F, Avg
 
 from website.celery import app as celery_app
 from website.tasks import handle_profile_upload_task
-from website.models import Rune, RuneSet, Monster, MonsterBase
-from .functions import get_scoring_for_profile, get_profile_comparison_with_database, filter_runes, get_runes_table, filter_monsters, get_monsters_table
+from website.models import Rune, RuneSet, Monster, MonsterBase, Artifact
+from .functions import get_scoring_for_profile, get_profile_comparison_with_database, filter_runes, get_runes_table, filter_monsters, get_monsters_table, filter_artifacts, get_artifacts_table
 
 
 @celery_app.task(name="profile.compare", bind=True)
@@ -190,6 +190,76 @@ def fetch_monsters_data(self, filters):
         },
         'filters': form_filters,
         'table': get_monsters_table(None, filters)
+    }
+
+    return content
+
+
+@celery_app.task(name='fetch.artifacts', bind=True)
+def fetch_artifacts_data(self, filters):
+    artifacts = Artifact.objects.all().defer('wizard').order_by()
+
+    # filters here
+    proper_filters = filter_artifacts(filters)
+    artifacts = artifacts.filter(**proper_filters)
+
+    # prepare filters to show in Form
+    form_filters = Artifact.get_filter_fields()
+    #
+
+    qualities = artifacts.values('quality').annotate(count=Count('quality'))
+    qualities_orig = artifacts.values('quality_original').annotate(
+        count=Count('quality_original'))
+    artifact_qualities = {}
+    for q in qualities:
+        q_n = Artifact.get_artifact_quality(q['quality'])
+        if q_n not in artifact_qualities:
+            artifact_qualities[q_n] = {
+                'name': q_n,
+                'count': 0,
+                'original': 0,
+            }
+        artifact_qualities[q_n]['count'] += q['count']
+    for q in qualities_orig:
+        q_n = Artifact.get_artifact_quality(q['quality_original'])
+        if q_n not in artifact_qualities:
+            artifact_qualities[q_n] = {
+                'name': q_n,
+                'count': 0,
+                'original': 0,
+            }
+        artifact_qualities[q_n]['original'] += q['count']
+
+    primary = artifacts.values('primary').annotate(count=Count('primary'))
+    artifact_primaries = []
+    for p in primary:
+        p_n = Artifact.get_artifact_primary(p['primary'])
+        artifact_primaries.append({
+            'name': p_n,
+            'count': p['count'],
+        })
+
+    rtype = artifacts.values('rtype').annotate(count=Count('rtype'))
+    artifact_rtypes = []
+    for r in rtype:
+        r_n = Artifact.get_artifact_rtype(r['rtype'])
+        artifact_rtypes.append({
+            'name': r_n,
+            'count': r['count'],
+        })
+
+    content = {
+        'chart_data': {
+            'artifact_level': [{
+                'name': artifact_level['level'],
+                'count': artifact_level['count'],
+            } for artifact_level in artifacts.values('level').annotate(count=Count('level'))],
+            'artifact_rtypes': artifact_rtypes,
+            'artifact_qualities': list(artifact_qualities.values()),
+            'artifact_primaries': artifact_primaries,
+        },
+        'filters': form_filters,
+        'table': get_artifacts_table(None, filters)
     }
 
     return content

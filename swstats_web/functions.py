@@ -7,7 +7,7 @@ import time
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
 
 from website.models import *
-from .serializers import RuneFullSerializer, MonsterSerializer
+from .serializers import RuneFullSerializer, MonsterSerializer, ArtifactSerializer
 
 
 def get_scoring_system():
@@ -527,6 +527,69 @@ def get_monsters_table(request, filters=None):
 
     return {
         'count': monsters.count(),
+        'page': 1,
+        'data': serializer.data,
+    }
+
+
+def filter_artifacts(filters):
+    proper_filters = {}
+    for key, val in filters:
+        if key in ['rtype', 'quality', 'quality_original', 'primary']:
+            proper_filters[key + '__in'] = val
+        elif key in ['efficiency', 'level']:
+            proper_val = [float(v) for v in val]
+            proper_val.sort()
+            proper_filters[key + '__gte'] = proper_val[0]
+            proper_filters[key + '__lte'] = proper_val[1]
+        elif key in ['equipped', 'equipped_rta', 'locked']:
+            proper_filters[key] = val[0] == 'true'
+        if key in ['substats']:
+            proper_filters[key + '__contains'] = val
+    return proper_filters
+
+
+def get_artifacts_table(request, filters=None):
+    artifacts = Artifact.objects.all().defer('wizard').order_by()
+
+    if request:  # ajax call on page change
+        filters = list(request.GET.lists())
+
+        proper_filters = filter_artifacts(filters)
+        artifacts = artifacts.filter(**proper_filters)
+
+        sort_order = request.GET['sort_order'] if 'sort_order' in request.GET else None
+        if sort_order:
+            if '-' in sort_order:
+                artifacts = artifacts.order_by(
+                    F(sort_order[1:]).desc(nulls_last=True))
+            else:
+                artifacts = artifacts.order_by(
+                    F(sort_order).asc(nulls_first=True))
+
+        page = int(request.GET['page']) if 'page' in request.GET else 1
+        count = artifacts.count()
+        PER_PAGE = 10
+        start = PER_PAGE * (page - 1)
+        end = start + 10
+        serializer = ArtifactSerializer(
+            artifacts[start:min(end, count)], many=True)
+
+        return {
+            'count': count,
+            'page': page,
+            'data': serializer.data,
+        }
+
+    # filters here
+    if filters:
+        proper_filters = filter_artifacts(filters)
+        artifacts = artifacts.filter(**proper_filters)
+
+    serializer = ArtifactSerializer(artifacts[:10], many=True)
+
+    return {
+        'count': artifacts.count(),
         'page': 1,
         'data': serializer.data,
     }
