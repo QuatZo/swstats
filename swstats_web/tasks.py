@@ -248,12 +248,27 @@ def fetch_artifacts_data(self, filters):
             'count': r['count'],
         })
 
+    slot_attr = artifacts.filter(attribute__isnull=False, attribute__gt=0).values(
+        'rtype', 'attribute').annotate(count=Count('attribute'))
+    slot_el = artifacts.filter(archetype__isnull=False, archetype__gt=0).values(
+        'rtype', 'archetype').annotate(count=Count('archetype'))
+    artifact_slots = []
+    for s in slot_attr:
+        s_n = Artifact.get_artifact_slot(s['rtype'], s['attribute'])
+        artifact_slots.append({
+            "name": s_n,
+            "count": s["count"],
+        })
+    for s in slot_el:
+        s_n = Artifact.get_artifact_slot(s['rtype'], s['archetype'])
+        artifact_slots.append({
+            "name": s_n,
+            "count": s["count"],
+        })
+
     content = {
         'chart_data': {
-            'artifact_level': [{
-                'name': artifact_level['level'],
-                'count': artifact_level['count'],
-            } for artifact_level in artifacts.values('level').annotate(count=Count('level'))],
+            'artifact_slots': artifact_slots,
             'artifact_rtypes': artifact_rtypes,
             'artifact_qualities': list(artifact_qualities.values()),
             'artifact_primaries': artifact_primaries,

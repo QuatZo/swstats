@@ -619,6 +619,13 @@ class Artifact(models.Model):
                     '-efficiency', '-quality_original']
 
     @classmethod
+    def get_artifact_slot(cls, rtype, number):
+        if rtype == 1:
+            return dict(cls.ARTIFACT_ATTRIBUTES)[number]
+
+        return dict(cls.ARTIFACT_ARCHETYPES)[number]
+
+    @classmethod
     def get_filter_fields(cls):
         filters = {}
         # multi select
