@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from website.models import Monster, MonsterBase, MonsterFamily, Rune, RuneSet, Artifact
+from website.models import Monster, MonsterBase, MonsterFamily, Rune, RuneSet, Artifact, SiegeRecord
 
 
 class RuneFullSerializer(serializers.ModelSerializer):
@@ -131,3 +131,16 @@ class MonsterSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         return obj.get_image()
+
+
+class SiegeSerializer(serializers.ModelSerializer):
+    monsters = MonsterSerializer(many=True)
+    leader = MonsterSerializer()
+    ranking = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SiegeRecord
+        fields = ['monsters', 'leader', 'win', 'lose', 'ratio', 'ranking']
+
+    def get_ranking(self, obj):
+        return obj.wizard.guild.get_siege_ranking_display() if obj.wizard.guild else "Unknown"

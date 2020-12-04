@@ -1490,6 +1490,22 @@ class SiegeRecord(models.Model):
     def __str__(self):
         return str(self.id) + ' (' + str(self.win) + '/' + str(self.lose) + ')'
 
+    @classmethod
+    def get_filter_fields(cls):
+        filters = {}
+        # multi select
+        base_monsters = [{'id': i['id'], 'name': i['name']}
+                         for i in MonsterBase.objects.filter(awaken__in=[1, 2]).values('id', 'name')]
+        filters['monsters__base_monster'] = base_monsters
+        filters['leader__base_monster'] = base_monsters
+        filters['wizard__guild__siege_ranking'] = [
+            {'id': i[0], 'name': i[1]} for i in Guild.SIEGE_RANKS]
+
+        # slider min-max
+        filters['ratio'] = [0, 100]
+
+        return filters
+
     class Meta:
         ordering = ['-win', '-ratio']
 

@@ -2,8 +2,8 @@ from django.db.models import Count, Q, F, Avg
 
 from website.celery import app as celery_app
 from website.tasks import handle_profile_upload_task
-from website.models import Rune, RuneSet, Monster, MonsterBase, Artifact
-from .functions import get_scoring_for_profile, get_profile_comparison_with_database, filter_runes, get_runes_table, filter_monsters, get_monsters_table, filter_artifacts, get_artifacts_table
+from website.models import Rune, RuneSet, Monster, MonsterBase, Artifact, SiegeRecord, Guild
+from .functions import get_scoring_for_profile, get_profile_comparison_with_database, filter_runes, get_runes_table, filter_monsters, get_monsters_table, filter_artifacts, get_artifacts_table, filter_siege, get_siege_table
 
 
 @celery_app.task(name="profile.compare", bind=True)
@@ -275,6 +275,55 @@ def fetch_artifacts_data(self, filters):
         },
         'filters': form_filters,
         'table': get_artifacts_table(None, filters)
+    }
+
+    return content
+
+
+@celery_app.task(name='fetch.siege', bind=True)
+def fetch_siege_data(self, filters):
+    sieges = SiegeRecord.objects.all().select_related('wizard', 'wizard__guild', 'leader', 'leader__base_monster', 'leader__base_monster__family').prefetch_related(
+        'monsters',
+        'monsters__base_monster',
+        'monsters__base_monster__family',
+        'monsters__runes',
+        'monsters__runes_rta',
+        'monsters__runes__rune_set',
+        'monsters__runes_rta__rune_set',
+        'monsters__artifacts',
+        'monsters__artifacts_rta',
+        'leader__runes',
+        'leader__runes__rune_set',
+        'leader__runes_rta',
+        'leader__runes_rta__rune_set',
+        'leader__artifacts',
+        'leader__artifacts_rta'
+    ).defer(
+        'last_update', 'full', ).filter(full=True).order_by()
+
+    # filters here
+    proper_filters = filter_siege(filters)
+    sieges = sieges.filter(**proper_filters)
+
+    # prepare filters to show in Form
+    form_filters = SiegeRecord.get_filter_fields()
+
+    ranking = sieges.values('wizard__guild__siege_ranking').annotate(
+        count=Count('wizard__guild__siege_ranking'))
+    siege_rankings = []
+    for r in ranking:
+        r_n = Guild.get_siege_ranking_name(r['wizard__guild__siege_ranking'])
+        siege_rankings.append({
+            "name": r_n,
+            "count": r["count"]
+        })
+
+    content = {
+        'chart_data': {
+            'siege_rankings': siege_rankings,
+        },
+        'filters': form_filters,
+        'table': get_siege_table(None, filters),
     }
 
     return content

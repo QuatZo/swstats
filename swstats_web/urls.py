@@ -14,6 +14,10 @@ urlpatterns = [
     path('monsters/table/', views.MonstersTableView.as_view(),
          name='web_monsters_table'),
 
+    path('siege/', views.SiegeView.as_view(), name='web_siege'),
+    path('siege/table/', views.SiegeTableView.as_view(),
+         name='web_siege_table'),
+
     path('artifacts/', views.ArtifactsView.as_view(), name='web_artifacts'),
     path('artifacts/table/', views.ArtifactsTableView.as_view(),
          name='web_artifacts_table'),

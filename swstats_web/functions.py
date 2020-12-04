@@ -7,7 +7,7 @@ import time
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
 
 from website.models import *
-from .serializers import RuneFullSerializer, MonsterSerializer, ArtifactSerializer
+from .serializers import RuneFullSerializer, MonsterSerializer, ArtifactSerializer, SiegeSerializer
 
 
 def get_scoring_system():
@@ -544,7 +544,7 @@ def filter_artifacts(filters):
             proper_filters[key + '__lte'] = proper_val[1]
         elif key in ['equipped', 'equipped_rta', 'locked']:
             proper_filters[key] = val[0] == 'true'
-        if key in ['substats']:
+        elif key in ['substats']:
             proper_filters[key + '__contains'] = val
     return proper_filters
 
@@ -590,6 +590,82 @@ def get_artifacts_table(request, filters=None):
 
     return {
         'count': artifacts.count(),
+        'page': 1,
+        'data': serializer.data,
+    }
+
+
+def filter_siege(filters):
+    proper_filters = {}
+    for key, val in filters:
+        if key in ['monsters__base_monster', 'leader__base_monster', 'wizard__guild__siege_ranking']:
+            proper_filters[key + '__in'] = val
+        elif key in ['ratio']:
+            proper_val = [float(v) for v in val]
+            proper_val.sort()
+            proper_filters[key + '__gte'] = proper_val[0]
+            proper_filters[key + '__lte'] = proper_val[1]
+    return proper_filters
+
+
+def get_siege_table(request, filters=None):
+    sieges = SiegeRecord.objects.all().select_related('wizard', 'wizard__guild', 'leader', 'leader__base_monster', 'leader__base_monster__family').prefetch_related(
+        'monsters',
+        'monsters__base_monster',
+        'monsters__base_monster__family',
+        'monsters__runes',
+        'monsters__runes_rta',
+        'monsters__runes__rune_set',
+        'monsters__runes_rta__rune_set',
+        'monsters__artifacts',
+        'monsters__artifacts_rta',
+        'leader__runes',
+        'leader__runes__rune_set',
+        'leader__runes_rta',
+        'leader__runes_rta__rune_set',
+        'leader__artifacts',
+        'leader__artifacts_rta'
+    ).defer(
+        'last_update', 'full', ).filter(full=True).order_by()
+
+    if request:  # ajax call on page change
+        filters = list(request.GET.lists())
+
+        proper_filters = filter_siege(filters)
+        sieges = sieges.filter(**proper_filters)
+
+        sort_order = request.GET['sort_order'] if 'sort_order' in request.GET else None
+        if sort_order:
+            if '-' in sort_order:
+                sieges = sieges.order_by(
+                    F(sort_order[1:]).desc(nulls_last=True))
+            else:
+                sieges = sieges.order_by(
+                    F(sort_order).asc(nulls_first=True))
+
+        page = int(request.GET['page']) if 'page' in request.GET else 1
+        count = sieges.count()
+        PER_PAGE = 10
+        start = PER_PAGE * (page - 1)
+        end = start + 10
+        serializer = SiegeSerializer(
+            sieges[start:min(end, count)], many=True)
+
+        return {
+            'count': count,
+            'page': page,
+            'data': serializer.data,
+        }
+
+    # filters here
+    if filters:
+        proper_filters = filter_siege(filters)
+        sieges = sieges.filter(**proper_filters)
+
+    serializer = SiegeSerializer(sieges[:10], many=True)
+
+    return {
+        'count': sieges.count(),
         'page': 1,
         'data': serializer.data,
     }

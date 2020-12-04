@@ -9,8 +9,8 @@ from website.celery import app as celery_app
 from swstats_web.permissions import IsSwstatsWeb
 
 from website.models import Monster, Rune, Artifact, DungeonRun
-from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data, fetch_monsters_data, fetch_artifacts_data
-from .functions import get_scoring_system, get_runes_table, get_monsters_table, get_artifacts_table
+from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data, fetch_monsters_data, fetch_artifacts_data, fetch_siege_data
+from .functions import get_scoring_system, get_runes_table, get_monsters_table, get_artifacts_table, get_siege_table
 from .serializers import MonsterSerializer, RuneSerializer, ArtifactSerializer
 
 import json
@@ -182,7 +182,6 @@ class RunesView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None):
-        # there should be something to group filters, then task call
         task = fetch_runes_data.delay(list(request.GET.lists()))
 
         return Response({'status': task.state, 'task_id': task.id})
@@ -202,7 +201,6 @@ class MonstersView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None):
-        # there should be something to group filters, then task call
         task = fetch_monsters_data.delay(list(request.GET.lists()))
 
         return Response({'status': task.state, 'task_id': task.id})
@@ -222,7 +220,6 @@ class ArtifactsView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None):
-        # there should be something to group filters, then task call
         task = fetch_artifacts_data.delay(list(request.GET.lists()))
 
         return Response({'status': task.state, 'task_id': task.id})
@@ -236,6 +233,25 @@ class ArtifactsTableView(APIView):
         if 'error' in artifacts_table:
             return Response(artifacts_table, status=status.HTTP_400_BAD_REQUEST)
         return Response(artifacts_table)
+
+
+class SiegeView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        task = fetch_siege_data.delay(list(request.GET.lists()))
+
+        return Response({'status': task.state, 'task_id': task.id})
+
+
+class SiegeTableView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        siege_table = get_siege_table(request)
+        if 'error' in siege_table:
+            return Response(siege_table, status=status.HTTP_400_BAD_REQUEST)
+        return Response(siege_table)
 
 
 class MonsterView(APIView):
