@@ -14,6 +14,8 @@ from .functions import get_scoring_system, get_runes_table, get_monsters_table, 
 from .serializers import MonsterSerializer, RuneSerializer, ArtifactSerializer
 
 import json
+import itertools
+from datetime import timedelta
 # Create your views here.
 
 
@@ -252,6 +254,60 @@ class SiegeTableView(APIView):
         if 'error' in siege_table:
             return Response(siege_table, status=status.HTTP_400_BAD_REQUEST)
         return Response(siege_table)
+
+
+class CairosView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        dungeon_runs = DungeonRun.objects.defer('wizard', 'monsters', 'date').order_by(
+            'dungeon', '-stage', '-win').values('dungeon', 'stage', 'clear_time', 'win')
+        dungeons = {}
+
+        for id_, name in DungeonRun.DUNGEON_TYPES:
+            dungeons[id_] = {
+                'id': id_,
+                'name': name,
+                'image': 'https://swstats.info/static/website/images/dungeons/dungeon_' + name.replace('\'', '').replace(' ', '_').lower() + '.png',
+                'stages': [],
+            }
+
+        for d_id, d_id_group in itertools.groupby(dungeon_runs, lambda item: item['dungeon']):
+            if d_id not in dungeons:
+                continue  # Secret Dungeon
+            d_g_id = list(d_id_group)
+            max_stage = d_g_id[0]['stage']
+            dungeons[d_id]['stages'] = [{
+                'stage': stage,
+                'records': 0,
+                'avg_time': 0,
+                'wins': 0,
+            } for stage in range(max_stage, 0, -1)]
+
+            for d_s, d_s_group in itertools.groupby(d_g_id, lambda item: item['stage']):
+                d_g_s = list(d_s_group)
+                dungeons[d_id]['stages'][max_stage -
+                                         d_s]['records'] = len(d_g_s)
+
+                for _, d_w_group in itertools.groupby(d_g_s, lambda item: item['win']):
+                    d_g_w = list(d_w_group)
+                    if d_g_w[0]['win'] == False:
+                        break
+                    wins = len(d_g_w)
+                    dungeons[d_id]['stages'][max_stage - d_s]['wins'] = wins
+                    clear_times = [d['clear_time'] for d in d_g_w]
+                    avg_time = sum(
+                        clear_times, timedelta(0)) / len(clear_times)
+                    avg_str = str(avg_time)
+                    try:
+                        avg_index = avg_str.index('.')
+                        avg_str = avg_str[:avg_index]
+                    except ValueError:
+                        pass
+                    dungeons[d_id]['stages'][max_stage -
+                                             d_s]['avg_time'] = avg_str
+
+        return Response(list(dungeons.values()))
 
 
 class MonsterView(APIView):

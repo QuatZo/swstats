@@ -18,6 +18,8 @@ urlpatterns = [
     path('siege/table/', views.SiegeTableView.as_view(),
          name='web_siege_table'),
 
+    path('cairos/', views.CairosView.as_view(), name='web_cairos'),
+
     path('artifacts/', views.ArtifactsView.as_view(), name='web_artifacts'),
     path('artifacts/table/', views.ArtifactsTableView.as_view(),
          name='web_artifacts_table'),
