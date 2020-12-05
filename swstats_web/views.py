@@ -9,7 +9,7 @@ from website.celery import app as celery_app
 from swstats_web.permissions import IsSwstatsWeb
 
 from website.models import Monster, Rune, Artifact, DungeonRun
-from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data, fetch_monsters_data, fetch_artifacts_data, fetch_siege_data
+from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data, fetch_monsters_data, fetch_artifacts_data, fetch_siege_data, fetch_cairos_detail_data
 from .functions import get_scoring_system, get_runes_table, get_monsters_table, get_artifacts_table, get_siege_table
 from .serializers import MonsterSerializer, RuneSerializer, ArtifactSerializer
 
@@ -268,6 +268,7 @@ class CairosView(APIView):
             dungeons[id_] = {
                 'id': id_,
                 'name': name,
+                'path': name.replace('\'', '').replace(' ', '_').lower(),
                 'image': 'https://swstats.info/static/website/images/dungeons/dungeon_' + name.replace('\'', '').replace(' ', '_').lower() + '.png',
                 'stages': [],
             }
@@ -308,6 +309,34 @@ class CairosView(APIView):
                                              d_s]['avg_time'] = avg_str
 
         return Response(list(dungeons.values()))
+
+
+class CairosDetailView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        if 'cid' not in request.GET or 'stage' not in request.GET:
+            return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            cid = request.GET['cid'].split('-')
+
+            if not cid or len(cid) > 2:
+                raise ValueError(f"Wrong Cairos ID: {request.GET['cid']}")
+
+            cid = int(cid[0])
+            stage = int(request.GET['stage'])
+
+            if cid not in [d[0] for d in DungeonRun.DUNGEON_TYPES]:
+                raise ValueError(
+                    f"Non existing Cairos ID: {request.GET['cid']}")
+
+            task = fetch_cairos_detail_data.delay(
+                list(request.GET.lists()), cid, stage)
+
+            return Response({'status': task.state, 'task_id': task.id})
+        except ValueError:
+            return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class MonsterView(APIView):

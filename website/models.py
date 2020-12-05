@@ -1290,6 +1290,21 @@ class DungeonRun(models.Model):
         ordering = ['dungeon', '-stage', '-clear_time', '-win']
 
     @classmethod
+    def get_filter_fields(cls):
+        filters = {}
+        # multi select
+        base_monsters = [{'id': i['id'], 'name': i['name']}
+                         for i in MonsterBase.objects.filter(awaken__in=[1, 2]).values('id', 'name')]
+        filters['monsters__base_monster'] = base_monsters
+
+        # slider min-max
+        filters['ratio'] = [0, 100]
+        filters['win'] = [
+            0, SiegeRecord.objects.all().order_by('-win').first().win + 10]
+
+        return filters
+
+    @classmethod
     def get_dungeon_name(cls, id):
         try:
             return dict(cls.DUNGEON_TYPES)[id]
@@ -1503,6 +1518,10 @@ class SiegeRecord(models.Model):
 
         # slider min-max
         filters['ratio'] = [0, 100]
+        filters['win'] = [
+            0, SiegeRecord.objects.all().order_by('-win').first().win]
+        filters['lose'] = [
+            0, SiegeRecord.objects.all().order_by('-lose').first().lose]
 
         return filters
 

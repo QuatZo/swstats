@@ -3,6 +3,7 @@ import numpy as np
 import datetime
 import math
 import time
+from datetime import timedelta
 
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
 
@@ -600,7 +601,7 @@ def filter_siege(filters):
     for key, val in filters:
         if key in ['monsters__base_monster', 'leader__base_monster', 'wizard__guild__siege_ranking']:
             proper_filters[key + '__in'] = val
-        elif key in ['ratio']:
+        elif key in ['ratio', 'win', 'lose']:
             proper_val = [float(v) for v in val]
             proper_val.sort()
             proper_filters[key + '__gte'] = proper_val[0]
@@ -669,3 +670,36 @@ def get_siege_table(request, filters=None):
         'page': 1,
         'data': serializer.data,
     }
+
+
+def get_cairos_distribution(runs, parts):
+    """Return sets of clear times in specific number of parts, to make Distribution chart."""
+    runs_seconds = [run['clear_time'].total_seconds()
+                    for run in runs if run['win']]
+    if not len(runs_seconds):
+        return []
+
+    fastest = min(runs_seconds)
+    slowest = max(runs_seconds)
+
+    delta = (slowest - fastest) / (parts + 1)
+    delta = max(1, delta)
+    points = np.arange(fastest, slowest + delta, delta)
+
+    distribution = np.histogram(runs_seconds, bins=points)[0].tolist()
+
+    points = [str(timedelta(seconds=round((points[i] + points[i+1])/2)))
+              for i in range(len(points) - 1)]
+
+    return [{
+        'name': p,
+        'count': d,
+    } for p, d in zip(points, distribution)]
+
+
+def filter_cairos_detail(filters):
+    proper_filters = {}
+    for key, val in filters:
+        if key in ['monsters__base_monster', ]:
+            proper_filters[key + '__in'] = val
+    return proper_filters

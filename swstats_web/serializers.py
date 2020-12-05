@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from website.models import Monster, MonsterBase, MonsterFamily, Rune, RuneSet, Artifact, SiegeRecord
+from website.models import Monster, MonsterBase, MonsterFamily, Rune, RuneSet, Artifact, SiegeRecord, DungeonRun
 
 
 class RuneFullSerializer(serializers.ModelSerializer):
@@ -127,6 +127,19 @@ class MonsterSerializer(serializers.ModelSerializer):
             'id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed',
             'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp',
             'skills', 'runes', 'runes_rta', 'artifacts', 'artifacts_rta', 'created', 'image',
+        ]
+
+    def get_image(self, obj):
+        return obj.get_image()
+
+
+class MonsterImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Monster
+        fields = [
+            'id', 'image',
         ]
 
     def get_image(self, obj):
