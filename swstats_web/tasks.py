@@ -2,8 +2,8 @@ from django.db.models import Count, Q, F, Avg
 
 from website.celery import app as celery_app
 from website.tasks import handle_profile_upload_task
-from website.models import Rune, RuneSet, Monster, MonsterBase, Artifact, SiegeRecord, Guild, DungeonRun
-from .functions import get_scoring_for_profile, get_profile_comparison_with_database, filter_runes, get_runes_table, filter_monsters, get_monsters_table, filter_artifacts, get_artifacts_table, filter_siege, get_siege_table, get_cairos_distribution, filter_cairos_detail
+from website.models import Rune, RuneSet, Monster, MonsterBase, Artifact, SiegeRecord, Guild, DungeonRun, DimensionHoleRun
+from .functions import *
 from .serializers import MonsterImageSerializer
 
 import itertools
@@ -347,6 +347,15 @@ def fetch_cairos_detail_data(self, filters, cid, stage):
     # prepare filters to show in Form
     form_filters = DungeonRun.get_filter_fields()
 
+    if not dungruns.exists():
+        return {
+            'chart_data': {
+                'cairos_distribution': {},
+            },
+            'filters': form_filters,
+            'table': [],
+        }
+
     calc_filters = {
         'win': [],
         'ratio': [],
@@ -387,10 +396,13 @@ def fetch_cairos_detail_data(self, filters, cid, stage):
             records[m_id]['wins'] += 1
 
     proper_records = []
+    max_wins = 0
     fastest = min([r.total_seconds()
                    for record in records for r in record['clear_time']])
     for record in records:
         if record['wins']:
+            if record['wins'] > max_wins:
+                max_wins = record['wins']
             if calc_filters['win'] and (record['wins'] < calc_filters['win'][0] or record['wins'] > calc_filters['win'][1]):
                 continue
 
@@ -416,9 +428,117 @@ def fetch_cairos_detail_data(self, filters, cid, stage):
             proper_records[-1]['points'] = round((min(record['wins'], 1000)**(
                 1./3.) * proper_records[-1]['ratio'] / 100) / math.exp(avg_time.total_seconds() / (60 * fastest)), 4)
 
+    form_filters['win'][1] = max_wins + 50
+
     content = {
         'chart_data': {
             'cairos_distribution': get_cairos_distribution(dungruns, 50),
+        },
+        'filters': form_filters,
+        'table': proper_records,
+    }
+
+    return content
+
+
+@celery_app.task(name='fetch.dimhole-detail', bind=True)
+def fetch_dimhole_detail_data(self, filters, cid, stage):
+    dungruns = DimensionHoleRun.objects.all().values('id', 'monsters__id', 'clear_time', 'win',
+                                                     ).filter(dungeon=cid, stage=stage).order_by()
+
+    # filters here
+    proper_filters = filter_dimhole_detail(filters)
+    dungruns = dungruns.filter(**proper_filters)
+
+    # prepare filters to show in Form
+    form_filters = DimensionHoleRun.get_filter_fields()
+
+    if not dungruns.exists():
+        return {
+            'chart_data': {
+                'dimhole_distribution': {},
+            },
+            'filters': form_filters,
+            'table': [],
+        }
+
+    calc_filters = {
+        'win': [],
+        'ratio': [],
+    }
+    for key, val in filters:
+        if key in ['ratio', 'win']:
+            proper_val = [float(v) for v in val]
+            proper_val.sort()
+            calc_filters[key] = proper_val
+
+    dungruns = list(dungruns)
+
+    records = []
+    teams = []
+    for _, g in itertools.groupby(dungruns, lambda record: record['id']):
+        g_t = list(g)
+        record = g_t[0]
+        mons = [m['monsters__id']
+                for m in g_t if m['monsters__id'] is not None]
+        if not mons:
+            continue
+        mons.sort()
+        if mons not in teams:
+            teams.append(mons)
+            records.append({
+                'team': teams[-1],
+                'clear_time': [],
+                'count': 0,
+                'wins': 0,
+                'ratio': 0,
+                'points': 0,
+            })
+        m_id = teams.index(mons)
+        if record['clear_time']:
+            records[m_id]['clear_time'].append(record['clear_time'])
+        records[m_id]['count'] += 1
+        if record['win']:
+            records[m_id]['wins'] += 1
+
+    proper_records = []
+    max_wins = 0
+    fastest = min([r.total_seconds()
+                   for record in records for r in record['clear_time']])
+    for record in records:
+        if record['wins']:
+            if record['wins'] > max_wins:
+                max_wins = record['wins']
+            if calc_filters['win'] and (record['wins'] < calc_filters['win'][0] or record['wins'] > calc_filters['win'][1]):
+                continue
+
+            ratio = round(record['wins'] * 100 / record['count'], 2)
+            if calc_filters['ratio'] and (ratio < calc_filters['ratio'][0] or ratio > calc_filters['ratio'][1]):
+                continue
+
+            proper_records.append(record)
+            proper_records[-1]['team'] = MonsterImageSerializer(
+                Monster.objects.filter(id__in=record['team']).only('id', 'base_monster').prefetch_related('base_monster'), many=True).data
+            proper_records[-1]['ratio'] = ratio
+
+            avg_time = sum(record['clear_time'],
+                           timedelta(0)) / len(record['clear_time'])
+            avg_str = str(avg_time)
+            try:
+                avg_index = avg_str.index('.')
+                avg_str = avg_str[:avg_index]
+            except ValueError:
+                pass
+            proper_records[-1]['clear_time'] = avg_str
+
+            proper_records[-1]['points'] = round((min(record['wins'], 1000)**(
+                1./3.) * proper_records[-1]['ratio'] / 100) / math.exp(avg_time.total_seconds() / (60 * fastest)), 4)
+
+    form_filters['win'][1] = max_wins + 50
+
+    content = {
+        'chart_data': {
+            'dimhole_distribution': get_cairos_distribution(dungruns, 50),
         },
         'filters': form_filters,
         'table': proper_records,

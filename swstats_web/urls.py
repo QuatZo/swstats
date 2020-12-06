@@ -22,6 +22,10 @@ urlpatterns = [
     path('cairos-detail/', views.CairosDetailView.as_view(),
          name='web_cairos-detail'),
 
+    path('dimhole/', views.DimholeView.as_view(), name='web_dimhole'),
+    path('dimhole-detail/', views.DimholeDetailView.as_view(),
+         name='web_dimhole-detail'),
+
     path('artifacts/', views.ArtifactsView.as_view(), name='web_artifacts'),
     path('artifacts/table/', views.ArtifactsTableView.as_view(),
          name='web_artifacts_table'),

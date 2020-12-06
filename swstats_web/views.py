@@ -8,8 +8,8 @@ from website.celery import app as celery_app
 
 from swstats_web.permissions import IsSwstatsWeb
 
-from website.models import Monster, Rune, Artifact, DungeonRun
-from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data, fetch_monsters_data, fetch_artifacts_data, fetch_siege_data, fetch_cairos_detail_data
+from website.models import Monster, Rune, Artifact, DungeonRun, DimensionHoleRun
+from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data, fetch_monsters_data, fetch_artifacts_data, fetch_siege_data, fetch_cairos_detail_data, fetch_dimhole_detail_data
 from .functions import get_scoring_system, get_runes_table, get_monsters_table, get_artifacts_table, get_siege_table
 from .serializers import MonsterSerializer, RuneSerializer, ArtifactSerializer
 
@@ -332,6 +332,90 @@ class CairosDetailView(APIView):
                     f"Non existing Cairos ID: {request.GET['cid']}")
 
             task = fetch_cairos_detail_data.delay(
+                list(request.GET.lists()), cid, stage)
+
+            return Response({'status': task.state, 'task_id': task.id})
+        except ValueError:
+            return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class DimholeView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        dungeon_runs = DimensionHoleRun.objects.defer('wizard', 'monsters', 'date').order_by(
+            'dungeon', '-stage', '-win').values('dungeon', 'stage', 'clear_time', 'win')
+        dungeons = {}
+
+        for id_, name in DimensionHoleRun.DIM_HOLE_TYPES:
+            dungeons[id_] = {
+                'id': id_,
+                'name': name,
+                'path': name.replace('\'', '').replace(' ', '_').lower(),
+                'image': 'https://swstats.info/static/website/images/dungeons/dimhole_' + name.replace('\'', '').replace(' ', '_').replace('(', '').replace(')', '').lower() + '.png',
+                'stages': [],
+            }
+
+        for d_id, d_id_group in itertools.groupby(dungeon_runs, lambda item: item['dungeon']):
+            if d_id not in dungeons:
+                continue  # Predator
+            d_g_id = list(d_id_group)
+            max_stage = d_g_id[0]['stage']
+            dungeons[d_id]['stages'] = [{
+                'stage': stage,
+                'records': 0,
+                'avg_time': 0,
+                'wins': 0,
+            } for stage in range(max_stage, 0, -1)]
+
+            for d_s, d_s_group in itertools.groupby(d_g_id, lambda item: item['stage']):
+                d_g_s = list(d_s_group)
+                dungeons[d_id]['stages'][max_stage -
+                                         d_s]['records'] = len(d_g_s)
+
+                for _, d_w_group in itertools.groupby(d_g_s, lambda item: item['win']):
+                    d_g_w = list(d_w_group)
+                    if d_g_w[0]['win'] == False:
+                        break
+                    wins = len(d_g_w)
+                    dungeons[d_id]['stages'][max_stage - d_s]['wins'] = wins
+                    clear_times = [d['clear_time'] for d in d_g_w]
+                    avg_time = sum(
+                        clear_times, timedelta(0)) / len(clear_times)
+                    avg_str = str(avg_time)
+                    try:
+                        avg_index = avg_str.index('.')
+                        avg_str = avg_str[:avg_index]
+                    except ValueError:
+                        pass
+                    dungeons[d_id]['stages'][max_stage -
+                                             d_s]['avg_time'] = avg_str
+
+        return Response(list(dungeons.values()))
+
+
+class DimholeDetailView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        if 'cid' not in request.GET or 'stage' not in request.GET:
+            return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            cid = request.GET['cid'].split('-')
+
+            if not cid or len(cid) > 2:
+                raise ValueError(
+                    f"Wrong Dimension Hole ID: {request.GET['cid']}")
+
+            cid = int(cid[0])
+            stage = int(request.GET['stage'])
+
+            if cid not in [d[0] for d in DimensionHoleRun.DIM_HOLE_TYPES]:
+                raise ValueError(
+                    f"Non existing Dimension Hole ID: {request.GET['cid']}")
+
+            task = fetch_dimhole_detail_data.delay(
                 list(request.GET.lists()), cid, stage)
 
             return Response({'status': task.state, 'task_id': task.id})

@@ -1299,8 +1299,7 @@ class DungeonRun(models.Model):
 
         # slider min-max
         filters['ratio'] = [0, 100]
-        filters['win'] = [
-            0, SiegeRecord.objects.all().order_by('-win').first().win + 10]
+        filters['win'] = [0, 0]
 
         return filters
 
@@ -1534,18 +1533,15 @@ class DimensionHoleRun(models.Model):
         (1101, 'Ellunia'),
         (1201, 'Fairy (Ellunia)'),
         (1202, 'Pixie (Ellunia)'),
-        (1301, 'Predator (Ellunia'),
 
         (2101, 'Karzhan'),
         (2201, 'Warbear (Karzhan)'),
         (2202, 'Inugami (Karzhan)'),
         (2203, 'Griffon (Karzhan)'),
-        (2301, 'Predator (Karzhan)'),
 
         (3101, 'Lumel'),
         (3201, 'Werewolf (Lumel)'),
         (3202, 'Martial Cat (Lumel)'),
-        (3301, 'Predator (Lumel)'),
     )
 
     # id - request; battle_key
@@ -1568,6 +1564,36 @@ class DimensionHoleRun(models.Model):
 
     class Meta:
         ordering = ['dungeon', '-stage', 'clear_time', 'win']
+
+    @classmethod
+    def get_filter_fields(cls):
+        filters = {}
+        # multi select
+        base_monsters = [{'id': i['id'], 'name': i['name']}
+                         for i in MonsterBase.objects.filter(awaken__in=[1, 2]).values('id', 'name')]
+        filters['monsters__base_monster'] = base_monsters
+
+        # select
+        filters['practice'] = [
+            {
+                'id': '',
+                'name': 'Any'
+            },
+            {
+                'id': 'false',
+                'name': 'No'
+            },
+            {
+                'id': 'true',
+                'name': 'Yes'
+            }
+        ]
+
+        # slider min-max
+        filters['ratio'] = [0, 100]
+        filters['win'] = [0, 0]
+
+        return filters
 
     @classmethod
     def get_dungeon_name(cls, identifier):

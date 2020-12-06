@@ -703,3 +703,14 @@ def filter_cairos_detail(filters):
         if key in ['monsters__base_monster', ]:
             proper_filters[key + '__in'] = val
     return proper_filters
+
+
+def filter_dimhole_detail(filters):
+    proper_filters = {}
+    for key, val in filters:
+        if key in ['monsters__base_monster', ]:
+            proper_filters[key + '__in'] = val
+        elif key in ['practice']:
+            proper_filters[key] = val[0] == 'true'
+
+    return proper_filters
