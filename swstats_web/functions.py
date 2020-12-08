@@ -714,3 +714,26 @@ def filter_dimhole_detail(filters):
             proper_filters[key] = val[0] == 'true'
 
     return proper_filters
+
+
+def filter_raid_detail(filters):
+    proper_filters = {}
+    for key, val in filters:
+        if key == 'leader':
+            proper_filters[key + '__base_monster_id__in'] = val
+    return proper_filters
+
+
+def filter_rift_detail(filters):
+    proper_filters = {}
+    for key, val in filters:
+        if key == 'leader':
+            proper_filters[key + '__base_monster_id__in'] = val
+        if key in ['clear_rating']:
+            proper_filters[key + '__in'] = val
+        elif key == 'dmg_total':
+            proper_val = [float(v) for v in val]
+            proper_val.sort()
+            proper_filters[key + '__gte'] = proper_val[0]
+            proper_filters[key + '__lte'] = proper_val[1]
+    return proper_filters

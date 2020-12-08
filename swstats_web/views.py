@@ -8,8 +8,8 @@ from website.celery import app as celery_app
 
 from swstats_web.permissions import IsSwstatsWeb
 
-from website.models import Monster, Rune, Artifact, DungeonRun, DimensionHoleRun
-from .tasks import handle_profile_upload_and_rank_task, fetch_runes_data, fetch_monsters_data, fetch_artifacts_data, fetch_siege_data, fetch_cairos_detail_data, fetch_dimhole_detail_data
+from website.models import Monster, Rune, Artifact, DungeonRun, DimensionHoleRun, RiftDungeonRun, RaidDungeonRun
+from .tasks import *
 from .functions import get_scoring_system, get_runes_table, get_monsters_table, get_artifacts_table, get_siege_table
 from .serializers import MonsterSerializer, RuneSerializer, ArtifactSerializer
 
@@ -333,6 +333,111 @@ class CairosDetailView(APIView):
 
             task = fetch_cairos_detail_data.delay(
                 list(request.GET.lists()), cid, stage)
+
+            return Response({'status': task.state, 'task_id': task.id})
+        except ValueError:
+            return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class RiftView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        raid_recs = RaidDungeonRun.objects.only(
+            'stage', 'win', 'clear_time').order_by('-stage', '-win')
+        raid_stages = []
+        for s, r in itertools.groupby(raid_recs, lambda item: item.stage):
+            r_r = list(r)
+            for _, r_w in itertools.groupby(r_r, lambda item: item.win):
+                r_r_w = [r_ for r_ in list(r_w) if r_.win is not None]
+                if not r_r_w or r_r_w[0].win == False:
+                    continue
+                wins = len(r_r_w)
+                clear_times = [d.clear_time for d in r_r_w]
+                avg_time = sum(clear_times, timedelta(0)) / len(clear_times)
+                avg_str = str(avg_time)
+                try:
+                    avg_index = avg_str.index('.')
+                    avg_str = avg_str[:avg_index]
+                except ValueError:
+                    pass
+                raid_stages.append({
+                    'stage': s,
+                    'records': len(r_r),
+                    'avg_time': avg_str,
+                    'wins': wins,
+                })
+
+        dungeons = {
+            1: {
+                'id': 1,
+                'name': 'Rift of Worlds',
+                'path': 'rift_of_worlds',
+                'image': 'https://swstats.info/static/website/images/dungeons/dungeon_rift_of_worlds.png',
+                'stages': raid_stages,
+            },
+        }
+
+        dungeon_runs = RiftDungeonRun.objects.only('dungeon', 'clear_rating', 'dmg_total', ).order_by(
+            'dungeon', '-clear_rating').values('dungeon', 'clear_rating', 'dmg_total')
+
+        for id_, name in RiftDungeonRun.DUNGEON_TYPES:
+            dungeons[id_] = {
+                'id': id_,
+                'name': name,
+                'path': name.replace('\'', '').replace(' ', '_').lower(),
+                'image': 'https://swstats.info/static/website/images/dungeons/dungeon_' + name.replace('\'', '').replace(' ', '_').lower() + '.png',
+                'stages': [],
+            }
+
+        for d_id, d_id_group in itertools.groupby(dungeon_runs, lambda item: item['dungeon']):
+            if d_id not in dungeons:
+                continue  # dont know, something new
+            d_g_id = list(d_id_group)
+            dungeons[d_id]['stages'] = [{
+                'stage': 1,
+                'records': len(d_g_id),
+                'avg_dmg': round(sum(d['dmg_total'] for d in d_g_id) / len(d_g_id)),
+                'sss': 0,
+            }]
+
+            for d_s, d_s_group in itertools.groupby(d_g_id, lambda item: item['clear_rating']):
+                if not d_s:
+                    continue
+                if d_s != 12:
+                    break  # only SSS
+                d_g_s = list(d_s_group)
+                dungeons[d_id]['stages'][0]['sss'] = len(d_g_s)
+
+        return Response(list(dungeons.values()))
+
+
+class RiftDetailView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        if 'cid' not in request.GET or 'stage' not in request.GET:
+            return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            cid = request.GET['cid'].split('-')
+
+            if not cid or len(cid) > 2:
+                raise ValueError(f"Wrong Cairos ID: {request.GET['cid']}")
+
+            cid = int(cid[0])
+            stage = int(request.GET['stage'])
+
+            if cid not in [d[0] for d in DungeonRun.DUNGEON_TYPES] and cid != 1:
+                raise ValueError(
+                    f"Non existing Cairos ID: {request.GET['cid']}")
+
+            if cid == 1:
+                task = fetch_raid_detail_data.delay(
+                    list(request.GET.lists()), stage)
+            else:
+                task = fetch_rift_detail_data.delay(
+                    list(request.GET.lists()), cid)
 
             return Response({'status': task.state, 'task_id': task.id})
         except ValueError:

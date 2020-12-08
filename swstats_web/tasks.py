@@ -545,3 +545,149 @@ def fetch_dimhole_detail_data(self, filters, cid, stage):
     }
 
     return content
+
+
+@celery_app.task(name='fetch.raid-detail', bind=True)
+def fetch_raid_detail_data(self, filters, stage):
+    dungruns = RaidDungeonRun.objects.all().select_related(
+        'monster_1',
+        'monster_2',
+        'monster_3',
+        'monster_4',
+        'monster_5',
+        'monster_6',
+        'monster_7',
+        'monster_8',
+        'leader',
+        'monster_1__base_monster',
+        'monster_2__base_monster',
+        'monster_3__base_monster',
+        'monster_4__base_monster',
+        'monster_5__base_monster',
+        'monster_6__base_monster',
+        'monster_7__base_monster',
+        'monster_8__base_monster',
+        'leader__base_monster',
+    ).only(
+        'win', 'clear_time',
+        'monster_1__id',
+        'monster_2__id',
+        'monster_3__id',
+        'monster_4__id',
+        'monster_5__id',
+        'monster_6__id',
+        'monster_7__id',
+        'monster_8__id',
+        'monster_1__base_monster__id',
+        'monster_2__base_monster__id',
+        'monster_3__base_monster__id',
+        'monster_4__base_monster__id',
+        'monster_5__base_monster__id',
+        'monster_6__base_monster__id',
+        'monster_7__base_monster__id',
+        'monster_8__base_monster__id',
+        'monster_1__base_monster__name',
+        'monster_2__base_monster__name',
+        'monster_3__base_monster__name',
+        'monster_4__base_monster__name',
+        'monster_5__base_monster__name',
+        'monster_6__base_monster__name',
+        'monster_7__base_monster__name',
+        'monster_8__base_monster__name',
+        'leader__id',
+        'leader__base_monster__id',
+        'leader__base_monster__name',
+    ).filter(stage=stage).order_by('monster_1_id', 'monster_2_id', 'monster_3_id', 'monster_4_id', 'monster_5_id', 'monster_6_id', 'monster_7_id', 'monster_8_id', 'leader_id', )
+
+    # filters here
+    proper_filters = filter_raid_detail(filters)
+    dungruns = dungruns.filter(**proper_filters)
+    monsters_filter = [val for key, val in filters if key == 'monsters']
+    if monsters_filter:
+        mons_filter = Q()
+        for m_f in monsters_filter[0]:
+            m_filter = Q()
+            for i in range(1, 9):
+                d = {f'monster_{i}__base_monster_id': m_f}
+                m_filter |= Q(**d)
+            mons_filter &= m_filter
+        dungruns = dungruns.filter(mons_filter)
+
+    # prepare filters to show in Form
+    form_filters = RaidDungeonRun.get_filter_fields()
+
+    if not dungruns.exists():
+        return {
+            'chart_data': {
+                'raid_distribution': {},
+            },
+            'filters': form_filters,
+            'table': [],
+        }
+
+    calc_filters = {
+        'win': [],
+        'ratio': [],
+    }
+    for key, val in filters:
+        if key in ['ratio', 'win']:
+            proper_val = [float(v) for v in val]
+            proper_val.sort()
+            calc_filters[key] = proper_val
+
+    dungruns_l = list(dungruns)
+
+    records = []
+    teams = []
+    max_wins = 0
+    fastest = min([record.clear_time.total_seconds()
+                   for record in dungruns_l if record.clear_time])
+    for team, g in itertools.groupby(dungruns_l, lambda record: (record.monster_1, record.monster_2, record.monster_3, record.monster_4, record.monster_5, record.monster_6, record.monster_7, record.monster_8, record.leader)):
+        if not len([1 for m in team if m is not None]):
+            continue  # empty records
+        if team in teams:
+            continue
+        g_t = list(g)
+
+        count = len(g_t)
+        wins = len([g_.win for g_ in g_t if g_.win])
+        ratio = round(wins / count * 100, 2)
+        if wins > max_wins:
+            max_wins = wins
+        if calc_filters['win'] and (wins < calc_filters['win'][0] or wins > calc_filters['win'][1]):
+            continue
+        if calc_filters['ratio'] and (ratio < calc_filters['ratio'][0] or ratio > calc_filters['ratio'][1]):
+            continue
+
+        avg_time = sum([g_.clear_time for g_ in g_t if g_.win],
+                       timedelta(0)) / len(g_t)
+        avg_str = str(avg_time)
+        try:
+            avg_index = avg_str.index('.')
+            avg_str = avg_str[:avg_index]
+        except ValueError:
+            pass
+
+        teams.append(team)
+        records.append({
+            'frontline': [MonsterImageSerializer(m).data if m else None for m in team[:4]],
+            'backline': [MonsterImageSerializer(m).data if m else None for m in team[4:-1]],
+            'leader': MonsterImageSerializer(team[-1]).data if team[-1] else None,
+            'clear_time': avg_str,
+            'count': count,
+            'wins': wins,
+            'ratio': ratio,
+            'points': round((min(wins, 1000)**(1./3.) * ratio / 100) / math.exp(avg_time.total_seconds() / (60 * fastest)), 4),
+        })
+
+    form_filters['win'][1] = max_wins + 50
+
+    content = {
+        'chart_data': {
+            'raid_distribution': get_cairos_distribution(dungruns.values('win', 'clear_time'), 50),
+        },
+        'filters': form_filters,
+        'table': records,
+    }
+
+    return content

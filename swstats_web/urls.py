@@ -22,6 +22,10 @@ urlpatterns = [
     path('cairos-detail/', views.CairosDetailView.as_view(),
          name='web_cairos-detail'),
 
+    path('rifts/', views.RiftView.as_view(), name='web_rifts'),
+    path('rifts-detail/', views.RiftDetailView.as_view(),
+         name='web_rifts-detail'),
+
     path('dimhole/', views.DimholeView.as_view(), name='web_dimhole'),
     path('dimhole-detail/', views.DimholeDetailView.as_view(),
          name='web_dimhole-detail'),

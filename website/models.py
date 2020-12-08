@@ -98,7 +98,7 @@ class Guild(models.Model):
 
 class Wizard(models.Model):
     # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
-    id = models.BigIntegerField(primary_key=True, unique=True, db_index=True)
+    id = models.BigIntegerField(primary_key=True, unique=True)
     mana = models.BigIntegerField(
         blank=True, null=True, default=None)  # wizard_mana
     crystals = models.IntegerField(
@@ -136,7 +136,7 @@ class Wizard(models.Model):
     storage_capacity = models.SmallIntegerField(
         blank=True, null=True, default=None)  # unit_depository_slots.number
     guild = models.ForeignKey(
-        Guild, blank=True, null=True, on_delete=models.SET_NULL, db_index=True)
+        Guild, blank=True, null=True, on_delete=models.SET_NULL)
     last_update = models.DateTimeField()
 
     def __str__(self):
@@ -144,8 +144,8 @@ class Wizard(models.Model):
 
 
 class RuneSet(models.Model):
-    id = models.IntegerField(primary_key=True, unique=True, db_index=True)
-    name = models.CharField(max_length=30, db_index=True)
+    id = models.IntegerField(primary_key=True, unique=True)
+    name = models.CharField(max_length=30)
     amount = models.IntegerField(db_index=True)
 
     def __str__(self):
@@ -185,62 +185,62 @@ class Rune(models.Model):
     )
 
     id = models.BigIntegerField(
-        primary_key=True, unique=True, db_index=True)  # rune_id
+        primary_key=True, unique=True)  # rune_id
     wizard = models.ForeignKey(
-        Wizard, on_delete=models.CASCADE, db_index=True)  # wizard_id
+        Wizard, on_delete=models.CASCADE)  # wizard_id
     slot = models.SmallIntegerField(validators=[MinValueValidator(
-        1), MaxValueValidator(6)], db_index=True)  # slot_no
+        1), MaxValueValidator(6)])  # slot_no
     quality = models.SmallIntegerField(
-        choices=RUNE_QUALITIES, db_index=True)  # rank
+        choices=RUNE_QUALITIES)  # rank
     stars = models.SmallIntegerField(validators=[MinValueValidator(
-        1), MaxValueValidator(6)], db_index=True)  # class
+        1), MaxValueValidator(6)])  # class
     rune_set = models.ForeignKey(
-        RuneSet, on_delete=models.PROTECT, db_index=True)  # set
+        RuneSet, on_delete=models.PROTECT)  # set
     upgrade_limit = 15  # upgrade_limit
     upgrade_curr = models.SmallIntegerField(validators=[MinValueValidator(
-        0), MaxValueValidator(upgrade_limit)], db_index=True)  # upgrade_curr
+        0), MaxValueValidator(upgrade_limit)])  # upgrade_curr
     base_value = models.IntegerField()  # base_value
     sell_value = models.IntegerField()  # sell_value
     primary = models.SmallIntegerField(
-        choices=RUNE_EFFECTS, db_index=True)  # pri_eff[0]
+        choices=RUNE_EFFECTS)  # pri_eff[0]
     primary_value = models.IntegerField(db_index=True)  # pri_eff[1]
     innate = models.SmallIntegerField(
-        choices=RUNE_EFFECTS, blank=True, null=True, db_index=True)  # prefix_eff[0]
+        choices=RUNE_EFFECTS, blank=True, null=True)  # prefix_eff[0]
     innate_value = models.IntegerField(
-        blank=True, null=True, db_index=True)  # prefix_eff[1]
+        blank=True, null=True)  # prefix_eff[1]
 
     ########################################
     # Substats
     sub_hp_flat = ArrayField(models.SmallIntegerField(),
-                             blank=True, null=True, db_index=True)
+                             blank=True, null=True)
     sub_hp = ArrayField(models.SmallIntegerField(),
-                        blank=True, null=True, db_index=True)
+                        blank=True, null=True)
     sub_atk_flat = ArrayField(
-        models.SmallIntegerField(), blank=True, null=True, db_index=True)
+        models.SmallIntegerField(), blank=True, null=True)
     sub_atk = ArrayField(models.SmallIntegerField(),
-                         blank=True, null=True, db_index=True)
+                         blank=True, null=True)
     sub_def_flat = ArrayField(
-        models.SmallIntegerField(), blank=True, null=True, db_index=True)
+        models.SmallIntegerField(), blank=True, null=True)
     sub_def = ArrayField(models.SmallIntegerField(),
-                         blank=True, null=True, db_index=True)
+                         blank=True, null=True)
     sub_speed = ArrayField(models.SmallIntegerField(),
-                           blank=True, null=True, db_index=True)
+                           blank=True, null=True)
     sub_crit_rate = ArrayField(
-        models.SmallIntegerField(), blank=True, null=True, db_index=True)
+        models.SmallIntegerField(), blank=True, null=True)
     sub_crit_dmg = ArrayField(
-        models.SmallIntegerField(), blank=True, null=True, db_index=True)
+        models.SmallIntegerField(), blank=True, null=True)
     sub_res = ArrayField(models.SmallIntegerField(),
-                         blank=True, null=True, db_index=True)
+                         blank=True, null=True)
     sub_acc = ArrayField(models.SmallIntegerField(),
-                         blank=True, null=True, db_index=True)
+                         blank=True, null=True)
     ########################################
 
     quality_original = models.SmallIntegerField(
-        choices=RUNE_QUALITIES, db_index=True)  # extra
+        choices=RUNE_QUALITIES)  # extra
     efficiency = models.FloatField(
-        validators=[MinValueValidator(0.00)], db_index=True)  # to calculate in views
+        validators=[MinValueValidator(0.00)])  # to calculate in views
     efficiency_max = models.FloatField(
-        validators=[MinValueValidator(0.00)], db_index=True)  # to calculate in views
+        validators=[MinValueValidator(0.00)])  # to calculate in views
     # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
     equipped = models.BooleanField(db_index=True)
     equipped_rta = models.BooleanField(
@@ -547,34 +547,34 @@ class Artifact(models.Model):
         ARTIFACT_EFFECTS_ATTRIBUTE_ONLY + ARTIFACT_EFFECTS_ARCHETYPE_ONLY
 
     id = models.BigIntegerField(
-        primary_key=True, unique=True, db_index=True)  # rid
+        primary_key=True, unique=True)  # rid
     wizard = models.ForeignKey(
-        Wizard, on_delete=models.CASCADE, db_index=True)  # wizard_id
+        Wizard, on_delete=models.CASCADE)  # wizard_id
     rtype = models.SmallIntegerField(
-        choices=ARTIFACT_TYPES, db_index=True)  # type
+        choices=ARTIFACT_TYPES)  # type
     attribute = models.SmallIntegerField(
-        choices=ARTIFACT_ATTRIBUTES, blank=True, null=True, db_index=True)  # type
+        choices=ARTIFACT_ATTRIBUTES, blank=True, null=True)  # type
     archetype = models.SmallIntegerField(
-        choices=ARTIFACT_ARCHETYPES, blank=True, null=True, db_index=True)  # type
+        choices=ARTIFACT_ARCHETYPES, blank=True, null=True)  # type
     level_max = 15
     level = models.SmallIntegerField(validators=[MinValueValidator(
-        0), MaxValueValidator(level_max)], db_index=True)  # level
+        0), MaxValueValidator(level_max)])  # level
     primary = models.SmallIntegerField(
-        choices=ARTIFACT_PRIMARY_EFFECTS, db_index=True)  # pri_effects[0][0]
+        choices=ARTIFACT_PRIMARY_EFFECTS)  # pri_effects[0][0]
     primary_value = models.IntegerField(db_index=True)  # pri_effects[0][1]
     # sec_effects ==> [0] - Type; [2] - Roll
     substats = ArrayField(models.IntegerField(
-        null=True, blank=True, db_index=True))
+        null=True, blank=True))
     substats_values = ArrayField(models.FloatField(
-        null=True, blank=True, db_index=True))  # sec_effects ==> [1] - Value;
+        null=True, blank=True))  # sec_effects ==> [1] - Value;
     quality = models.SmallIntegerField(
-        choices=ARTIFACT_QUALITIES, db_index=True)  # rank
+        choices=ARTIFACT_QUALITIES)  # rank
     quality_original = models.SmallIntegerField(
-        choices=ARTIFACT_QUALITIES, db_index=True)  # natural_rank
+        choices=ARTIFACT_QUALITIES)  # natural_rank
     efficiency = models.FloatField(
-        validators=[MinValueValidator(0.00)], db_index=True)  # to calculate in views
+        validators=[MinValueValidator(0.00)])  # to calculate in views
     efficiency_max = models.FloatField(
-        validators=[MinValueValidator(0.00)], db_index=True)  # to calculate in views
+        validators=[MinValueValidator(0.00)])  # to calculate in views
     # occupied_id (0 - inventory, else Monster ID)
     equipped = models.BooleanField(db_index=True)
     equipped_rta = models.BooleanField(
@@ -768,8 +768,8 @@ class Artifact(models.Model):
 
 class MonsterFamily(models.Model):
     # unit_master_id, first 3 characters
-    id = models.IntegerField(primary_key=True, unique=True, db_index=True)
-    name = models.CharField(max_length=30, db_index=True)  # mapping
+    id = models.IntegerField(primary_key=True, unique=True)
+    name = models.CharField(max_length=30)  # mapping
 
     def __str__(self):
         return self.name
@@ -803,12 +803,12 @@ class MonsterBase(models.Model):
     ]
 
     id = models.IntegerField(
-        primary_key=True, unique=True, db_index=True)  # unit_master_id
+        primary_key=True, unique=True)  # unit_master_id
     family = models.ForeignKey(
-        MonsterFamily, on_delete=models.PROTECT, db_index=True)
+        MonsterFamily, on_delete=models.PROTECT)
     base_class = models.SmallIntegerField(validators=[MinValueValidator(
-        1), MaxValueValidator(6)], db_index=True)  # mapping
-    name = models.CharField(max_length=50, db_index=True)  # mapping
+        1), MaxValueValidator(6)])  # mapping
+    name = models.CharField(max_length=50)  # mapping
     attribute = models.SmallIntegerField(
         choices=MONSTER_ATTRIBUTES)  # attribute
     archetype = models.SmallIntegerField(
@@ -816,7 +816,7 @@ class MonsterBase(models.Model):
     # table with max skillsups ( we don't care about skills itself, it's in SWARFARM already )
     max_skills = ArrayField(models.IntegerField(db_index=True))
     awaken = models.SmallIntegerField(
-        choices=MONSTER_AWAKEN, db_index=True)  # to calculate
+        choices=MONSTER_AWAKEN)  # to calculate
     # best from Recommendation command, needs to delete every scam
     recommendation_text = models.CharField(
         max_length=512, blank=True, null=True)
@@ -886,7 +886,7 @@ class MonsterBase(models.Model):
 
 class MonsterHoh(models.Model):
     monster = models.ForeignKey(
-        MonsterBase, on_delete=models.PROTECT, db_index=True)
+        MonsterBase, on_delete=models.PROTECT)
     date_open = models.DateField()
     date_close = models.DateField()
 
@@ -899,7 +899,7 @@ class MonsterHoh(models.Model):
 
 class MonsterFusion(models.Model):
     monster = models.ForeignKey(
-        MonsterBase, on_delete=models.PROTECT, db_index=True)
+        MonsterBase, on_delete=models.PROTECT)
     cost = models.IntegerField()
 
     def __str__(self):
@@ -910,7 +910,7 @@ class MonsterFusion(models.Model):
 
 
 class MonsterSource(models.Model):
-    id = models.IntegerField(primary_key=True, unique=True, db_index=True)
+    id = models.IntegerField(primary_key=True, unique=True)
     name = models.CharField(max_length=30)
     farmable = models.BooleanField()
 
@@ -923,11 +923,11 @@ class MonsterSource(models.Model):
 
 class Monster(models.Model):
     id = models.BigIntegerField(
-        primary_key=True, unique=True, db_index=True)  # unit_id
+        primary_key=True, unique=True)  # unit_id
     wizard = models.ForeignKey(
-        Wizard, on_delete=models.CASCADE, db_index=True)  # wizard_id
+        Wizard, on_delete=models.CASCADE)  # wizard_id
     base_monster = models.ForeignKey(
-        MonsterBase, on_delete=models.PROTECT, db_index=True)  # unit_master_id
+        MonsterBase, on_delete=models.PROTECT)  # unit_master_id
     level = models.SmallIntegerField(db_index=True)  # unit_level
     stars = models.SmallIntegerField(db_index=True)  # class
 
@@ -942,26 +942,26 @@ class Monster(models.Model):
     crit_rate = models.IntegerField(db_index=True)  # critical_rate
     crit_dmg = models.IntegerField(db_index=True)  # critical_damage
     avg_eff = models.FloatField(validators=[MinValueValidator(
-        0.00)], db_index=True)  # sum(rune_eff) / len(runes)
+        0.00)])  # sum(rune_eff) / len(runes)
     avg_eff_artifacts = models.FloatField(validators=[MinValueValidator(
-        0.00)], db_index=True)  # sum(artifacts_eff) / len(artifacts)
+        0.00)])  # sum(artifacts_eff) / len(artifacts)
     # (avg_eff + avg_eff_artifacts) / (len(runes) + len(artifacts))
     avg_eff_total = models.FloatField(
-        validators=[MinValueValidator(0.00)], db_index=True)
+        validators=[MinValueValidator(0.00)])
     eff_hp = models.IntegerField(
-        validators=[MinValueValidator(0.00)], db_index=True)
+        validators=[MinValueValidator(0.00)])
     ############################################
 
     # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already
     skills = ArrayField(models.IntegerField(db_index=True))
     runes = models.ManyToManyField(Rune, related_name='equipped_runes',
-                                   related_query_name='equipped_runes', blank=True, db_index=True)  # runes
+                                   related_query_name='equipped_runes', blank=True)  # runes
     runes_rta = models.ManyToManyField(Rune, related_name='equipped_runes_rta',
-                                       related_query_name='equipped_runes_rta', blank=True, db_index=True)  # runes
+                                       related_query_name='equipped_runes_rta', blank=True)  # runes
     artifacts = models.ManyToManyField(Artifact, related_name='equipped_artifacts',
-                                       related_query_name='equipped_artifacts', blank=True, db_index=True)  # artifacts
+                                       related_query_name='equipped_artifacts', blank=True)  # artifacts
     artifacts_rta = models.ManyToManyField(Artifact, related_name='equipped_artifacts_rta',
-                                           related_query_name='equipped_artifacts_rta', blank=True, db_index=True)  # artifacts
+                                           related_query_name='equipped_artifacts_rta', blank=True)  # artifacts
     created = models.DateTimeField(db_index=True)  # create_time
     source = models.ForeignKey(
         MonsterSource, on_delete=models.PROTECT)  # source
@@ -1058,10 +1058,10 @@ class Monster(models.Model):
 
 class MonsterRep(models.Model):
     wizard = models.ForeignKey(
-        Wizard, on_delete=models.CASCADE, db_index=True)  # wizard_info
+        Wizard, on_delete=models.CASCADE)  # wizard_info
     # rep_unit_id in profile JSON - wizard_info part
     monster = models.ForeignKey(
-        Monster, on_delete=models.CASCADE, db_index=True)
+        Monster, on_delete=models.CASCADE)
 
 
 class Deck(models.Model):
@@ -1079,18 +1079,18 @@ class Deck(models.Model):
         (11, 'Lab Boss'),
     ]
 
-    id = models.BigAutoField(primary_key=True, unique=True, db_index=True)
-    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True)
+    id = models.BigAutoField(primary_key=True, unique=True)
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE)
     place = models.IntegerField(
-        choices=DECK_TYPES, db_index=True)  # deck_list.deck_type
+        choices=DECK_TYPES)  # deck_list.deck_type
     number = models.SmallIntegerField()  # deck_list.deck_seq
     monsters = models.ManyToManyField(Monster, related_name='monsters_in_deck',
-                                      related_query_name='monsters_in_deck', db_index=True)  # deck_list.unit_id_list
+                                      related_query_name='monsters_in_deck')  # deck_list.unit_id_list
     # deck_list.leader_unit_id
     leader = models.ForeignKey(
-        Monster, on_delete=models.CASCADE, db_index=True)
+        Monster, on_delete=models.CASCADE)
     team_runes_eff = models.FloatField(validators=[MinValueValidator(
-        0.00)], db_index=True)  # to calculate, by using monster's avg_eff
+        0.00)])  # to calculate, by using monster's avg_eff
 
     def __str__(self):
         return "Deck for " + dict(self.DECK_TYPES)[self.place]
@@ -1111,7 +1111,7 @@ class Building(models.Model):
         (1, 'Guild'),
     )
 
-    id = models.IntegerField(primary_key=True, unique=True, db_index=True)
+    id = models.IntegerField(primary_key=True, unique=True)
     area = models.IntegerField(choices=AREA_TYPE)
     name = models.CharField(max_length=50)
 
@@ -1129,11 +1129,11 @@ class Building(models.Model):
 
 
 class WizardBuilding(models.Model):
-    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True)
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE)
     building = models.ForeignKey(
-        Building, on_delete=models.CASCADE, db_index=True)
+        Building, on_delete=models.CASCADE)
     level = models.SmallIntegerField(validators=[MinValueValidator(
-        0), MaxValueValidator(10)], default=0, db_index=True)
+        0), MaxValueValidator(10)], default=0)
 
     def __str__(self):
         return str(self.wizard) + ' ' + str(self.building) + ' (level ' + str(self.level) + ')'
@@ -1166,20 +1166,20 @@ class Arena(models.Model):
     )
 
     wizard = models.ForeignKey(
-        Wizard, on_delete=models.CASCADE, db_index=True)  # wizard_id
+        Wizard, on_delete=models.CASCADE)  # wizard_id
     wins = models.IntegerField(
         blank=True, null=True, default=None)  # arena_win
     loses = models.IntegerField(
         blank=True, null=True, default=None)  # arena_lose
-    rank = models.IntegerField(choices=ARENA_RANKS, db_index=True)  # rating_id
+    rank = models.IntegerField(choices=ARENA_RANKS)  # rating_id
     def_1 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="first_def_monster",
-                              null=True, default=None, db_index=True)  # defense_unit_list: unit_id & pos_id
+                              null=True, default=None)  # defense_unit_list: unit_id & pos_id
     def_2 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                              related_name="second_def_monster", null=True, default=None, db_index=True)
+                              related_name="second_def_monster", null=True, default=None)
     def_3 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                              related_name="third_def_monster", null=True, default=None, db_index=True)
+                              related_name="third_def_monster", null=True, default=None)
     def_4 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                              related_name="fourth_def_monster", null=True, default=None, db_index=True)
+                              related_name="fourth_def_monster", null=True, default=None)
 
     def __str__(self):
         return str(self.wizard) + ': ' + str(self.get_rank_display()) + ' (W' + str(self.wins) + '/' + str(self.loses) + 'L)'
@@ -1190,12 +1190,12 @@ class Arena(models.Model):
 
 class HomunculusSkill(models.Model):
     id = models.IntegerField(
-        primary_key=True, unique=True, db_index=True)  # id
-    name = models.CharField(max_length=50, db_index=True)  # name
+        primary_key=True, unique=True)  # id
+    name = models.CharField(max_length=50)  # name
     description = models.CharField(
-        max_length=512, db_index=True)  # description
+        max_length=512)  # description
     depth = models.SmallIntegerField(db_index=True)  # depth
-    letter = models.CharField(max_length=1, null=True, db_index=True)  # letter
+    letter = models.CharField(max_length=1, null=True)  # letter
 
     def __str__(self):
         return self.name + ' [Path: ' + self.letter + ']' + ' [Depth: ' + str(self.depth) + ']'
@@ -1206,17 +1206,17 @@ class HomunculusSkill(models.Model):
 
 class HomunculusBuild(models.Model):
     homunculus = models.ForeignKey(
-        MonsterBase, on_delete=models.CASCADE, db_index=True)
+        MonsterBase, on_delete=models.CASCADE)
     depth_1 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE,
-                                related_name="depth_1", null=True, default=None, db_index=True)
+                                related_name="depth_1", null=True, default=None)
     depth_2 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE,
-                                related_name="depth_2", null=True, default=None, db_index=True)
+                                related_name="depth_2", null=True, default=None)
     depth_3 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE,
-                                related_name="depth_3", null=True, default=None, db_index=True)
+                                related_name="depth_3", null=True, default=None)
     depth_4 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE,
-                                related_name="depth_4", null=True, default=None, db_index=True)
+                                related_name="depth_4", null=True, default=None)
     depth_5 = models.ForeignKey(HomunculusSkill, on_delete=models.CASCADE,
-                                related_name="depth_5", null=True, default=None, db_index=True)
+                                related_name="depth_5", null=True, default=None)
 
     def __str__(self):
         return '-'.join([self.depth_1.letter, self.depth_2.letter, self.depth_3.letter, self.depth_4.letter, self.depth_5.letter])
@@ -1231,11 +1231,11 @@ class HomunculusBuild(models.Model):
 class WizardHomunculus(models.Model):
     # homunculus_skill_list[el].unit_id
     homunculus = models.ForeignKey(
-        Monster, on_delete=models.CASCADE, db_index=True)
+        Monster, on_delete=models.CASCADE)
     # homunculus_skill_list[el].unit_id
-    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE, db_index=True)
+    wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE)
     build = models.ForeignKey(
-        HomunculusBuild, on_delete=models.CASCADE, null=True, db_index=True)
+        HomunculusBuild, on_delete=models.CASCADE, null=True)
 
     @classmethod
     def get_build_display(cls, id):
@@ -1269,18 +1269,18 @@ class DungeonRun(models.Model):
 
     DUNGEON_TYPES = DUNGEON_RUNES_TYPES + DUNGEON_ESSENCES_TYPES
 
-    id = models.BigAutoField(primary_key=True, unique=True, db_index=True)
+    id = models.BigAutoField(primary_key=True, unique=True)
     # wizard_id, response; if not exists then wizard_info in request
     wizard = models.ForeignKey(
-        Wizard, null=True, on_delete=models.SET_NULL, db_index=True, blank=True)
+        Wizard, null=True, on_delete=models.SET_NULL, blank=True)
     dungeon = models.IntegerField(
-        choices=DUNGEON_TYPES, db_index=True)  # dungeon_id, request
+        choices=DUNGEON_TYPES)  # dungeon_id, request
     stage = models.IntegerField()  # stage_id, request
     win = models.BooleanField()  # win_lose, request & response
     # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
-    clear_time = models.DurationField(null=True, blank=True, db_index=True)
+    clear_time = models.DurationField(null=True, blank=True)
     monsters = models.ManyToManyField(
-        Monster, db_index=True, related_name='dungeon_monsters')  # unit_list, response
+        Monster, related_name='dungeon_monsters')  # unit_list, response
     date = models.DateTimeField(db_index=True)  # tvalue
 
     def __str__(self):
@@ -1356,19 +1356,15 @@ class RiftDungeonRun(models.Model):
 
     # BattleRiftDungeonStart, response, battle_key
     battle_key = models.BigIntegerField(
-        primary_key=True, unique=True, db_index=True)
+        primary_key=True, unique=True)
     # BattleRiftDungeonStart response, wizard_info, wizard_id; if not exists then wizard_info in request
     wizard = models.ForeignKey(
-        Wizard, null=True, on_delete=models.SET_NULL, db_index=True)
+        Wizard, null=True, on_delete=models.SET_NULL)
     # BattleRiftDungeonStart,  request, dungeon_id
-    dungeon = models.IntegerField(choices=DUNGEON_TYPES, db_index=True)
-    # BattleRiftDungeonResult, request, battle_result (1 - win, 2 - lost)
-    win = models.BooleanField(null=True, blank=True)
-    # BattleRiftDungeonResult, request, clear_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
-    clear_time = models.DurationField(null=True, blank=True, db_index=True)
+    dungeon = models.IntegerField(choices=DUNGEON_TYPES)
     # BattleRiftDungeonResult, response, rift_dungeon_box_id (or by calculating damage)
     clear_rating = models.IntegerField(
-        choices=CLEAR_RATINGS, null=True, blank=True, db_index=True)
+        choices=CLEAR_RATINGS, null=True, blank=True)
     # BattleRiftDungeonResult, request, round_list[0][1]
     dmg_phase_1 = models.IntegerField(default=0)
     # BattleRiftDungeonResult, request, round_list[1][1]
@@ -1377,26 +1373,26 @@ class RiftDungeonRun(models.Model):
     dmg_phase_2 = models.IntegerField(default=0)
     dmg_total = models.IntegerField(db_index=True)  # overrided save function
     # BattleRiftDungeonStart, response, tvalue
-    date = models.DateTimeField(null=True, blank=True, db_index=True)
+    date = models.DateTimeField(null=True, blank=True)
 
     monster_1 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_fl_1",
-                                  null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
+                                  null=True, default=None)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
     monster_2 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_fl_2",
-                                  null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
+                                  null=True, default=None)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
     monster_3 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_fl_3",
-                                  null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
+                                  null=True, default=None)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
     monster_4 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_fl_4",
-                                  null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
+                                  null=True, default=None)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
     monster_5 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_bl_1",
-                                  null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
+                                  null=True, default=None)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
     monster_6 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_bl_2",
-                                  null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
+                                  null=True, default=None)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
     monster_7 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_bl_3",
-                                  null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
+                                  null=True, default=None)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
     monster_8 = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_bl_4",
-                                  null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
+                                  null=True, default=None)  # BattleRiftDungeonStart, request, unit_id_list, slot_index
     leader = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="rift_monster_leader",
-                               null=True, default=None, db_index=True)  # BattleRiftDungeonStart, request, leader_index
+                               null=True, default=None)  # BattleRiftDungeonStart, request, leader_index
 
     # override save function, to calculate total dmg automatically
     def save(self, *args, **kwargs):
@@ -1430,47 +1426,62 @@ class RiftDungeonRun(models.Model):
 
 class RaidDungeonRun(models.Model):
     battle_key = models.BigAutoField(
-        primary_key=True, unique=True, db_index=True)
+        primary_key=True, unique=True)
     # wizard_id, response; if not exists then wizard_info in request
     wizard = models.ForeignKey(
-        Wizard, null=True, on_delete=models.SET_NULL, db_index=True, blank=True)
+        Wizard, null=True, on_delete=models.SET_NULL, blank=True)
     stage = models.IntegerField()  # stage_id, request
     # win_lose, request & response
-    win = models.BooleanField(null=True, blank=True)
+    win = models.BooleanField(null=True, blank=True, default=False)
     # clear_time, current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
-    clear_time = models.DurationField(null=True, blank=True, db_index=True)
-    date = models.DateTimeField(null=True, blank=True, db_index=True)  # tvalue
+    clear_time = models.DurationField(null=True, blank=True)
+    date = models.DateTimeField(null=True, blank=True)  # tvalue
 
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
     monster_1 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                                  related_name="raid_monster_fl_1", null=True, default=None, db_index=True)
+                                  related_name="raid_monster_fl_1", null=True, default=None)
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
     monster_2 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                                  related_name="raid_monster_fl_2", null=True, default=None, db_index=True)
+                                  related_name="raid_monster_fl_2", null=True, default=None)
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
     monster_3 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                                  related_name="raid_monster_fl_3", null=True, default=None, db_index=True)
+                                  related_name="raid_monster_fl_3", null=True, default=None)
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
     monster_4 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                                  related_name="raid_monster_fl_4", null=True, default=None, db_index=True)
+                                  related_name="raid_monster_fl_4", null=True, default=None)
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
     monster_5 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                                  related_name="raid_monster_bl_1", null=True, default=None, db_index=True)
+                                  related_name="raid_monster_bl_1", null=True, default=None)
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
     monster_6 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                                  related_name="raid_monster_bl_2", null=True, default=None, db_index=True)
+                                  related_name="raid_monster_bl_2", null=True, default=None)
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
     monster_7 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                                  related_name="raid_monster_bl_3", null=True, default=None, db_index=True)
+                                  related_name="raid_monster_bl_3", null=True, default=None)
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, index & unit_info
     monster_8 = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                                  related_name="raid_monster_bl_4", null=True, default=None, db_index=True)
+                                  related_name="raid_monster_bl_4", null=True, default=None)
     # BattleRiftOfWorldsRaidStart, response, battle_info, user_list, <wizard_id>, deck_list, leader & unit_info
     leader = models.ForeignKey(Monster, on_delete=models.CASCADE,
-                               related_name="raid_monster_leader", null=True, default=None, db_index=True)
+                               related_name="raid_monster_leader", null=True, default=None)
 
     def __str__(self):
         return 'Rift of Worlds B' + str(self.stage) + ' (' + str(self.clear_time) + ')'
+
+    @classmethod
+    def get_filter_fields(cls):
+        filters = {}
+        # multi select
+        base_monsters = [{'id': i['id'], 'name': i['name']}
+                         for i in MonsterBase.objects.filter(awaken__in=[1, 2]).values('id', 'name')]
+        filters['monsters'] = base_monsters
+        filters['leader'] = base_monsters
+
+        # slider min-max
+        filters['ratio'] = [0, 100]
+        filters['win'] = [0, 0]
+
+        return filters
 
     class Meta:
         ordering = ['-stage', '-clear_time', '-win']
@@ -1480,12 +1491,12 @@ class SiegeRecord(models.Model):
     # id - response; defense_deck_list; deck_id
     # response; wizard_info_list, wizard_id
     wizard = models.ForeignKey(
-        Wizard, on_delete=models.SET_NULL, db_index=True, null=True, blank=True)
+        Wizard, on_delete=models.SET_NULL, null=True, blank=True)
     # response; defense_unit_list; unit_info; unit_id;
     monsters = models.ManyToManyField(
-        Monster, related_name="siege_defense_monsters", db_index=True)
+        Monster, related_name="siege_defense_monsters")
     leader = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name="siege_defense_leader",
-                               null=True, blank=True, db_index=True)  # response; defense_unit_list; pos_id = 1;
+                               null=True, blank=True)  # response; defense_unit_list; pos_id = 1;
     win = models.IntegerField()  # response; defense_deck_list; win_count
     lose = models.IntegerField()  # response; defense_deck_list; lose_count
     # response; defense_deck_list; winning_rate
@@ -1547,15 +1558,15 @@ class DimensionHoleRun(models.Model):
     # id - request; battle_key
     # wizard_info.wizard_id, response; if not exists then whole wizard_info in response
     wizard = models.ForeignKey(
-        Wizard, null=True, on_delete=models.SET_NULL, db_index=True)
+        Wizard, null=True, on_delete=models.SET_NULL)
     dungeon = models.IntegerField(
-        choices=DIM_HOLE_TYPES, db_index=True)  # dungeon_id, request
+        choices=DIM_HOLE_TYPES)  # dungeon_id, request
     stage = models.IntegerField()  # difficulty, response
     win = models.BooleanField()  # win_lose, response
     practice = models.BooleanField()  # practice_mode, response
     # response; clear_time.current_time -> i.e. 85033 -> 1:25,033 (min:sec,milisec)
-    clear_time = models.DurationField(null=True, blank=True, db_index=True)
-    monsters = models.ManyToManyField(Monster, db_index=True, related_name="dimhole_monsters",
+    clear_time = models.DurationField(null=True, blank=True)
+    monsters = models.ManyToManyField(Monster, related_name="dimhole_monsters",
                                       related_query_name="dimhole_monsters")  # unit_id_list; request
     date = models.DateTimeField(db_index=True)  # tvalue; response
 

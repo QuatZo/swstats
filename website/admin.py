@@ -133,7 +133,7 @@ class DungeonRunAdmin(admin.ModelAdmin):
 
 
 class RiftDungeonRunAdmin(admin.ModelAdmin):
-    list_display = ('battle_key', 'wizard', 'dungeon', 'win', 'clear_time', 'clear_rating', 'get_front_line',
+    list_display = ('battle_key', 'wizard', 'dungeon', 'clear_rating', 'get_front_line',
                     'get_back_line', 'leader', 'dmg_phase_1', 'dmg_phase_glory', 'dmg_phase_2', 'dmg_total', 'date')
 
     def get_front_line(self, obj):
