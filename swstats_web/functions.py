@@ -729,11 +729,34 @@ def filter_rift_detail(filters):
     for key, val in filters:
         if key == 'leader':
             proper_filters[key + '__base_monster_id__in'] = val
-        if key in ['clear_rating']:
-            proper_filters[key + '__in'] = val
         elif key == 'dmg_total':
             proper_val = [float(v) for v in val]
             proper_val.sort()
             proper_filters[key + '__gte'] = proper_val[0]
             proper_filters[key + '__lte'] = proper_val[1]
     return proper_filters
+
+
+def get_rift_distribution(runs, parts):
+    """Return sets of damages in specific number of parts, to make Distribution chart."""
+    damages = [r for r in runs if r is not None]
+
+    if not len(damages):
+        return []
+
+    lowest = min(damages)
+    highest = max(damages)
+
+    delta = (highest - lowest) / (parts + 1)
+    delta = max(1, delta)
+    points = np.arange(lowest, highest + delta, delta)
+
+    distribution = np.histogram(damages, bins=points)[0].tolist()
+
+    points = [str(int((points[i] + points[i+1])/2))
+              for i in range(len(points) - 1)]
+
+    return [{
+        'name': p,
+        'count': d,
+    } for p, d in zip(points, distribution)]

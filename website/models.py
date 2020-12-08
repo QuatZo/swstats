@@ -146,7 +146,7 @@ class Wizard(models.Model):
 class RuneSet(models.Model):
     id = models.IntegerField(primary_key=True, unique=True)
     name = models.CharField(max_length=30)
-    amount = models.IntegerField(db_index=True)
+    amount = models.IntegerField()
 
     def __str__(self):
         return self.name
@@ -203,7 +203,7 @@ class Rune(models.Model):
     sell_value = models.IntegerField()  # sell_value
     primary = models.SmallIntegerField(
         choices=RUNE_EFFECTS)  # pri_eff[0]
-    primary_value = models.IntegerField(db_index=True)  # pri_eff[1]
+    primary_value = models.IntegerField()  # pri_eff[1]
     innate = models.SmallIntegerField(
         choices=RUNE_EFFECTS, blank=True, null=True)  # prefix_eff[0]
     innate_value = models.IntegerField(
@@ -242,10 +242,9 @@ class Rune(models.Model):
     efficiency_max = models.FloatField(
         validators=[MinValueValidator(0.00)])  # to calculate in views
     # occupied_type ( 1 - on monster, 2 - inventory, 0 - ? )
-    equipped = models.BooleanField(db_index=True)
-    equipped_rta = models.BooleanField(
-        db_index=True, blank=True, default=False)
-    locked = models.BooleanField(db_index=True)  # rune_lock_list
+    equipped = models.BooleanField()
+    equipped_rta = models.BooleanField(blank=True, default=False)
+    locked = models.BooleanField()  # rune_lock_list
 
     def get_image(self):
         return f'https://swstats.info/static/website/images/runes/{self.rune_set.name.lower()}.png'
@@ -561,7 +560,7 @@ class Artifact(models.Model):
         0), MaxValueValidator(level_max)])  # level
     primary = models.SmallIntegerField(
         choices=ARTIFACT_PRIMARY_EFFECTS)  # pri_effects[0][0]
-    primary_value = models.IntegerField(db_index=True)  # pri_effects[0][1]
+    primary_value = models.IntegerField()  # pri_effects[0][1]
     # sec_effects ==> [0] - Type; [2] - Roll
     substats = ArrayField(models.IntegerField(
         null=True, blank=True))
@@ -576,10 +575,9 @@ class Artifact(models.Model):
     efficiency_max = models.FloatField(
         validators=[MinValueValidator(0.00)])  # to calculate in views
     # occupied_id (0 - inventory, else Monster ID)
-    equipped = models.BooleanField(db_index=True)
-    equipped_rta = models.BooleanField(
-        db_index=True, blank=True, default=False)
-    locked = models.BooleanField(db_index=True)  # locked
+    equipped = models.BooleanField()
+    equipped_rta = models.BooleanField(blank=True, default=False)
+    locked = models.BooleanField()  # locked
 
     def get_slot_type(self):
         if self.rtype == 1:
@@ -814,7 +812,7 @@ class MonsterBase(models.Model):
     archetype = models.SmallIntegerField(
         choices=MONSTER_TYPES)  # last char from unit_master_id
     # table with max skillsups ( we don't care about skills itself, it's in SWARFARM already )
-    max_skills = ArrayField(models.IntegerField(db_index=True))
+    max_skills = ArrayField(models.IntegerField())
     awaken = models.SmallIntegerField(
         choices=MONSTER_AWAKEN)  # to calculate
     # best from Recommendation command, needs to delete every scam
@@ -928,19 +926,19 @@ class Monster(models.Model):
         Wizard, on_delete=models.CASCADE)  # wizard_id
     base_monster = models.ForeignKey(
         MonsterBase, on_delete=models.PROTECT)  # unit_master_id
-    level = models.SmallIntegerField(db_index=True)  # unit_level
-    stars = models.SmallIntegerField(db_index=True)  # class
+    level = models.SmallIntegerField()  # unit_level
+    stars = models.SmallIntegerField()  # class
 
     ############################################
     # all calculated during data upload, since we don't care about base values
-    hp = models.IntegerField(db_index=True)  # con - CON x 15 means base HP
-    attack = models.IntegerField(db_index=True)  # atk
-    defense = models.IntegerField(db_index=True)  # def
-    speed = models.IntegerField(db_index=True)  # spd
-    res = models.IntegerField(db_index=True)  # resist
-    acc = models.IntegerField(db_index=True)  # accuracy
-    crit_rate = models.IntegerField(db_index=True)  # critical_rate
-    crit_dmg = models.IntegerField(db_index=True)  # critical_damage
+    hp = models.IntegerField()  # con - CON x 15 means base HP
+    attack = models.IntegerField()  # atk
+    defense = models.IntegerField()  # def
+    speed = models.IntegerField()  # spd
+    res = models.IntegerField()  # resist
+    acc = models.IntegerField()  # accuracy
+    crit_rate = models.IntegerField()  # critical_rate
+    crit_dmg = models.IntegerField()  # critical_damage
     avg_eff = models.FloatField(validators=[MinValueValidator(
         0.00)])  # sum(rune_eff) / len(runes)
     avg_eff_artifacts = models.FloatField(validators=[MinValueValidator(
@@ -953,7 +951,7 @@ class Monster(models.Model):
     ############################################
 
     # skills[i][1] - only skill levels, we don't care about skills itself, it's in SWARFARM already
-    skills = ArrayField(models.IntegerField(db_index=True))
+    skills = ArrayField(models.IntegerField())
     runes = models.ManyToManyField(Rune, related_name='equipped_runes',
                                    related_query_name='equipped_runes', blank=True)  # runes
     runes_rta = models.ManyToManyField(Rune, related_name='equipped_runes_rta',
@@ -962,7 +960,7 @@ class Monster(models.Model):
                                        related_query_name='equipped_artifacts', blank=True)  # artifacts
     artifacts_rta = models.ManyToManyField(Artifact, related_name='equipped_artifacts_rta',
                                            related_query_name='equipped_artifacts_rta', blank=True)  # artifacts
-    created = models.DateTimeField(db_index=True)  # create_time
+    created = models.DateTimeField()  # create_time
     source = models.ForeignKey(
         MonsterSource, on_delete=models.PROTECT)  # source
     transmog = models.BooleanField()  # costume_master_id
@@ -1194,7 +1192,7 @@ class HomunculusSkill(models.Model):
     name = models.CharField(max_length=50)  # name
     description = models.CharField(
         max_length=512)  # description
-    depth = models.SmallIntegerField(db_index=True)  # depth
+    depth = models.SmallIntegerField()  # depth
     letter = models.CharField(max_length=1, null=True)  # letter
 
     def __str__(self):
@@ -1281,7 +1279,7 @@ class DungeonRun(models.Model):
     clear_time = models.DurationField(null=True, blank=True)
     monsters = models.ManyToManyField(
         Monster, related_name='dungeon_monsters')  # unit_list, response
-    date = models.DateTimeField(db_index=True)  # tvalue
+    date = models.DateTimeField()  # tvalue
 
     def __str__(self):
         return str(self.get_dungeon_display()) + ' B' + str(self.stage) + ' (' + str(self.clear_time) + ')'
@@ -1371,7 +1369,7 @@ class RiftDungeonRun(models.Model):
     dmg_phase_glory = models.IntegerField(default=0)
     # BattleRiftDungeonResult, request, round_list[2][1]
     dmg_phase_2 = models.IntegerField(default=0)
-    dmg_total = models.IntegerField(db_index=True)  # overrided save function
+    dmg_total = models.IntegerField()  # overrided save function
     # BattleRiftDungeonStart, response, tvalue
     date = models.DateTimeField(null=True, blank=True)
 
@@ -1406,20 +1404,35 @@ class RiftDungeonRun(models.Model):
         ordering = ['dungeon', '-clear_rating', '-dmg_total']
 
     @classmethod
+    def get_filter_fields(cls):
+        filters = {}
+        # multi select
+        base_monsters = [{'id': i['id'], 'name': i['name']}
+                         for i in MonsterBase.objects.filter(awaken__in=[1, 2]).values('id', 'name')]
+        filters['monsters'] = base_monsters
+        filters['leader'] = base_monsters
+
+        # slider min-max
+        filters['dmg_total'] = [0, RiftDungeonRun.objects.filter(
+            dmg_total__isnull=False).order_by('-dmg_total').first().dmg_total]
+
+        return filters
+
+    @ classmethod
     def get_dungeon_name(cls, id):
         return dict(cls.DUNGEON_TYPES)[id]
 
-    @classmethod
+    @ classmethod
     def get_dungeon_id(cls, name):
         for key, dungeon in dict(cls.DUNGEON_TYPES).items():
             if dungeon == name:
                 return key
 
-    @classmethod
+    @ classmethod
     def get_all_dungeons(cls):
         return dict(cls.DUNGEON_TYPES).values()
 
-    @classmethod
+    @ classmethod
     def get_rating_name(cls, id):
         return dict(cls.CLEAR_RATINGS)[id]
 
@@ -1500,7 +1513,7 @@ class SiegeRecord(models.Model):
     win = models.IntegerField()  # response; defense_deck_list; win_count
     lose = models.IntegerField()  # response; defense_deck_list; lose_count
     # response; defense_deck_list; winning_rate
-    ratio = models.FloatField(db_index=True)
+    ratio = models.FloatField()
     last_update = models.DateTimeField()  # response; tvalue
     full = models.BooleanField(default=True)  # override save method
 
@@ -1568,7 +1581,7 @@ class DimensionHoleRun(models.Model):
     clear_time = models.DurationField(null=True, blank=True)
     monsters = models.ManyToManyField(Monster, related_name="dimhole_monsters",
                                       related_query_name="dimhole_monsters")  # unit_id_list; request
-    date = models.DateTimeField(db_index=True)  # tvalue; response
+    date = models.DateTimeField()  # tvalue; response
 
     def __str__(self):
         return str(self.dungeon) + ' B' + str(self.stage) + ' [' + str(self.clear_time) + ']'

@@ -2,7 +2,7 @@ from django.db.models import Count, Q, F, Avg
 
 from website.celery import app as celery_app
 from website.tasks import handle_profile_upload_task
-from website.models import Rune, RuneSet, Monster, MonsterBase, Artifact, SiegeRecord, Guild, DungeonRun, DimensionHoleRun
+from website.models import Rune, RuneSet, Monster, MonsterBase, Artifact, SiegeRecord, Guild, DungeonRun, DimensionHoleRun, RaidDungeonRun, RiftDungeonRun
 from .functions import *
 from .serializers import MonsterImageSerializer
 
@@ -685,6 +685,120 @@ def fetch_raid_detail_data(self, filters, stage):
     content = {
         'chart_data': {
             'raid_distribution': get_cairos_distribution(dungruns.values('win', 'clear_time'), 50),
+        },
+        'filters': form_filters,
+        'table': records,
+    }
+
+    return content
+
+
+@celery_app.task(name='fetch.rift-detail', bind=True)
+def fetch_rift_detail_data(self, filters, dungeon):
+    dungruns = RiftDungeonRun.objects.all().select_related(
+        'monster_1',
+        'monster_2',
+        'monster_3',
+        'monster_4',
+        'monster_5',
+        'monster_6',
+        'monster_7',
+        'monster_8',
+        'leader',
+        'monster_1__base_monster',
+        'monster_2__base_monster',
+        'monster_3__base_monster',
+        'monster_4__base_monster',
+        'monster_5__base_monster',
+        'monster_6__base_monster',
+        'monster_7__base_monster',
+        'monster_8__base_monster',
+        'leader__base_monster',
+    ).only(
+        'clear_rating', 'dmg_total',
+        'monster_1__id',
+        'monster_2__id',
+        'monster_3__id',
+        'monster_4__id',
+        'monster_5__id',
+        'monster_6__id',
+        'monster_7__id',
+        'monster_8__id',
+        'monster_1__base_monster__id',
+        'monster_2__base_monster__id',
+        'monster_3__base_monster__id',
+        'monster_4__base_monster__id',
+        'monster_5__base_monster__id',
+        'monster_6__base_monster__id',
+        'monster_7__base_monster__id',
+        'monster_8__base_monster__id',
+        'monster_1__base_monster__name',
+        'monster_2__base_monster__name',
+        'monster_3__base_monster__name',
+        'monster_4__base_monster__name',
+        'monster_5__base_monster__name',
+        'monster_6__base_monster__name',
+        'monster_7__base_monster__name',
+        'monster_8__base_monster__name',
+        'leader__id',
+        'leader__base_monster__id',
+        'leader__base_monster__name',
+    ).filter(dungeon=dungeon, clear_rating=12).order_by('monster_1_id', 'monster_2_id', 'monster_3_id', 'monster_4_id', 'monster_5_id', 'monster_6_id', 'monster_7_id', 'monster_8_id', 'leader_id', )
+
+    # filters here
+    proper_filters = filter_rift_detail(filters)
+    dungruns = dungruns.filter(**proper_filters)
+    monsters_filter = [val for key, val in filters if key == 'monsters']
+    if monsters_filter:
+        mons_filter = Q()
+        for m_f in monsters_filter[0]:
+            m_filter = Q()
+            for i in range(1, 9):
+                d = {f'monster_{i}__base_monster_id': m_f}
+                m_filter |= Q(**d)
+            mons_filter &= m_filter
+        dungruns = dungruns.filter(mons_filter)
+
+    # prepare filters to show in Form
+    form_filters = RiftDungeonRun.get_filter_fields()
+
+    if not dungruns.exists():
+        return {
+            'chart_data': {
+                'rift_distribution': {},
+            },
+            'filters': form_filters,
+            'table': [],
+        }
+
+    dungruns_l = list(dungruns)
+
+    records = []
+    teams = []
+    max_dmg = max([d.dmg_total for d in dungruns if d.dmg_total])
+    for team, g in itertools.groupby(dungruns_l, lambda record: (record.monster_1, record.monster_2, record.monster_3, record.monster_4, record.monster_5, record.monster_6, record.monster_7, record.monster_8, record.leader)):
+        if not len([1 for m in team if m is not None]):
+            continue  # empty records
+        if team in teams:
+            continue
+        g_t = list(g)
+
+        count = len(g_t)
+        avg_dmg = round(sum([g_.dmg_total for g_ in g_t]) / count)
+
+        teams.append(team)
+        records.append({
+            'frontline': [MonsterImageSerializer(m).data if m else None for m in team[:4]],
+            'backline': [MonsterImageSerializer(m).data if m else None for m in team[4:-1]],
+            'leader': MonsterImageSerializer(team[-1]).data if team[-1] else None,
+            'count': count,
+            'avg_dmg': avg_dmg,
+            'points': round(math.exp(avg_dmg / -max_dmg), 4),
+        })
+
+    content = {
+        'chart_data': {
+            'rift_distribution': get_rift_distribution(dungruns.values_list('dmg_total', flat=True), 25),
         },
         'filters': form_filters,
         'table': records,
