@@ -1180,6 +1180,11 @@ class DimensionHoleRun(models.Model):
         (3201, 'Werewolf (Lumel)'),
         (3202, 'Martial Cat (Lumel)'),
         (3301, 'Predator (Lumel)'),
+
+        (4101, 'Khalderun'),
+        (4201, 'Howl (Khalderun)'),
+        (4202, 'Grim Reaper (Khalderun)'),
+        (4301, 'Predator (Khalderun)'),
     )
 
     # id - request; battle_key
