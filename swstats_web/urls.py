@@ -34,6 +34,8 @@ urlpatterns = [
     path('artifacts/table/', views.ArtifactsTableView.as_view(),
          name='web_artifacts_table'),
 
+    path('reports-old/', views.ReportsOld.as_view(), name='web_reports_old'),
+
     path('monster/<int:mon_id>/', views.MonsterView.as_view(), name='web_monster'),
 
     path('status/<str:task_id>/', views.StatusView.as_view(), name='web_status'),

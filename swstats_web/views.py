@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.conf import settings
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,7 +16,8 @@ from .serializers import MonsterSerializer, RuneSerializer, ArtifactSerializer
 
 import json
 import itertools
-from datetime import timedelta
+from datetime import timedelta, datetime
+import os
 # Create your views here.
 
 
@@ -526,6 +528,33 @@ class DimholeDetailView(APIView):
             return Response({'status': task.state, 'task_id': task.id})
         except ValueError:
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class ReportsOld(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        images = list()
+
+        app_static_dir = os.path.join(
+            settings.BASE_DIR, 'website', 'static', 'website', 'reports')
+
+        for filename in os.listdir(app_static_dir):
+            if filename.endswith(".png"):
+                images.append({
+                    'monster': ' '.join([f.capitalize() for f in filename[:filename.index('_infographic')].split('_')]),
+                    'filename': filename,
+                    'date': os.path.getmtime(app_static_dir + '/' + filename),
+                    'cols': 2 if '&' in filename else 1,
+                })
+
+        # reverse=True -> descending
+        images = sorted(images, key=lambda image: image['date'], reverse=True)
+        for i in range(len(images)):
+            images[i]['date'] = datetime.strftime(
+                datetime.fromtimestamp(images[i]['date']), "%Y-%m-%d")
+
+        return Response(images)
 
 
 class MonsterView(APIView):
