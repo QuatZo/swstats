@@ -822,7 +822,10 @@ def generate_monster_report(self, monster_id):
     )
 
     # base monster info, to serialize with MonsterBaseSerializer
-    base_monster = MonsterBase.objects.get(id=monster_id)
+    try:
+        base_monster = MonsterBase.objects.get(id=monster_id)
+    except MonsterBase.DoesNotExist:
+        return None
     monster = MonsterBaseSerializer(base_monster).data
 
     monster_hoh = MonsterHoh.objects.filter(
@@ -910,6 +913,12 @@ def generate_monster_report(self, monster_id):
             if full != 6:
                 data['sets'] += ' + Broken'
 
+            if 'artifact_attribute' not in data:
+                data['artifact_attribute'] = None
+            if 'artifact_archetype' not in data:
+                data['artifact_archetype'] = None
+            if 'artifact_substats' not in data:
+                data['artifact_substats'] = []
             proper_records.append(data)
 
     df = pd.DataFrame(proper_records)
@@ -946,6 +955,7 @@ def generate_monster_report(self, monster_id):
             'monster': monster,
             'family': MonsterBaseSerializer(family_monsters, many=True).data,
             'table': [],
+            'desc': {},
         }
 
         return content
@@ -1019,11 +1029,19 @@ def generate_monster_report(self, monster_id):
         'text': f"{chart_data['vc_sets'][i]['name']} ({round(chart_data['vc_sets'][i]['count'] / df.shape[0] * 100)}%)" if len(chart_data['vc_sets']) > i else 'No information given'
     } for i in range(3)]
 
+    df_stats = df[stats].describe().drop(['count', ], axis=0).T
+    df_stats['mean'] = df_stats['mean'].round(2)
+    df_stats['std'] = df_stats['std'].round(2)
+    df_stats = df_stats.T
+    df_stats.columns = ['HP', 'Attack', 'Defense',
+                        'Speed', 'Resistance', 'Accuracy', 'Critical Rate', 'Critical Damage', 'Average Efficiency', 'Effective HP']
+
     content = {
         'chart_data': chart_data,
         'monster': monster,
         'family': MonsterBaseSerializer(family_monsters, many=True).data,
         'table': df.fillna('').to_dict(orient='records'),
+        'desc': df_stats.fillna('-').to_dict('index'),
     }
 
     return content

@@ -110,7 +110,7 @@ class MonsterBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = MonsterBase
         fields = [
-            'family', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken', 'image',
+            'id', 'family', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken', 'image',
         ]
 
     def get_image(self, obj):
