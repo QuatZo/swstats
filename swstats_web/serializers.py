@@ -101,6 +101,7 @@ class ArtifactSerializer(serializers.ModelSerializer):
 
 
 class MonsterBaseSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
     family = serializers.StringRelatedField()
     attribute = serializers.CharField(source='get_attribute_display')
     archetype = serializers.CharField(source='get_archetype_display')
@@ -109,8 +110,11 @@ class MonsterBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = MonsterBase
         fields = [
-            'family', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken',
+            'family', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken', 'image',
         ]
+
+    def get_image(self, obj):
+        return obj.get_image()
 
 
 class MonsterSerializer(serializers.ModelSerializer):

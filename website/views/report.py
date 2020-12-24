@@ -479,7 +479,6 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     #################################################
 
     plots.append(eff_hp_plot)
-    plots.append(eff_hp_def_plot)
     plots.append(stars_plot)
     plots.append(equipped_runes_plot)
     plots.append(skillups_plot)
@@ -494,6 +493,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
         context = {}
 
         if request.is_ajax():
+            start = time.time()
             data = request.data
             base_monster = MonsterBase.objects.get(id=data)
 
@@ -518,6 +518,7 @@ class ReportGeneratorViewSet(viewsets.ViewSet):
             html = render_to_string(
                 'website/report/report_generate.html', context)
 
+            print(round(time.time() - start, 4))
             return HttpResponse(html)
 
 

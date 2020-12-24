@@ -3,6 +3,7 @@ import numpy as np
 import datetime
 import math
 import time
+import itertools
 from datetime import timedelta
 
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
@@ -752,6 +753,30 @@ def get_rift_distribution(runs, parts):
     points = np.arange(lowest, highest + delta, delta)
 
     distribution = np.histogram(damages, bins=points)[0].tolist()
+
+    points = [str(int((points[i] + points[i+1])/2))
+              for i in range(len(points) - 1)]
+
+    return [{
+        'name': p,
+        'count': d,
+    } for p, d in zip(points, distribution)]
+
+
+def get_series_distribution(series, parts):
+    """Return sets of series values in specific number of parts, to make Distribution chart."""
+    if not len(series):
+        return []
+    hist = series.values
+
+    minimum = min(hist)
+    maximum = max(hist)
+
+    delta = (maximum - minimum) / (parts + 1)
+    delta = max(1, delta)
+    points = np.arange(minimum, maximum + delta, delta)
+
+    distribution = np.histogram(hist, bins=points)[0].tolist()
 
     points = [str(int((points[i] + points[i+1])/2))
               for i in range(len(points) - 1)]

@@ -1,204 +1,128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    {% load static %}
-    {% load other %}
+  {% load static %} {% load other %} {% with maintenance=False %}
+  <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-161013694-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-    {% with maintenance=False %}
-        <head>
-            <!-- Global site tag (gtag.js) - Google Analytics -->
-            <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161013694-1"></script>
-            <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
+      gtag("config", "UA-161013694-1");
+    </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
 
-                gtag('config', 'UA-161013694-1');
-            </script>
-            <!-- Global site tag (gtag.js) - Google Analytics -->
+    <link
+      rel="icon"
+      href="{% static 'website/images/icons/runes_favicon.svg' %}"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'website/css/style.css' %}"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      defer
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+      charset="utf-8"
+    />
+    <meta name="title" content="Summoners War Statistics Web" />
+    <meta name="description" content="Big Data Analysis for Summoners War" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap"
+      rel="stylesheet"
+    />
+    {% block custom_script %} {% endblock %}
+    <title>{% block title %} Summoners War Statistics Web {% endblock%}</title>
+    <script src="{% static 'website/js/script.js' %}"></script>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+          >
+            <h1 class="h2">
+              {% block content_title %}Introduction{% endblock %}
+            </h1>
+          </div>
 
-            <link rel="icon" href="{% static 'website/images/icons/runes_favicon.svg' %}">
-            <link rel="stylesheet" type="text/css" href="{% static 'website/css/style.css' %}">
-            <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-            <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-            <script defer src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-            <script defer src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-            <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" charset="utf-8">
-            <meta name="title" content="Summoners War Statistics Web">
-            <meta name="description" content="Big Data Analysis for Summoners War">
-            <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
-            {% block custom_script %} {% endblock %}
-            <title>
-                {% block title %}
-                    Summoners War Statistics Web
-                {% endblock%}
-            </title>
-            <script src="{% static 'website/js/script.js' %}"></script>
-        </head>
-        <body>
-            <div class="container-fluid">
-                <div class="row">
-                    <nav class="sidebar toggled" id="sidebar-upper">
-                        <a class="navbar-brand col-sm-3 mr-0">
-                            <img src={% static 'website/images/icons/menu.svg' %} class="menu-img" id="sidebar-toggler" />
-                            <span class="text">SW Statistics Web</span>
-                        </a>
-                    </nav>
-                    <nav class="d-md-block sidebar toggled" id="sidebar-lower">
-                        <div class="sidebar-sticky">
-                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted" style="padding: 0 !important;">
-                                <span style='color: white;'>Data Logs</span>
-                            </h6>
-                            <ul class="nav flex-column flex-nowrap">
-                                <li class="nav-item {% if request.resolver_match.url_name == "home" %}active{% endif %}">
-                                    <a class="nav-link " href="{% url 'home' %}" >
-                                        <img src={% static 'website/images/icons/home.svg' %} class="menu-img" />
-                                        <span class="text">Homepage</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "upload" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'upload' %}" >
-                                        <img src={% static 'website/images/icons/upload.svg' %} class="menu-img" />
-                                        <span class="text">Rank & Compare Profile</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "runes" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'runes' %}" >
-                                            <img src={% static 'website/images/icons/runes.svg' %} class="menu-img" />
-                                        <span class="text">Runes</span>
-                                    </a>
-                                </li>
-                                
-                                <li class="nav-item {% if request.resolver_match.url_name == "artifacts" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'artifacts' %}" >
-                                        <img src={% static 'website/images/icons/artifacts.svg' %} class="menu-img" />
-                                        <span class="text">Artifacts</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "monsters" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'monsters' %}" >
-                                        <img src={% static 'website/images/icons/monsters.svg' %} class="menu-img" />
-                                        <span class="text">Monsters</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "dungeons" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'dungeons' %}" >
-                                        <img src={% static 'website/images/icons/dungeons.svg' %} class="menu-img" />
-                                        <span class="text">Dungeons</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "siege" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'siege' %}" >
-                                        <img src={% static 'website/images/icons/siege.svg' %} class="menu-img" />
-                                        <span class="text">Siege</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "dimhole" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'dimhole' %}" > <!-- placeholder -->
-                                    <img src={% static 'website/images/icons/dimhole.svg' %} class="menu-img" />
-                                        <span class="text">Dimension Hole</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "reports" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'reports' %}" >
-                                        <img src={% static 'website/images/icons/reports.svg' %} class="menu-img" />
-                                        <span class="text">Reports</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "contribute" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'contribute' %}" >
-                                        <img src={% static 'website/images/icons/contribute.svg' %} class="menu-img" />
-                                        <span class="text">Contribute</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "credits" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'credits' %}" >
-                                        <img src={% static 'website/images/icons/credits.svg' %} class="menu-img" />
-                                        <span class="text">Credits</span>
-                                    </a>
-                                </li>
-                            </ul>
-                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted" style="padding: 0 !important;">
-                                <span style='color: white;'>Personal</span>
-                            </h6>
-                            <ul class="nav flex-column mb-2">
-                                <li class="nav-item {% if request.resolver_match.url_name == "desktop" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'desktop' %}">
-                                    <img src="{% static 'website/images/icons/desktop.svg' %}" class="menu-img" />
-                                        <span class="text">Profile</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "building" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'building' %}">
-                                    <img src="{% static 'website/images/icons/building.svg' %}" class="menu-img" />
-                                        <span class="text">Towers Calculator</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item {% if request.resolver_match.url_name == "dimholecalc" %}active{% endif %}">
-                                    <a class="nav-link" href="{% url 'dimholecalc' %}">
-                                    <img src="{% static 'website/images/icons/dimholecalc.svg' %}" class="menu-img" />
-                                        <span class="text">Dim Hole Calculator</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </nav>
-
-                    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                            <h1 class="h2">{% block content_title %}Introduction{% endblock %}</h1>
-                        </div>
-
-                        {% if maintenance %}
-                            <div class='card-custom disclaimer'>
-                                <div class='card-custom-header'>
-                                    Maintenance
-                                </div>
-                                <div class='card-custom-body'>
-                                    The website is under maintenance. We will be back as soon as possible!
-                                </div>
-                            </div>
-                        {% else %}
-                            {% block ajax_container %}
-                                <div id="content-ajax-container">
-                                    <span id='secs'>0</span>
-                                    <div class="loader">Loading...</div>
-                                </div>
-                            {% endblock %}
-                        {% endif %}
-                    </main>
-                </div>
+          {% if maintenance %}
+          <div class="card-custom disclaimer">
+            <div class="card-custom-header">Maintenance</div>
+            <div class="card-custom-body">
+              The website is under maintenance. We will be back as soon as
+              possible!
             </div>
-            {% if not maintenance %}
-                {% block jquery %}{% endblock %}
-            {% endif %}
-            <script>
-                jQuery.expr[':'].regex = function(elem, index, match) {
-                    var matchParams = match[3].split(','),
-                        validLabels = /^(data|css):/,
-                        attr = {
-                            method: matchParams[0].match(validLabels) ? 
-                                        matchParams[0].split(':')[0] : 'attr',
-                            property: matchParams.shift().replace(validLabels,'')
-                        },
-                        regexFlags = 'ig',
-                        regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
-                    return regex.test(jQuery(elem)[attr.method](attr.property));
-                }
+          </div>
+          {% else %} {% block ajax_container %}
+          <div id="content-ajax-container">
+            <span id="secs">0</span>
+            <div class="loader">Loading...</div>
+          </div>
+          {% endblock %} {% endif %}
+        </main>
+      </div>
+    </div>
+    {% if not maintenance %} {% block jquery %}{% endblock %} {% endif %}
+    <script>
+      jQuery.expr[":"].regex = function (elem, index, match) {
+        var matchParams = match[3].split(","),
+          validLabels = /^(data|css):/,
+          attr = {
+            method: matchParams[0].match(validLabels)
+              ? matchParams[0].split(":")[0]
+              : "attr",
+            property: matchParams.shift().replace(validLabels, ""),
+          },
+          regexFlags = "ig",
+          regex = new RegExp(
+            matchParams.join("").replace(/^\s+|\s+$/g, ""),
+            regexFlags
+          );
+        return regex.test(jQuery(elem)[attr.method](attr.property));
+      };
 
-                function changeView(view_id){
-                    $('div:regex(id, view-[0-9]$)').fadeOut('slow');
-                    $('button:regex(id, view-[0-9]-button)').removeClass('active');
+      function changeView(view_id) {
+        $("div:regex(id, view-[0-9]$)").fadeOut("slow");
+        $("button:regex(id, view-[0-9]-button)").removeClass("active");
 
-                    $('#view-' + (view_id + 1)).fadeIn('slow');
-                    $('#view-' + (view_id + 1) + '-button').addClass('active');
-                }
-                
-                function moveTo(url){
-                    window.location.href = url;
-                }
-            </script>
-        </body>
-    {% endwith %}
+        $("#view-" + (view_id + 1)).fadeIn("slow");
+        $("#view-" + (view_id + 1) + "-button").addClass("active");
+      }
+
+      function moveTo(url) {
+        window.location.href = url;
+      }
+    </script>
+  </body>
+  {% endwith %}
 </html>

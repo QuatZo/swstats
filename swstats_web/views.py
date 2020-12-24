@@ -18,6 +18,7 @@ import json
 import itertools
 from datetime import timedelta, datetime
 import os
+from operator import itemgetter
 # Create your views here.
 
 
@@ -555,6 +556,35 @@ class ReportsOld(APIView):
                 datetime.fromtimestamp(images[i]['date']), "%Y-%m-%d")
 
         return Response(images)
+
+
+class ReportsGenerateInit(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, format=None):
+        monsters = list()
+
+        mons = MonsterBase.objects.prefetch_related('monster_set').filter(~Q(archetype=5) & ~Q(awaken=0) & Q(monster__stars=6)).values(
+            'id', 'name').annotate(count=Count('monster__id'))  # archetype=5 -> Material Monsters, awaken=0 -> Unawakened, monster__stars=6 -> 6*
+        mons = sorted(mons, key=itemgetter('count'), reverse=True)
+        monsters = [{
+            'id': m['id'],
+            'name': f"{m['name']} ({m['count']})",
+        } for m in mons]
+
+        return Response(monsters)
+
+
+class ReportsGenerateMonster(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def get(self, request, monster_id=None, format=None):
+        if not monster_id:
+            return Response({'error', 'No Monster ID given.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        task = generate_monster_report.delay(monster_id)
+
+        return Response({'status': task.state, 'task_id': task.id})
 
 
 class MonsterView(APIView):

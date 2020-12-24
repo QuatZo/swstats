@@ -821,6 +821,23 @@ class MonsterBase(models.Model):
     recommendation_votes = models.IntegerField(
         blank=True, default=0)  # best from Recommendation command
 
+    def get_image(self):
+        filename = 'monster_'
+        monster_id = self.id
+        monster_name = self.name
+
+        if monster_id % 100 > 10:
+            if monster_id % 100 > 20:
+                filename += 'second'
+            filename += 'awakened_' + monster_name.lower().replace('(2a)', '').replace(' ', '')
+            if 'homunculus' in filename:
+                filename = filename.replace(
+                    '-', '_').replace('(', '_').replace(')', '')
+        else:
+            filename += monster_name.lower().replace(' (', '_').replace(')', '').replace(' ', '')
+
+        return 'https://swstats.info/static/website/images/monsters/' + filename + '.png'
+
     def __str__(self):
         return self.name
 
@@ -972,21 +989,7 @@ class Monster(models.Model):
         return self.skills == self.base_monster.max_skills
 
     def get_image(self):
-        filename = 'monster_'
-        monster_id = self.base_monster.id
-        monster_name = self.base_monster.name
-
-        if monster_id % 100 > 10:
-            if monster_id % 100 > 20:
-                filename += 'second'
-            filename += 'awakened_' + monster_name.lower().replace('(2a)', '').replace(' ', '')
-            if 'homunculus' in filename:
-                filename = filename.replace(
-                    '-', '_').replace('(', '_').replace(')', '')
-        else:
-            filename += monster_name.lower().replace(' (', '_').replace(')', '').replace(' ', '')
-
-        return 'https://swstats.info/static/website/images/monsters/' + filename + '.png'
+        return self.base_monster.get_image()
 
     def __str__(self):
         return str(self.base_monster) + ' (ID: ' + str(self.id) + ')'
