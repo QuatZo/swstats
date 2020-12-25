@@ -41,9 +41,6 @@ schema_view = get_schema_view(
 router = routers.DefaultRouter()
 router.register(r'upload', views.UploadViewSet, 'upload')
 router.register(r'command', views.CommandViewSet, 'command')
-router.register(r'desktopupload', views.DesktopUploadViewSet, 'desktopupload')
-router.register(r'reportgenerator',
-                views.ReportGeneratorViewSet, 'reportgenerator')
 
 # PUBLIC API
 router.register(r'monsters', views.MonsterViewSet, 'monsters')
@@ -73,7 +70,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("robots.txt", TemplateView.as_view(
         template_name="robots.txt", content_type="text/plain")),
-    url(r'^$', views.get_homepage, name='home'),
+    url(r'^$', RedirectView.as_view(url='https://web.swstats.info/'), name='home'),
 
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
 

@@ -153,10 +153,6 @@ class UploadViewSet(viewsets.ViewSet):
             elif request.data['command'] == 'VisitFriend':
                 handle_friend_upload_task.delay(request.data)
 
-            elif request.data['command'] == 'GetUnitRecommendPage_V2':
-                handle_monster_recommendation_upload_task.delay(
-                    request.data['response'], request.data['request'])
-
             elif request.data['command'] == 'BattleRiftOfWorldsRaidStart':  # R5
                 handle_raid_start_upload_task.delay(
                     request.data['response'], request.data['request'])
