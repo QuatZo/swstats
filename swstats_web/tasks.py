@@ -1,10 +1,11 @@
-from django.db.models import Count, Q, F, Avg
+from django.db.models import Count, Q, F, Avg, StdDev, Min, Max
 
 from website.celery import app as celery_app
 from website.tasks import handle_profile_upload_task
 from website.models import Rune, RuneSet, Monster, MonsterBase, Artifact, SiegeRecord, Guild, DungeonRun, DimensionHoleRun, RaidDungeonRun, RiftDungeonRun, MonsterHoh, MonsterFusion
 from .functions import *
 from .serializers import MonsterImageSerializer, MonsterBaseSerializer
+from .aggregations import Perc25, Median, Perc75
 
 import itertools
 import operator
@@ -113,8 +114,8 @@ def fetch_runes_data(self, filters):
 
 @celery_app.task(name='fetch.monsters', bind=True)
 def fetch_monsters_data(self, filters):
-    monsters = Monster.objects.all().select_related('base_monster', 'base_monster__family', ).prefetch_related(
-        'runes', 'runes_rta', 'artifacts', 'artifacts_rta', 'runes__rune_set', 'runes_rta__rune_set',).defer('wizard', 'source', 'transmog', ).order_by()
+    monsters = Monster.objects.exclude(base_monster__archetype__in=[0, 5]).select_related('base_monster', 'base_monster__family', ).defer(
+        'wizard', 'source', 'transmog', 'runes', 'runes_rta', 'artifacts', 'artifacts_rta', ).order_by()
 
     # filters here
     proper_filters = filter_monsters(filters)
@@ -189,6 +190,46 @@ def fetch_monsters_data(self, filters):
             "count": e['count']
         }
 
+    stats = {
+        'hp': 'HP',
+        'attack': 'Attack',
+        'defense': 'Defense',
+        'speed': 'Speed',
+        'res': 'Resistance',
+        'acc': 'Accuracy',
+        'crit_rate': 'Critical Rate',
+        'crit_dmg': 'Critical Damage',
+        'avg_eff_total': 'Average Efficiency',
+        'eff_hp': 'Effective HP',
+    }
+
+    agg = []
+    for stat in stats.keys():
+        agg += [
+            Avg(stat),
+            StdDev(stat),
+            Min(stat),
+            Perc25(stat),
+            Median(stat),
+            Perc75(stat),
+            Max(stat)
+        ]
+
+    desc = {}
+    for key, val in monsters.aggregate(*agg).items():
+        stat, f = key.split('__')
+        if f == 'perc25':
+            f = '25%'
+        elif f == 'median':
+            f = '50%'
+        elif f == 'perc75':
+            f = '75%'
+        elif f == 'stdded':
+            f = 'std'
+        if f not in desc:
+            desc[f] = {}
+        desc[f][stats[stat]] = round(val, 2)
+
     content = {
         'chart_data': {
             'monster_elements': list(monster_elements.values()),
@@ -196,6 +237,7 @@ def fetch_monsters_data(self, filters):
             'monster_awakens': list(monster_awakens.values()),
             'monster_stars': list(monster_stars.values()),
         },
+        'desc': desc,
         'filters': form_filters,
         'table': get_monsters_table(None, filters)
     }
@@ -1029,10 +1071,7 @@ def generate_monster_report(self, monster_id):
         'text': f"{chart_data['vc_sets'][i]['name']} ({round(chart_data['vc_sets'][i]['count'] / df.shape[0] * 100)}%)" if len(chart_data['vc_sets']) > i else 'No information given'
     } for i in range(3)]
 
-    df_stats = df[stats].describe().drop(['count', ], axis=0).T
-    df_stats['mean'] = df_stats['mean'].round(2)
-    df_stats['std'] = df_stats['std'].round(2)
-    df_stats = df_stats.T
+    df_stats = df[stats].describe().drop(['count', ], axis=0).round(2)
     df_stats.columns = ['HP', 'Attack', 'Defense',
                         'Speed', 'Resistance', 'Accuracy', 'Critical Rate', 'Critical Damage', 'Average Efficiency', 'Effective HP']
 

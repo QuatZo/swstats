@@ -140,13 +140,30 @@ def _calc_total_per_category(points):
     return points
 
 
+def _round_everything(points):
+    for key in points.keys():
+        if isinstance(points[key], int) or isinstance(points[key], float):
+            points[key] = round(points[key], 2)
+        elif isinstance(points[key], list) or isinstance(points[key], tuple):
+            points[key] = [round(v, 2) for v in points[key]]
+        elif isinstance(points[key], dict):
+            points[key] = _round_everything(points[key])
+
+    return points
+
+
 def get_scoring_for_profile(wizard_id):
     start = time.time()
     points = get_scoring_system()
     wiz = Wizard.objects.get(id=wizard_id)
-    runes = Rune.objects.filter(wizard=wiz)
-    monsters = Monster.objects.filter(wizard=wiz).prefetch_related(
-        'base_monster', 'runes', 'artifacts')
+    runes = Rune.objects.filter(wizard=wiz).select_related('rune_set')
+    monsters = Monster.objects.filter(wizard=wiz).select_related(
+        'base_monster',
+        'base_monster__family', ).prefetch_related(
+        'runes',
+        'runes__rune_set',
+        'artifacts'
+    ).defer('runes_rta', 'artifacts_rta', ).order_by()
     buildings = WizardBuilding.objects.filter(
         wizard=wiz).prefetch_related('building')
 
@@ -246,11 +263,26 @@ def get_scoring_for_profile(wizard_id):
     ####
 
     points = _calc_total_per_category(points)
+    points = _round_everything(points)
 
     return points
 
 
-def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, crit_rate, crit_dmg, avg_eff_total, eff_hp, df_group, df_group_len, df_means):
+def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, crit_rate, crit_dmg, avg_eff_total, eff_hp, base_name, base_id, df_group, df_group_len, df_means):
+    filename = 'monster_'
+
+    if base_id % 100 > 10:
+        if base_id % 100 > 20:
+            filename += 'second'
+        filename += 'awakened_' + base_name.lower().replace('(2a)', '').replace(' ', '')
+        if 'homunculus' in filename:
+            filename = filename.replace(
+                '-', '_').replace('(', '_').replace(')', '')
+    else:
+        filename += base_name.lower().replace(' (', '_').replace(')', '').replace(' ', '')
+
+    img_url = 'https://swstats.info/static/website/images/monsters/' + filename + '.png'
+
     kw = {
         'hp': hp,
         'attack': attack,
@@ -265,7 +297,7 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
     }
     m_stats = {
         'id': id_,
-        'img_url': Monster.objects.get(id=id_).get_image(),
+        'img_url': img_url,
         'rank': dict()
     }
     for key, val in kw.items():
@@ -284,7 +316,15 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
     return m_stats
 
 
-def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res, acc, c_rate, c_dmg, eff, df_group, df_group_len, df_means):
+def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res, acc, c_rate, c_dmg, eff, primary, slot, quality, quality_original, rune_set, df_group, df_group_len, df_means):
+    img_url = {
+        'id': id_,
+        'slot': slot,
+        'quality': Rune.get_rune_quality(quality),
+        'quality_original': Rune.get_rune_quality(quality_original),
+        'image': f'https://swstats.info/static/website/images/runes/{rune_set.lower()}.png',
+    }
+
     kw = {
         'sub_hp_flat': hp_f,
         'sub_hp': hp,
@@ -299,11 +339,10 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
         'sub_crit_dmg': c_dmg,
         'efficiency': eff
     }
-    rune_obj = Rune.objects.get(id=id_)
     r_stats = {
         'id': id_,
-        'img_url': rune_obj.get_full_image(),
-        'mainstat': rune_obj.get_primary_display(),
+        'img_url': img_url,
+        'mainstat': Rune.get_rune_primary(primary),
         'rank': dict()
     }
     for key, val in kw.items():
@@ -323,8 +362,8 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
 
 def get_profile_comparison_with_database(wizard_id):
     monsters = Monster.objects.select_related('base_monster', 'base_monster__family', ).exclude(base_monster__archetype=5).exclude(base_monster__archetype=0).filter(
-        stars=6).order_by('base_monster__name')  # w/o material, unknown; only 6*
-    monsters_cols = ['id', 'wizard__id', 'base_monster__name', 'hp', 'attack', 'defense', 'speed',
+        stars=6).defer('runes', 'runes_rta', 'artifacts', 'artifacts_rta').order_by('base_monster__name')  # w/o material, unknown; only 6*
+    monsters_cols = ['id', 'wizard__id', 'base_monster__name', 'base_monster__id', 'hp', 'attack', 'defense', 'speed',
                      'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp']
     df_monsters = pd.DataFrame(monsters.values_list(
         *monsters_cols), columns=monsters_cols).drop_duplicates(subset=['id'])
@@ -345,7 +384,7 @@ def get_profile_comparison_with_database(wizard_id):
         'sub_crit_dmg_sum': Func(F('sub_crit_dmg'), function='unnest'),
     }
     runes = runes.annotate(**runes_kw)
-    runes_cols = ['id', 'wizard__id', 'slot', 'rune_set__id', 'primary', 'efficiency',
+    runes_cols = ['id', 'wizard__id', 'slot', 'rune_set__id', 'rune_set__name', 'primary', 'efficiency', 'quality', 'quality_original',
                   'sub_hp_sum', 'sub_hp_flat_sum', 'sub_atk_sum', 'sub_atk_flat_sum', 'sub_def_sum', 'sub_def_flat_sum', 'sub_speed_sum',
                   'sub_res_sum', 'sub_acc_sum', 'sub_crit_rate_sum', 'sub_crit_dmg_sum']
     df_runes = pd.DataFrame(runes.values_list(*runes_cols), columns=[runes_col.replace(
@@ -360,15 +399,46 @@ def get_profile_comparison_with_database(wizard_id):
     for _, df_group in df_groups:
         df_wiz = df_group[df_group['wizard__id'] == wizard_id]
         df_means = df_group.mean()
-        comparison['monsters'] += [calc_monster_comparison_stats(*row, df_group, len(df_group), df_means) for row in zip(df_wiz['id'], df_wiz['hp'], df_wiz['attack'], df_wiz['defense'],
-                                                                                                                         df_wiz['speed'], df_wiz['res'], df_wiz['acc'], df_wiz['crit_rate'], df_wiz['crit_dmg'], df_wiz['avg_eff_total'], df_wiz['eff_hp'])]
+        comparison['monsters'] += [calc_monster_comparison_stats(*row, df_group, len(df_group), df_means) for row in zip(
+            df_wiz['id'],
+            df_wiz['hp'],
+            df_wiz['attack'],
+            df_wiz['defense'],
+            df_wiz['speed'],
+            df_wiz['res'],
+            df_wiz['acc'],
+            df_wiz['crit_rate'],
+            df_wiz['crit_dmg'],
+            df_wiz['avg_eff_total'],
+            df_wiz['eff_hp'],
+            df_wiz['base_monster__name'],
+            df_wiz['base_monster__id']
+        )]
 
     df_groups = df_runes.groupby(['slot', 'rune_set__id', 'primary'])
     for _, df_group in df_groups:
         df_wiz = df_group[df_group['wizard__id'] == wizard_id]
         df_means = df_group.mean()
-        comparison['runes'] += [calc_rune_comparison_stats(*row, df_group, len(df_group), df_means) for row in zip(df_wiz['id'], df_wiz['sub_hp_flat'], df_wiz['sub_hp'], df_wiz['sub_atk_flat'],
-                                                                                                                   df_wiz['sub_atk'], df_wiz['sub_def_flat'], df_wiz['sub_def'], df_wiz['sub_speed'], df_wiz['sub_res'], df_wiz['sub_acc'], df_wiz['sub_crit_rate'], df_wiz['sub_crit_dmg'], df_wiz['efficiency'])]
+        comparison['runes'] += [calc_rune_comparison_stats(*row, df_group, len(df_group), df_means) for row in zip(
+            df_wiz['id'],
+            df_wiz['sub_hp_flat'],
+            df_wiz['sub_hp'],
+            df_wiz['sub_atk_flat'],
+            df_wiz['sub_atk'],
+            df_wiz['sub_def_flat'],
+            df_wiz['sub_def'],
+            df_wiz['sub_speed'],
+            df_wiz['sub_res'],
+            df_wiz['sub_acc'],
+            df_wiz['sub_crit_rate'],
+            df_wiz['sub_crit_dmg'],
+            df_wiz['efficiency'],
+            df_wiz['primary'],
+            df_wiz['slot'],
+            df_wiz['quality'],
+            df_wiz['quality_original'],
+            df_wiz['rune_set__name']
+        )]
 
     return comparison
 
@@ -467,7 +537,7 @@ def filter_monsters(filters):
 
 
 def get_monsters_table(request, filters=None):
-    monsters = Monster.objects.all().select_related('base_monster', 'base_monster__family', ).prefetch_related(
+    monsters = Monster.objects.exclude(base_monster__archetype__in=[0, 5]).select_related('base_monster', 'base_monster__family', ).prefetch_related(
         'runes', 'runes_rta', 'artifacts', 'artifacts_rta', 'runes__rune_set', 'runes_rta__rune_set', ).defer('wizard', 'source', 'transmog', ).order_by()
 
     if request:  # ajax call on page change

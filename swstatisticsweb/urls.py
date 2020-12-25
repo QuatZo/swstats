@@ -75,16 +75,7 @@ urlpatterns = [
         template_name="robots.txt", content_type="text/plain")),
     url(r'^$', views.get_homepage, name='home'),
 
-    path('upload/', views.handle_www_profile, name='upload'),
-    path('upload/profile/', views.handle_www_profile_upload, name='upload_profile'),
-    path('upload/profile/<str:task_id>/',
-         views.handle_www_profile_upload_ajax, name='upload_profile_ajax'),
-
     path('api/', include((router.urls, 'router'), namespace="api"), name="api"),
-    path('object/<str:obj_type>/<int:obj_id>',
-         views.get_object_for_card, name='object_card'),
-
-    path('reports/generate/', views.get_report, name='reports_generate'),
 
     url(r'^swagger(?P<format>\.json|\.yaml)$',
         schema_view.without_ui(cache_timeout=0), name='schema-json'),
@@ -92,8 +83,6 @@ urlpatterns = [
                                            cache_timeout=0), name='schema-swagger-ui'),
     url(r'^redoc/$', schema_view.with_ui('redoc',
                                          cache_timeout=0), name='schema-redoc'),
-
-    #########
 
     # BOT
     path('bot/monsters/<int:monster_id>',

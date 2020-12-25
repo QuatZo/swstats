@@ -591,17 +591,29 @@ class MonsterView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
     def get(self, request, format=None, mon_id=None):
+        start = time.time()
         if not mon_id:
             return Response({'error', 'No Monster ID given.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            mon = Monster.objects.get(id=mon_id)
+            mon = Monster.objects.select_related(
+                'base_monster',
+                'base_monster__family',
+            ).prefetch_related(
+                'runes',
+                'runes__rune_set',
+                'runes_rta',
+                'runes_rta__rune_set',
+                'artifacts',
+                'artifacts_rta'
+            ).get(id=mon_id)
         except Monster.DoesNotExist:
             return Response({'error': 'Monster doesn`t exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = MonsterSerializer(mon)
+        data = MonsterSerializer(mon).data
+        print(round(time.time() - start, 4))
 
-        return Response(serializer.data)
+        return Response(data)
 
 
 class StatusView(APIView):
