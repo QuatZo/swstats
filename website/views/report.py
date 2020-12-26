@@ -485,38 +485,3 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     plots.append(transmogs_plot)
 
     return plots, most_common_build, plot_sets, plot_builds, top_sets, plot_artifacts_element_main, plot_artifacts_archetype_main, artifact_best
-
-
-class ReportGeneratorViewSet(viewsets.ViewSet):
-    def create(self, request):
-        # upload by using ajax, focused on stuff that Desktop App had
-        context = {}
-
-        if request.is_ajax():
-            start = time.time()
-            data = request.data
-            base_monster = MonsterBase.objects.get(id=data)
-
-            monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes, _, monsters_artifacts = get_monster_info(
-                base_monster)
-
-            plots, _, _, _, _, _, _, _ = generate_plots(
-                monsters, monsters_runes, base_monster, monsters_artifacts)
-
-            context = {
-                'base_monster': base_monster,
-                'monsters': monsters,
-                'monsters_runes': monsters_runes,
-                'monsters_artifacts': monsters_artifacts,
-                'hoh': hoh_exist,
-                'hoh_date': hoh_date,
-                'fusion': fusion_exist,
-                'filename': filename,
-                'plots': plots,
-            }
-
-            html = render_to_string(
-                'website/report/report_generate.html', context)
-
-            print(round(time.time() - start, 4))
-            return HttpResponse(html)

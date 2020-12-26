@@ -81,20 +81,6 @@ class Guild(models.Model):
             return "Unknown"
         return dict(cls.SIEGE_RANKS)[ranking_id]
 
-    @classmethod
-    def get_guild_ranking_names(cls):
-        return dict(cls.GUILD_RANKS)
-
-    @classmethod
-    def get_guild_ranking_name(cls, ranking_id):
-        if ranking_id is None or not ranking_id:
-            return "Unknown"
-        return dict(cls.GUILD_RANKS)[ranking_id]
-
-    @classmethod
-    def get_siege_ranks(cls):
-        return dict(cls.SIEGE_RANKS)
-
 
 class Wizard(models.Model):
     # wizard_id, USED ONLY FOR KNOWING IF DATA SHOULD BE UPDATED
@@ -428,21 +414,8 @@ class Rune(models.Model):
                 return key
 
     @classmethod
-    def get_rune_effects(cls):
-        rune_effects = list(dict(cls.RUNE_EFFECTS).values())
-        rune_effects.sort()
-        return rune_effects
-
-    @classmethod
     def get_rune_primary(cls, number):
         return dict(cls.RUNE_EFFECTS)[number]
-
-    @classmethod
-    def get_rune_primary_id(cls, name):
-        for key, primary in dict(cls.RUNE_EFFECTS).items():
-            stat = name.replace('plus', '+').replace('percent', '%')
-            if primary == stat:
-                return key
 
     @classmethod
     def get_rune_qualities(cls):
@@ -704,12 +677,6 @@ class Artifact(models.Model):
         return dict(cls.ARTIFACT_PRIMARY_EFFECTS)[number]
 
     @classmethod
-    def get_artifact_primary_id(cls, name):
-        for key, primary in dict(cls.ARTIFACT_PRIMARY_EFFECTS).items():
-            if primary == name:
-                return key
-
-    @classmethod
     def get_artifact_quality(cls, number):
         return dict(cls.ARTIFACT_QUALITIES)[number]
 
@@ -758,10 +725,6 @@ class Artifact(models.Model):
     @classmethod
     def get_artifact_attributes(cls):
         return list(dict(cls.ARTIFACT_ATTRIBUTES).values())
-
-    @classmethod
-    def get_artifact_main_stats(cls):
-        return list(dict(cls.ARTIFACT_PRIMARY_EFFECTS).values())
 
 
 class MonsterFamily(models.Model):
@@ -980,9 +943,6 @@ class Monster(models.Model):
     # building_id
     storage = models.BooleanField()
 
-    def is_skilled_up(self):
-        return self.skills == self.base_monster.max_skills
-
     def get_image(self):
         return self.base_monster.get_image()
 
@@ -1093,12 +1053,6 @@ class Deck(models.Model):
 
     class Meta:
         ordering = ['-team_runes_eff', 'place', 'number']
-
-    @classmethod
-    def get_place_id(cls, name):
-        for key, place in dict(cls.DECK_TYPES).items():
-            if place == name:
-                return key
 
 
 class Building(models.Model):
@@ -1217,9 +1171,6 @@ class HomunculusBuild(models.Model):
     def __str__(self):
         return '-'.join([self.depth_1.letter, self.depth_2.letter, self.depth_3.letter, self.depth_4.letter, self.depth_5.letter])
 
-    def get_build_str(self):
-        return self.__str__()
-
     class Meta:
         ordering = ['id']
 
@@ -1232,10 +1183,6 @@ class WizardHomunculus(models.Model):
     wizard = models.ForeignKey(Wizard, on_delete=models.CASCADE)
     build = models.ForeignKey(
         HomunculusBuild, on_delete=models.CASCADE, null=True)
-
-    @classmethod
-    def get_build_display(cls, id):
-        return str(HomunculusBuild.objects.get(id=id))
 
     def __str__(self):
         return str(self.homunculus) + '(' + str(self.build) + ')'
@@ -1298,32 +1245,6 @@ class DungeonRun(models.Model):
         filters['win'] = [0, 0]
 
         return filters
-
-    @classmethod
-    def get_dungeon_name(cls, id):
-        try:
-            return dict(cls.DUNGEON_TYPES)[id]
-        except KeyError:
-            return None
-
-    @classmethod
-    def get_dungeon_id(cls, name):
-        for key, dungeon in dict(cls.DUNGEON_TYPES).items():
-            if dungeon == name:
-                return key
-        return None
-
-    @classmethod
-    def get_all_dungeons(cls):
-        return dict(cls.DUNGEON_TYPES).values()
-
-    @classmethod
-    def get_runes_dungeons(cls):
-        return dict(cls.DUNGEON_RUNES_TYPES).values()
-
-    @classmethod
-    def get_essences_dungeons(cls):
-        return dict(cls.DUNGEON_ESSENCES_TYPES).values()
 
 
 class RiftDungeonRun(models.Model):
@@ -1415,24 +1336,6 @@ class RiftDungeonRun(models.Model):
             dmg_total__isnull=False).order_by('-dmg_total').first().dmg_total]
 
         return filters
-
-    @ classmethod
-    def get_dungeon_name(cls, id):
-        return dict(cls.DUNGEON_TYPES)[id]
-
-    @ classmethod
-    def get_dungeon_id(cls, name):
-        for key, dungeon in dict(cls.DUNGEON_TYPES).items():
-            if dungeon == name:
-                return key
-
-    @ classmethod
-    def get_all_dungeons(cls):
-        return dict(cls.DUNGEON_TYPES).values()
-
-    @ classmethod
-    def get_rating_name(cls, id):
-        return dict(cls.CLEAR_RATINGS)[id]
 
 
 class RaidDungeonRun(models.Model):
@@ -1616,17 +1519,3 @@ class DimensionHoleRun(models.Model):
         filters['win'] = [0, 0]
 
         return filters
-
-    @classmethod
-    def get_dungeon_name(cls, identifier):
-        return dict(cls.DIM_HOLE_TYPES)[identifier]
-
-    @classmethod
-    def get_dungeon_id_by_name(cls, name):
-        for key, val in dict(cls.DIM_HOLE_TYPES).items():
-            if val == name:
-                return key
-
-    @classmethod
-    def get_dungeon_names(cls):
-        return list(dict(cls.DIM_HOLE_TYPES).values())

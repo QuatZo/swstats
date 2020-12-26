@@ -407,4 +407,4 @@ class MonsterViewSet(viewsets.ModelViewSet):
                 queryset = queryset.annotate(artifacts_rta_count=Count(
                     'artifacts_rta')).filter(artifacts_rta_count__lt=2)
 
-        return queryset.prefetch_related('base_monster', 'base_monster__family', 'runes', 'runes_rta', 'runes__rune_set', 'runes_rta__rune_set', 'artifacts', 'artifacts_rta', ).order_by('id')
+        return queryset.select_related('base_monster', 'base_monster__family').prefetch_related('runes', 'runes_rta', 'runes__rune_set', 'runes_rta__rune_set', 'artifacts', 'artifacts_rta', ).order_by('id')

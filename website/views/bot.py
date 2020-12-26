@@ -18,6 +18,6 @@ def bot_debug_get_monster_report(request, monster_id):
 
 
 def bot_debug_get_all_monster_report(request):
-    x = generate_bot_reports.apply()
+    _ = generate_bot_reports.apply()
 
     return 200, {}
