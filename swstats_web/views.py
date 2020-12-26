@@ -49,7 +49,7 @@ class HomepageView(APIView):
                 "format": "string",
                 "w": 3,
                 "title": "Personal",
-                "desc": "In Personal Section you can find towers & flags calculator, 2A  calculator and graphic representation of your profile: Summoner, Monsters (with details), Runes (with details), Guild, Guild members activity, Friends activity. Data sent through Personal Section IS NOT stored in our database.",
+                "desc": "In Personal Section you can find interactive towers & flags calculator. If you don't want to type everything by yourself, you can upload JSON profile. Doing this, you won't upload your profile to the website. Whole calculator works locally in your browser.",
             },
             {
                 "id": 4,

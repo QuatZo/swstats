@@ -114,7 +114,7 @@ def add_stat(stats, base_stats, stat, substat=False):
         stats['defense'] += stat_value * base_stats['defense'] / 100
 
 
-def parse_rune(temp_rune, rune_lock=None):
+def parse_rune(temp_rune, wizard, rune_sets, rune_lock=None):
     com2us_keys = ['rune_id', 'slot_no', 'rank', 'class',
                    'upgrade_curr', 'base_value', 'sell_value', 'extra']
     map_keys = ['id', 'slot', 'quality', 'stars', 'upgrade_curr',
@@ -130,9 +130,9 @@ def parse_rune(temp_rune, rune_lock=None):
             rune[db] = temp_rune[c2u]
 
     if 'wizard_id' in temp_rune_keys:
-        rune['wizard'] = Wizard.objects.get(id=temp_rune['wizard_id'])
+        rune['wizard'] = wizard
     if 'set_id' in temp_rune_keys:
-        rune['rune_set'] = RuneSet.objects.get(id=temp_rune['set_id'])
+        rune['rune_set'] = rune_sets[temp_rune['set_id']]
 
     if 'pri_eff' in temp_rune_keys:
         rune['primary'] = temp_rune['pri_eff'][0]
@@ -141,30 +141,23 @@ def parse_rune(temp_rune, rune_lock=None):
         rune['innate'] = temp_rune['prefix_eff'][0]
         rune['innate_value'] = temp_rune['prefix_eff'][1]
 
+    sub_map = {
+        1: 'sub_hp_flat',
+        2: 'sub_hp',
+        3: 'sub_atk_flat',
+        4: 'sub_atk',
+        5: 'sub_def_flat',
+        6: 'sub_def',
+        8: 'sub_speed',
+        9: 'sub_crit_rate',
+        10: 'sub_crit_dmg',
+        11: 'sub_res',
+        12: 'sub_acc',
+    }
+
     if 'sec_eff' in temp_rune_keys:
         for sub in temp_rune['sec_eff']:
-            if sub[0] == 1:
-                rune['sub_hp_flat'] = [sub[1], sub[3]]
-            elif sub[0] == 2:
-                rune['sub_hp'] = [sub[1], sub[3]]
-            elif sub[0] == 3:
-                rune['sub_atk_flat'] = [sub[1], sub[3]]
-            elif sub[0] == 4:
-                rune['sub_atk'] = [sub[1], sub[3]]
-            elif sub[0] == 5:
-                rune['sub_def_flat'] = [sub[1], sub[3]]
-            elif sub[0] == 6:
-                rune['sub_def'] = [sub[1], sub[3]]
-            elif sub[0] == 8:
-                rune['sub_speed'] = [sub[1], sub[3]]
-            elif sub[0] == 9:
-                rune['sub_crit_rate'] = [sub[1], sub[3]]
-            elif sub[0] == 10:
-                rune['sub_crit_dmg'] = [sub[1], sub[3]]
-            elif sub[0] == 11:
-                rune['sub_res'] = [sub[1], sub[3]]
-            elif sub[0] == 12:
-                rune['sub_acc'] = [sub[1], sub[3]]
+            rune[sub_map[sub[0]]] = [sub[1], sub[3]]
 
         eff_curr, eff_max = calc_efficiency(temp_rune)
         rune['efficiency'] = eff_curr
@@ -173,7 +166,7 @@ def parse_rune(temp_rune, rune_lock=None):
     rune['equipped'] = True if 'occupied_type' in temp_rune_keys and temp_rune['occupied_type'] == 1 else False
     rune['locked'] = True if rune_lock is not None and 'rune_id' in temp_rune_keys and temp_rune['rune_id'] in rune_lock else False
 
-    obj, created = Rune.objects.update_or_create(
+    Rune.objects.update_or_create(
         id=rune['id'], defaults=rune, )
 
 # endregion
@@ -245,7 +238,7 @@ def calc_efficiency_artifact(artifact):
     return round(eff_curr, 2), round(eff_max, 2)
 
 
-def parse_artifact(temp_artifact):
+def parse_artifact(temp_artifact, wizard):
     com2us_keys = ['rid', 'type', 'attribute', 'unit_style',
                    'level', 'rank', 'natural_rank', 'locked']
     map_keys = ['id', 'rtype', 'attribute', 'archetype',
@@ -258,7 +251,7 @@ def parse_artifact(temp_artifact):
             artifact[db] = temp_artifact[c2u]
 
     if 'wizard_id' in temp_artifact_keys:
-        artifact['wizard'] = Wizard.objects.get(id=temp_artifact['wizard_id'])
+        artifact['wizard'] = wizard
 
     if 'pri_effect' in temp_artifact_keys and temp_artifact['pri_effect']:
         artifact['primary'] = temp_artifact['pri_effect'][0]
@@ -285,7 +278,7 @@ def parse_artifact(temp_artifact):
 
     artifact['equipped'] = True if 'occupied_id' in temp_artifact_keys and temp_artifact['occupied_id'] > 0 else False
 
-    obj, created = Artifact.objects.update_or_create(
+    Artifact.objects.update_or_create(
         id=artifact['id'], defaults=artifact, )
 # endregion
 
@@ -371,7 +364,7 @@ def calc_stats(monster, runes, artifacts):
     return stats, rune_ids
 
 
-def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta=list(), artifacts_rta=list()):
+def parse_monster(temp_monster, wizard, buildings=list(), units_locked=list(), runes_rta=list(), artifacts_rta=list()):
     com2us_keys = ['unit_id', 'unit_level', 'class', 'create_time']
     map_keys = ['id', 'level', 'stars', 'created']
     temp_monster_keys = temp_monster.keys()
@@ -381,7 +374,7 @@ def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta
         if c2u in temp_monster_keys:
             monster[db] = temp_monster[c2u]
 
-    monster['wizard'] = Wizard.objects.get(id=temp_monster['wizard_id'])
+    monster['wizard'] = wizard
     monster['base_monster'] = MonsterBase.objects.get(
         id=temp_monster['unit_master_id'])
 
@@ -399,10 +392,8 @@ def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta
         monster['crit_rate'] = stats['crit_rate']
         monster['crit_dmg'] = stats['crit_dmg']
 
-        monster_runes = [Rune.objects.filter(
+        monster_runes = [Rune.objects.get(
             id=rune_id) for rune_id in rune_ids]
-        monster_runes = [monster_rune.first()
-                         for monster_rune in monster_runes if monster_rune.exists()]
         sum_eff = 0
         for monster_rune in monster_runes:
             sum_eff += monster_rune.efficiency
@@ -453,11 +444,10 @@ def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta
                 break
     monster['locked'] = True if 'unit_id' in temp_monster_keys and temp_monster['unit_id'] in units_locked else False
 
-    mon_runes_rta = [Rune.objects.get(id=r_id) for r_id in runes_rta]
-    mon_artifacts_rta = [Artifact.objects.get(
-        id=r_id) for r_id in artifacts_rta]
+    mon_runes_rta = Rune.objects.filter(id__in=runes_rta)
+    mon_artifacts_rta = Artifact.objects.filter(id__in=artifacts_rta)
 
-    obj, created = Monster.objects.update_or_create(
+    obj, _ = Monster.objects.update_or_create(
         id=monster['id'], defaults=monster, )
     obj.runes.set(monster_runes)
     obj.runes_rta.set(mon_runes_rta)
@@ -466,13 +456,12 @@ def parse_monster(temp_monster, buildings=list(), units_locked=list(), runes_rta
     obj.save()
 
 
-def parse_wizard_homunculus(homunculus):
+def parse_wizard_homunculus(homunculus, wizard):
     homies = dict()
     for el in homunculus:
         if el['unit_id'] not in homies.keys():
             homies[el['unit_id']] = dict()
-            homies[el['unit_id']]['wizard'] = Wizard.objects.get(
-                id=el['wizard_id'])
+            homies[el['unit_id']]['wizard'] = wizard
             homies[el['unit_id']]['homunculus'] = Monster.objects.get(
                 id=el['unit_id'])
             homies[el['unit_id']]['depth_1'] = None
@@ -522,7 +511,7 @@ def parse_guild(guild_info, guildwar, tvalue):
             guild[db] = guildwar[c2u]
 
     guild['last_update'] = datetime.datetime.utcfromtimestamp(tvalue)
-    obj, created = Guild.objects.update_or_create(
+    Guild.objects.update_or_create(
         id=guild['id'], defaults=guild, )
 # endregion
 
@@ -548,53 +537,63 @@ def parse_wizard(temp_wizard, tvalue):
     return wizard
 
 
-def parse_wizard_buildings(decos, wizard_id):
-    for temp_building in Building.objects.all():
-        building = dict()
-        building['wizard'] = Wizard.objects.get(id=wizard_id)
-        building['building'] = temp_building
-        building['level'] = 0
-        obj, created = WizardBuilding.objects.update_or_create(
-            wizard=building['wizard'], building=building['building'], defaults=building, )
+def parse_wizard_buildings(decos, wizard):
+    buildings = {b.id: b for b in Building.objects.all()}
+    wizard_buildings = {wb.building.id: wb for wb in WizardBuilding.objects.select_related(
+        'building').filter(wizard=wizard)}
+    wizard_buildings_new = {}
+    wizard_buildings_update = []
+
+    for b_id, temp_building in buildings.items():
+        if b_id in wizard_buildings.keys() or wizard_buildings[b_id].level > 0:
+            continue
+        wizard_buildings_new[b_id] = WizardBuilding(
+            wizard=wizard,
+            level=0,
+            building=temp_building,
+        )
 
     for deco in decos:
-        building = dict()
-        building['wizard'] = Wizard.objects.get(id=deco['wizard_id'])
-        building['building'] = Building.objects.get(id=deco['master_id'])
-        building['level'] = deco['level']
-        obj, created = WizardBuilding.objects.update_or_create(
-            wizard=building['wizard'], building=building['building'], defaults=building, )
+        if deco['master_id'] in wizard_buildings.keys():
+            temp_building = wizard_buildings[deco['master_id']]
+            temp_building.level = deco['level']
+            wizard_buildings_update.append(temp_building)
+        else:
+            wizard_buildings_new[deco['master_id']].level = deco['level']
+
+    WizardBuilding.objects.bulk_update(wizard_buildings_update, ['level'])
+    WizardBuilding.objects.bulk_create(wizard_buildings_new)
 
 
-def parse_arena_records(pvp_info, defense_units, wizard_id):
+def parse_arena_records(pvp_info, defense_units, wizard):
     arena = dict()
-    arena['wizard'] = Wizard.objects.get(id=wizard_id)
+    arena['wizard'] = wizard
     arena['wins'] = pvp_info['arena_win']
     arena['loses'] = pvp_info['arena_lose']
     arena['rank'] = pvp_info['rating_id']
     for def_unit in defense_units:
         arena['def_' + str(def_unit['pos_id'])
               ] = Monster.objects.get(id=def_unit['unit_id'])
-    obj, created = Arena.objects.update_or_create(
-        wizard=wizard_id, defaults=arena, )
+    Arena.objects.update_or_create(
+        wizard=wizard, defaults=arena, )
 
 
-def parse_decks(decks, wizard_id):
+def parse_decks(decks, wizard):
     for temp_deck in decks:
         try:
             deck = dict()
-            deck['wizard'] = Wizard.objects.get(id=wizard_id)
+            deck['wizard'] = wizard
             deck['place'] = temp_deck['deck_type']
             deck['number'] = temp_deck['deck_seq']
             deck['leader'] = Monster.objects.get(
                 id=temp_deck['leader_unit_id'])
-            deck_monsters = [Monster.objects.get(
-                id=monster_id) for monster_id in temp_deck['unit_id_list'] if monster_id]
+            deck_monsters = Monster.objects.filter(
+                id__in=[monster_id for monster_id in temp_deck['unit_id_list'] if monster_id])
             temp_team_eff = [mon.avg_eff for mon in deck_monsters]
             deck['team_runes_eff'] = round(
                 sum(temp_team_eff) / len(temp_team_eff), 2)
-            obj, created = Deck.objects.update_or_create(
-                wizard=wizard_id, place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
+            obj, _ = Deck.objects.update_or_create(
+                wizard=wizard, place=temp_deck['deck_type'], number=temp_deck['deck_seq'], defaults=deck, )
             obj.monsters.set(deck_monsters)
             obj.save()
         except Monster.DoesNotExist as e:

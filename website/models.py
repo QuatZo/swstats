@@ -815,11 +815,6 @@ class MonsterBase(models.Model):
     max_skills = ArrayField(models.IntegerField())
     awaken = models.SmallIntegerField(
         choices=MONSTER_AWAKEN)  # to calculate
-    # best from Recommendation command, needs to delete every scam
-    recommendation_text = models.CharField(
-        max_length=512, blank=True, null=True)
-    recommendation_votes = models.IntegerField(
-        blank=True, default=0)  # best from Recommendation command
 
     def get_image(self):
         filename = 'monster_'
@@ -1401,7 +1396,7 @@ class RiftDungeonRun(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.get_dungeon_display() + ' B1 (' + str(self.clear_time) + ')'
+        return self.get_dungeon_display() + ' B1 (' + str(self.clear_rating) + ')'
 
     class Meta:
         ordering = ['dungeon', '-clear_rating', '-dmg_total']
