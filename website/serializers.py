@@ -57,16 +57,12 @@ class MonsterBaseSerializer(serializers.ModelSerializer):
 
 
 class MonsterSerializer(serializers.ModelSerializer):
-    runes = RuneSerializer(many=True)
-    runes_rta = RuneSerializer(many=True)
-    artifacts = ArtifactSerializer(many=True)
-    artifacts_rta = ArtifactSerializer(many=True)
     base_monster = MonsterBaseSerializer()
 
     class Meta:
         model = Monster
         fields = (
             'id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg',
-            'eff_hp', 'eff_hp_def_break', 'avg_eff', 'avg_eff_artifacts', 'avg_eff_total', 'skills', 'created', 'transmog',
+            'eff_hp', 'avg_eff', 'avg_eff_artifacts', 'avg_eff_total', 'skills', 'created', 'transmog',
             'locked', 'storage', 'runes', 'artifacts', 'runes_rta', 'artifacts_rta',
         )

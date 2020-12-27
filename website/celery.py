@@ -17,10 +17,10 @@ app = Celery('swstatisticsweb', backend='redis://localhost',
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.update(
-    result_expires=1800,  # 1800 secs = 30 minutes
+    result_expires=1200,  # 1200 secs = 20 minutes
 )
 
-app.conf.broker_transport_options = {"visibility_timeout": 7200} # 2h
+app.conf.broker_transport_options = {"visibility_timeout": 1200}  # 20min
 
 app.conf.timezone = 'UTC'  # UTC server time
 

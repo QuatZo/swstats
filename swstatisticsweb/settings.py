@@ -14,6 +14,7 @@ import os
 import dj_database_url
 import dotenv
 from celery.schedules import crontab
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,8 +32,14 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == 'True'
 
-ALLOWED_HOSTS = ['www.swstats.info',
-                 'swstats.info', 'localhost', '51.83.129.23']
+ALLOWED_HOSTS = [
+    'www.swstats.info',
+    'swstats.info',
+    'localhost',
+    '51.83.129.23',
+    'www.web.swstats.info',
+    'web.swstats.info',
+]
 
 
 # Application definition
@@ -47,10 +54,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'website',
     'drf_yasg',
+
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'bugsnag.django.middleware.BugsnagMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -199,7 +209,11 @@ LOGGING = {
         },
         'matplotlib': {
             'level': 'WARNING'
-        }
+        },
+        # 'django.db.backends': {
+        #     'level': 'DEBUG',
+        #     'handlers': ['console'],
+        # },
     }
 }
 
@@ -213,7 +227,28 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-BUGSNAG = {
-    'api_key': '5398ca806063433022cef8eea8b17c22',
-    'project_root': '/opt/swstats/repo',
+if not DEBUG:
+    BUGSNAG = {
+        'api_key': '5398ca806063433022cef8eea8b17c22',
+        'project_root': '/opt/swstats/repo',
+    }
+
+# Allow all for Public API, only subdomain (and localhost) for Web API
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'swstats-web-ts',
+    'swstats-web-api',
+]
+
+SWSTATS_WEB_SALT = os.getenv("SWSTATS_WEB_SALT")
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "swstats"
+    }
 }
