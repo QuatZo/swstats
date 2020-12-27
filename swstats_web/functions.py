@@ -268,7 +268,7 @@ def get_scoring_for_profile(wizard_id):
     return points
 
 
-def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, crit_rate, crit_dmg, avg_eff_total, eff_hp, base_name, base_id, df_group, df_group_len, df_means):
+def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, crit_rate, crit_dmg, avg_eff_total, eff_hp, base_name, base_id, base_family, base_awaken, df_group, df_group_len, df_means):
     filename = 'monster_'
 
     if base_id % 100 > 10:
@@ -298,6 +298,7 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
     m_stats = {
         'id': id_,
         'img_url': img_url,
+        'name': f'{base_name} ({base_family})' if base_awaken > 0 else base_name,
         'rank': dict()
     }
     for key, val in kw.items():
@@ -306,6 +307,8 @@ def calc_monster_comparison_stats(id_, hp, attack, defense, speed, res, acc, cri
             'avg': val - df_means[key],
             'val': val,
         }
+        if m_stats['rank'][key]['top'] == 0:
+            m_stats['rank'][key]['top'] = "Best"
 
         if key == 'avg_eff_total':
             m_stats['rank'][key]['avg'] = round(m_stats['rank'][key]['avg'], 2)
@@ -342,6 +345,7 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
     r_stats = {
         'id': id_,
         'img_url': img_url,
+        'rune_set': rune_set,
         'mainstat': Rune.get_rune_primary(primary),
         'rank': dict()
     }
@@ -351,6 +355,8 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
             'avg': val - df_means[key] if val else None,
             'val': val if val else None,
         }
+        if r_stats['rank'][key]['top'] == 0:
+            r_stats['rank'][key]['top'] = "Best"
         if key == 'efficiency':
             r_stats['rank'][key]['avg'] = round(r_stats['rank'][key]['avg'], 2)
         elif r_stats['rank'][key]['avg']:
@@ -363,7 +369,7 @@ def calc_rune_comparison_stats(id_, hp_f, hp, atk_f, atk, def_f, def_, spd, res,
 def get_profile_comparison_with_database(wizard_id):
     monsters = Monster.objects.select_related('base_monster', 'base_monster__family', ).exclude(base_monster__archetype=5).exclude(base_monster__archetype=0).filter(
         stars=6).defer('runes', 'runes_rta', 'artifacts', 'artifacts_rta').order_by('base_monster__name')  # w/o material, unknown; only 6*
-    monsters_cols = ['id', 'wizard__id', 'base_monster__name', 'base_monster__id', 'hp', 'attack', 'defense', 'speed',
+    monsters_cols = ['id', 'wizard__id', 'base_monster__name', 'base_monster__id', 'base_monster__family__name', 'base_monster__awaken', 'hp', 'attack', 'defense', 'speed',
                      'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp']
     df_monsters = pd.DataFrame(monsters.values_list(
         *monsters_cols), columns=monsters_cols).drop_duplicates(subset=['id'])
@@ -412,7 +418,9 @@ def get_profile_comparison_with_database(wizard_id):
             df_wiz['avg_eff_total'],
             df_wiz['eff_hp'],
             df_wiz['base_monster__name'],
-            df_wiz['base_monster__id']
+            df_wiz['base_monster__id'],
+            df_wiz['base_monster__family__name'],
+            df_wiz['base_monster__awaken'],
         )]
 
     df_groups = df_runes.groupby(['slot', 'rune_set__id', 'primary'])
