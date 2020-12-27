@@ -8,6 +8,7 @@ from .models import *
 from .functions import *
 from .views.report import get_monster_info, generate_plots
 from .celery import app as celery_app
+from swstats_web.serializers import MonsterBaseSerializer
 
 import requests
 import logging
@@ -573,43 +574,149 @@ def handle_wizard_arena_upload_task(data_resp, data_req):
 
 @shared_task
 def create_monster_report_by_bot(monster_id):
-    base_monster = MonsterBase.objects.get(id=monster_id)
+    monsters = Monster.objects.filter(base_monster_id=monster_id, stars=6, level=40).prefetch_related(
+        'runes', 'runes__rune_set',
+        'artifacts',
+    ).order_by('id').values(
+        'id', 'runes__slot', 'runes__rune_set__name', 'runes__primary',
+        'artifacts__rtype', 'artifacts__primary', 'artifacts__substats',
+    )
 
-    monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes, monster_family, monsters_artifacts = get_monster_info(
-        base_monster)
-
+    # base monster info, to serialize with MonsterBaseSerializer
     try:
-        plots, most_common_builds, plot_sets, plot_builds, top_sets, plot_artifact_element_main, plot_artifact_archetype_main, artifact_best = generate_plots(
-            monsters, monsters_runes, base_monster, monsters_artifacts, True)
-    except KeyError as e:  # no results
-        plots = None
-        most_common_builds = 'No information given'
-        plot_sets = None
-        plot_builds = None
-        top_sets = None
-        plot_artifact_element_main = None
-        plot_artifact_archetype_main = None
-        artifact_best = None
+        base_monster = MonsterBase.objects.get(id=monster_id)
+    except MonsterBase.DoesNotExist:
+        return None
+    monster = MonsterBaseSerializer(base_monster).data
 
-    context = {
-        'base_monster': base_monster,
-        'monsters': monsters,
-        'family': monster_family,
-        'hoh': hoh_exist,
-        'hoh_date': hoh_date,
-        'fusion': fusion_exist,
-        'plots': plots,
-        'most_common_builds': most_common_builds,
-        'date_update': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'plot_sets': plot_sets,
-        'plot_builds': plot_builds,
-        'top_sets': top_sets,
-        'plot_artifacts_element_main': plot_artifact_element_main,
-        'plot_artifacts_archetype_main': plot_artifact_archetype_main,
-        'artifact_best': artifact_best,
+    proper_records = []
+    rune_sets = {rs.name: rs.amount for rs in RuneSet.objects.all()}
+    rune_sets = {k: v for k, v in sorted(
+        rune_sets.items(), key=lambda item: item[1], reverse=True)}
+    rune_effects = dict(Rune.RUNE_EFFECTS)
+    artifact_substats = dict(Artifact.ARTIFACT_EFFECTS_ALL)
+    sets_4 = {s: 0 for s in ['Violent', 'Swift',
+                             'Rage', 'Fatal', 'Despair', 'Vampire']}
+
+    # prepare records for DataFrame
+    record_groups = itertools.groupby(monsters, lambda m: m['id'])
+    for _, record_group in record_groups:
+        records = list(record_group)
+
+        data = {}
+
+        sets = []
+        for record in records:
+            # some trash records, looking only for monsters with equipped runes
+            if not record['runes__slot']:
+                continue
+            slot = record['runes__slot'] - 1
+            if f'rune_{slot + 1}' not in data:
+                if record['runes__primary']:
+                    data[f'rune_{slot + 1}'] = rune_effects[record['runes__primary']]
+                if record['runes__rune_set__name']:
+                    sets.append(record['runes__rune_set__name'])
+
+            if record['artifacts__rtype']:
+                a_type = Artifact.get_artifact_rtype(
+                    record['artifacts__rtype']).lower()
+                if f'artifact_{a_type}' not in data:
+                    if record['artifacts__primary']:
+                        data[f'artifact_{a_type}'] = Artifact.get_artifact_primary(
+                            record['artifacts__primary'])
+                    if 'artifact_substats' not in data:
+                        data['artifact_substats'] = []
+                    if record['artifacts__substats']:
+                        data['artifact_substats'] += [artifact_substats[r]
+                                                      for r in record['artifacts__substats']]
+
+        if all([True if f'rune_{i}' in data else False for i in range(1, 7)]):
+            proper_sets = {}
+            sets_str = []
+            full = 0
+            for s in sets:
+                if s not in proper_sets:
+                    proper_sets[s] = 0
+                proper_sets[s] += 1
+            for s in proper_sets:
+                occ = math.floor(proper_sets[s] / rune_sets[s])
+                if occ:
+                    full += rune_sets[s] * occ
+                    if rune_sets[s] == 4:  # add 4-rune sets at first place
+                        sets_4[s] += 1
+                        sets_str.insert(0, s)
+                    else:
+                        sets_str.append(s)
+            data['sets'] = ' + '.join(sets_str)
+            if full != 6:
+                data['sets'] += ' + Broken'
+
+            if 'artifact_attribute' not in data:
+                data['artifact_attribute'] = None
+            if 'artifact_archetype' not in data:
+                data['artifact_archetype'] = None
+            if 'artifact_substats' not in data:
+                data['artifact_substats'] = []
+            proper_records.append(data)
+
+    df = pd.DataFrame(proper_records)
+
+    if not df.shape[0]:  # empty df
+        monster['build'] = 'No information given'
+        monster['sets'] = [{
+            'name': f'Top {i + 1} set',
+            'text': 'No information given'
+        } for i in range(3)]
+        monster['artifacts'] = 'No information given'
+        content = {
+            'monster': monster,
+        }
+
+        html = render_to_string(
+            'website/report/report_bot_generate.html', content)
+
+        try:
+            html_file = open("website/bot/monsters/" +
+                             str(monster_id) + '.html', "w")
+            html_file.write(html)
+            html_file.close()
+            print("[Bot][Periodic Task] Created report about " + str(monster_id))
+            return True
+        except:
+            print(
+                "[Bot][Periodic Task] Error has been raised while creating report about " + str(monster_id))
+            return False
+
+    # most common builds
+    builds_count = df.groupby(["rune_2", "rune_4", "rune_6"]).size().reset_index(
+        name='count').sort_values(["count"], ascending=False)
+    builds_count['name'] = builds_count['rune_2'] + ' / ' + \
+        builds_count['rune_4'] + ' / ' + builds_count['rune_6']
+    builds_count = builds_count[builds_count['count'] > 10][['name', 'count']]
+    rune_builds = builds_count.to_dict(orient='records')
+
+    # artifact substats bar chart
+    artifact_subs_series = []
+    _ = df['artifact_substats'].dropna().apply(
+        lambda li: [artifact_subs_series.append(l) for l in li])
+    artifact_subs_series = pd.Series(artifact_subs_series)
+    artifact_substats = [{'name': k, 'count': v} for k, v in artifact_subs_series.dropna(
+    ).value_counts().to_dict().items() if v > 10]
+
+    sets = [{'name': k, 'count': v}
+            for k, v in df['sets'].value_counts().to_dict().items() if v > 10]
+    monster['build'] = rune_builds[0]['name'] if rune_builds else 'No information given'
+    monster['sets'] = [{
+        'name': f'Top {i + 1} set',
+        'text': f"{sets[i]['name']} ({round(sets[i]['count'] / df.shape[0] * 100)}%)" if len(sets) > i else 'No information given'
+    } for i in range(3)]
+    monster['artifacts'] = artifact_substats[0]['name'] if artifact_substats else 'No information given'
+
+    content = {
+        'monster': monster,
     }
 
-    html = render_to_string('website/report/report_bot_generate.html', context)
+    html = render_to_string('website/report/report_bot_generate.html', content)
 
     try:
         html_file = open("website/bot/monsters/" +

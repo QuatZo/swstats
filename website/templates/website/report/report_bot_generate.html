@@ -1,122 +1,35 @@
-{% extends "website/report/report_bot_index.html" %}
-{% load static %}
-{% load monsters %}
+{% extends "website/report/report_bot_index.html" %} 
+{% load static %} 
 
 {% block meta %}
-    <meta name="title" content="SW Monster Report - {{ base_monster.name }} (click for more info)">
-    {% if most_common_builds != 'No information given' %}
-        <meta name="description" content="{{ base_monster.name }} popular runes {{ most_common_builds }}
-            {{ top_sets.0.message }}
-            {{ top_sets.1.message }}{% if not artifact_best.element or not artifact_best.archetype %}
-		    {{ top_sets.2.message }}{% endif %}
-            {% if artifact_best.element %}Artifact Element top: {{ artifact_best.element }}{% endif %}
-            {% if artifact_best.element %}Artifact Archetype top: {{ artifact_best.archetype }}{% endif %}
-        ">
+    <meta
+        name="title"
+        content="SW Monster Report - {{ monster.name }} (click for more info)"
+    />
+    {% if monster.build != 'No information given' %}
+        <meta
+            name="description"
+            content="{{ monster.name }} popular runes {{ monster.build }}
+                    {% if monster.sets|length > 0 %}{{ monster.name }} top 1 set: {{ monster.sets.0.text }} {% endif %}
+                    {% if monster.sets|length > 1 %}{{ monster.name }} top 2 set: {{ monster.sets.1.text }} {% endif %}
+                    {% if monster.sets|length > 2 %}{{ monster.name }} top 3 set: {{ monster.sets.2.text }} {% endif %}
+                    {% if monster.artifacts %}Artifact substat top: {{ monster.artifacts }}{% endif %}
+                "
+        />
     {% else %}
-        <meta name="description" content="No information given about {{ base_monster.name }}">
-    {% endif %}
-{% endblock %}
-{% block custom_title %}
-    Monster Report - {{ base_monster.name }}
-{% endblock %}
+        <meta
+            name="description"
+            content="No information given about {{ monster.name }}"
+        />
+    {% endif %} 
+{% endblock %} 
 
-{% block info_family %}
-    <div class='monster-family border'>
-        <h3 style='text-align: center;'>Check other family members</h3>
-        <div class='monster-family-images'>
-            {% for family_member in family %}
-                <a href="{% url 'bot_get_monster_report' monster_id=family_member.id %}" class="table-monster-href" title="{{ family_member.name }}">
-                    <img src="{% static 'website/images/monsters/'|get_monster_avatar:family_member %}" class="table-monster-avatar"/>
-                </a>
-            {% endfor %}
-        </div>
-    </div>
-{%endblock %}
-
-{% block info_main %}
-    <div class='monster-info border'>
-        <div class='monster-info-content'>
-            <div class='monster-info-left'>
-                <div class='row'>
-                    <div class="col-8 col-sm-6"><b>Type</b></div>
-                    <div class="col-4 col-sm-6"> {{ base_monster.get_archetype_display }} </div>
-                    <div class="col-8 col-sm-6"><b>Attribute</b></div>
-                    <div class="col-4 col-sm-6"> {{ base_monster.get_attribute_display }} </div>
-                    <div class="col-8 col-sm-6"><b>Hoh</b></div>
-                    {% if hoh %}
-                        <div class="col-4 col-sm-6"> Yes ({{ hoh_date }}) </div>
-                    {% else %}
-                        <div class="col-4 col-sm-6"> No </div>
-                    {% endif %}
-                    
-                    <div class="col-8 col-sm-6"><b>Fusion</b></div>
-                    {% if fusion %}
-                        <div class="col-4 col-sm-6">Yes</div>
-                    {% else %}
-                        <div class="col-4 col-sm-6">No</div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class='monster-info-mid'>
-                <h2><b>{{ base_monster.name|monster_name_from_filename }}</b></h2><br />
-                <h3>({{ monsters.count }})</h3>
-            </div>
-            <div class='monster-info-right'>
-                <div class='row'>
-                    <div class="col-4 col-sm-4"><b>Popular</b></div>
-                    <div class="col-8 col-sm-8"> {{ most_common_builds }} </div>
-                    {% if top_sets.0.sets != '' %}
-                        <div class="col-4 col-sm-4"><b>Top {{ top_sets.0.id }} set</b></div>
-                        <div class="col-8 col-sm-8"> {{ top_sets.0.sets }} </div>
-                    {% endif %}
-                    {% if top_sets.1.sets != '' %}
-                        <div class="col-4 col-sm-4"><b>Top {{ top_sets.1.id }} set</b></div>
-                        <div class="col-8 col-sm-8"> {{ top_sets.1.sets }} </div>
-                    {% endif %}
-                    {% if top_sets.2.sets != '' %}
-                        <div class="col-4 col-sm-4"><b>Top {{ top_sets.2.id }} set</b></div>
-                        <div class="col-8 col-sm-8"> {{ top_sets.2.sets }} </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <h3 style='text-align: center;'>{{ date_update }}</h3>
-    </div>
-{% endblock %}
-
-{% block plots_main %}
-    {% if plot_sets and plot_builds %}
-        <div class='plots-main'>
-            <div class='plots-main-left border'>
-                {{ plot_sets|safe }}
-            </div>
-            <div class='plots-main-right border'>
-                {{ plot_builds|safe }}
-            </div>
-        </div>
-    {% endif %}
-    {% if plot_artifacts_element_main and plot_artifacts_archetype_main %}
-        <div class='plots-main'>
-            <div class='plots-main-left border'>
-                {{ plot_artifacts_element_main|safe }}
-            </div>
-            <div class='plots-main-right border'>
-                {{ plot_artifacts_archetype_main|safe }}
-            </div>
-        </div>
-    {% endif %}
-{% endblock %}
-
-{% block plots %}
-    {% if plots %}
-        {% include "website/report/report_bot_monster_plots.html" with plots=plots monster_name=base_monster.name|monster_name_from_filename %}
-    {% endif %}
-{% endblock %}
+{% block custom_title %} Monster Report - {{ monster.name }} {% endblock %} 
 
 {% block custom_jquery %}
     <script>
-        $("#monster-plots").removeClass('show')
-        $("#monster-plots").addClass('collapse')
+        $(document).ready(function () {
+            window.location.replace("https://web.swstats.info" + window.location.pathname)
+        });
     </script>
-
 {% endblock %}
