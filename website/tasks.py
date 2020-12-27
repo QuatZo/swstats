@@ -102,7 +102,10 @@ def handle_profile_upload_task(data):
                 temp_artifacts = data['artifacts']
             for monster in data['unit_list']:
                 for rune in monster['runes']:
-                    temp_runes.append(rune)
+                    if isinstance(rune, str):
+                        temp_runes.append(monster['runes'][rune])
+                    else:
+                        temp_runes.append(rune)
                 if has_artifacts:
                     for artifact in monster['artifacts']:
                         temp_artifacts.append(artifact)
@@ -131,9 +134,10 @@ def handle_profile_upload_task(data):
             ########################################
 
             rune_sets = {rs.id: rs for rs in RuneSet.objects.all()}
+            rune_lock_list = data['rune_lock_list'] if 'rune_lock_list' in data else [
+            ]
             for temp_rune in temp_runes:
-                parse_rune(temp_rune, wizard, rune_sets,
-                           data['rune_lock_list'])
+                parse_rune(temp_rune, wizard, rune_sets, rune_lock_list)
 
             for temp_artifact in temp_artifacts:
                 parse_artifact(temp_artifact, wizard)
@@ -165,26 +169,37 @@ def handle_profile_upload_task(data):
                 Artifact.objects.bulk_update(
                     temp_instances, ['equipped_rta'], batch_size=100)
 
+            building_list = data['building_list'] if 'building_list' in data else [
+            ]
+            unit_lock_list = data['unit_lock_list'] if 'unit_lock_list' in data else [
+            ]
             for temp_monster in data['unit_list']:
                 mon_runes_rta = temp_runes_rta[temp_monster['unit_id']
                                                ] if temp_monster['unit_id'] in temp_runes_rta.keys() else list()
                 mon_artifacts_rta = temp_artifacts_rta[temp_monster['unit_id']
                                                        ] if temp_monster['unit_id'] in temp_artifacts_rta.keys() else list()
-                parse_monster(temp_monster, wizard, data['building_list'],
-                              data['unit_lock_list'], mon_runes_rta, mon_artifacts_rta)
+                parse_monster(temp_monster, wizard, building_list,
+                              unit_lock_list, mon_runes_rta, mon_artifacts_rta)
 
             # monster rep
-            MonsterRep.objects.update_or_create(wizard=wizard, defaults={
-                'wizard': wizard,
-                'monster': Monster.objects.get(id=temp_wizard['rep_unit_id'])
-            }, )
+            if temp_wizard['rep_unit_id'] != 0:
+                MonsterRep.objects.update_or_create(wizard=wizard, defaults={
+                    'wizard': wizard,
+                    'monster': Monster.objects.get(id=temp_wizard['rep_unit_id'])
+                }, )
 
-            parse_decks(data['deck_list'], wizard)
-            parse_wizard_buildings(data['deco_list'], wizard)
+            deck_list = data['deck_list'] if 'deck_list' in data else []
+            deco_list = data['deco_list'] if 'deco_list' in data else []
+            parse_decks(deck_list, wizard)
+            parse_wizard_buildings(deco_list, wizard)
+
+            defense_unit_list = data['defense_unit_list'] if 'defense_unit_list' in data else [
+            ]
             if 'pvp_info' in data:
                 parse_arena_records(
-                    data['pvp_info'], data['defense_unit_list'], wizard)
-            parse_wizard_homunculus(data['homunculus_skill_list'], wizard)
+                    data['pvp_info'], defense_unit_list,  wizard)
+            if 'homunculus_skill_list' in data:
+                parse_wizard_homunculus(data['homunculus_skill_list'], wizard)
 
             logger.debug(
                 f"Fully uploaded profile for {data['wizard_info']['wizard_id']}")
@@ -233,8 +248,9 @@ def handle_friend_upload_task(data):
                             break
                         parse_artifact(artifact, wizard)
                 if good:
-                    parse_monster(temp_monster, wizard,
-                                  temp_wizard['building_list'], )
+                    building_list = temp_wizard['building_list'] if 'building_list' in temp_wizard else [
+                    ]
+                    parse_monster(temp_monster, wizard, building_list, )
 
             parse_wizard_buildings(temp_wizard['deco_list'], wizard)
 
@@ -248,6 +264,8 @@ def handle_friend_upload_task(data):
 def handle_raid_start_upload_task(data_resp, data_req):
     try:
         with transaction.atomic():
+            if 'battle_info' not in data_resp:
+                return
             dungeon = dict()
 
             dungeon['battle_key'] = data_req['battle_key']
@@ -315,6 +333,8 @@ def handle_raid_run_upload_task(data_resp, data_req):
 def handle_dungeon_run_upload_task(data_resp, data_req):
     try:
         with transaction.atomic():
+            if 'wizard_info' not in data_resp or 'wizard_id' not in data_resp['wizard_info']:
+                return
             logger.debug(
                 f"Starting Battle Dungeon Result upload for {data_resp['wizard_info']['wizard_id']}")
             dungeon = dict()
@@ -392,6 +412,9 @@ def handle_rift_dungeon_start_upload_task(data_resp, data_req):
 def handle_rift_dungeon_run_upload_task(data_resp, data_req):
     try:
         with transaction.atomic():
+            if 'rift_dungeon_box_id' not in data_resp:
+                return
+
             rift = RiftDungeonRun.objects.get(
                 battle_key=data_req['battle_key'])
             rift.win = True if data_req['battle_result'] == 1 else False

@@ -392,13 +392,12 @@ def parse_monster(temp_monster, wizard, buildings=list(), units_locked=list(), r
         monster['crit_rate'] = stats['crit_rate']
         monster['crit_dmg'] = stats['crit_dmg']
 
-        monster_runes = [Rune.objects.get(
-            id=rune_id) for rune_id in rune_ids]
+        monster_runes = Rune.objects.filter(id__in=rune_ids).only('efficiency')
         sum_eff = 0
         for monster_rune in monster_runes:
             sum_eff += monster_rune.efficiency
         monster['avg_eff'] = round(
-            sum_eff / len(monster_runes), 2) if len(monster_runes) > 0 else 0.00
+            sum_eff / monster_runes.count(), 2) if monster_runes.count() > 0 else 0.00
         monster['eff_hp'] = stats['hp'] * \
             (1140 + (stats['defense'] * 1 * 3.5)) / 1000
     else:
@@ -545,7 +544,7 @@ def parse_wizard_buildings(decos, wizard):
     wizard_buildings_update = []
 
     for b_id, temp_building in buildings.items():
-        if b_id in wizard_buildings.keys() or wizard_buildings[b_id].level > 0:
+        if b_id in wizard_buildings.keys():
             continue
         wizard_buildings_new[b_id] = WizardBuilding(
             wizard=wizard,
@@ -562,7 +561,7 @@ def parse_wizard_buildings(decos, wizard):
             wizard_buildings_new[deco['master_id']].level = deco['level']
 
     WizardBuilding.objects.bulk_update(wizard_buildings_update, ['level'])
-    WizardBuilding.objects.bulk_create(wizard_buildings_new)
+    WizardBuilding.objects.bulk_create(list(wizard_buildings_new.values()))
 
 
 def parse_arena_records(pvp_info, defense_units, wizard):
