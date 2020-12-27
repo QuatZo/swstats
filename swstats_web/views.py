@@ -11,7 +11,7 @@ from swstats_web.permissions import IsSwstatsWeb
 
 from website.models import Monster, Rune, Artifact, DungeonRun, DimensionHoleRun, RiftDungeonRun, RaidDungeonRun
 from .tasks import *
-from .functions import get_scoring_system, get_runes_table, get_monsters_table, get_artifacts_table, get_siege_table
+from .functions import get_scoring_system, get_runes_table, get_monsters_table, get_artifacts_table, get_siege_table, calculate_cache_key
 from .serializers import MonsterSerializer, RuneSerializer, ArtifactSerializer
 
 import json
@@ -19,12 +19,17 @@ import itertools
 from datetime import timedelta, datetime
 import os
 from operator import itemgetter
+
+from rest_framework_extensions.cache.decorators import (
+    cache_response
+)
 # Create your views here.
 
 
 class HomepageView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         cards = [
             {
@@ -186,6 +191,7 @@ class UploadView(APIView):
 class RunesView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         task = fetch_runes_data.delay(list(request.GET.lists()))
 
@@ -195,6 +201,7 @@ class RunesView(APIView):
 class RunesTableView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         runes_table = get_runes_table(request)
         if 'error' in runes_table:
@@ -205,6 +212,7 @@ class RunesTableView(APIView):
 class MonstersView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         task = fetch_monsters_data.delay(list(request.GET.lists()))
 
@@ -214,6 +222,7 @@ class MonstersView(APIView):
 class MonstersTableView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         monsters_table = get_monsters_table(request)
         if 'error' in monsters_table:
@@ -224,6 +233,7 @@ class MonstersTableView(APIView):
 class ArtifactsView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         task = fetch_artifacts_data.delay(list(request.GET.lists()))
 
@@ -233,6 +243,7 @@ class ArtifactsView(APIView):
 class ArtifactsTableView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         artifacts_table = get_artifacts_table(request)
         if 'error' in artifacts_table:
@@ -243,6 +254,7 @@ class ArtifactsTableView(APIView):
 class SiegeView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         task = fetch_siege_data.delay(list(request.GET.lists()))
 
@@ -252,6 +264,7 @@ class SiegeView(APIView):
 class SiegeTableView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         siege_table = get_siege_table(request)
         if 'error' in siege_table:
@@ -262,6 +275,7 @@ class SiegeTableView(APIView):
 class CairosView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         dungeon_runs = DungeonRun.objects.defer('wizard', 'monsters', 'date').order_by(
             'dungeon', '-stage', '-win').values('dungeon', 'stage', 'clear_time', 'win')
@@ -317,6 +331,7 @@ class CairosView(APIView):
 class CairosDetailView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         if 'cid' not in request.GET or 'stage' not in request.GET:
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
@@ -345,6 +360,7 @@ class CairosDetailView(APIView):
 class RiftView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         raid_recs = RaidDungeonRun.objects.only(
             'stage', 'win', 'clear_time').order_by('-stage', '-win')
@@ -418,6 +434,7 @@ class RiftView(APIView):
 class RiftDetailView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         if 'cid' not in request.GET or 'stage' not in request.GET:
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
@@ -450,6 +467,7 @@ class RiftDetailView(APIView):
 class DimholeView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         dungeon_runs = DimensionHoleRun.objects.defer('wizard', 'monsters', 'date').order_by(
             'dungeon', '-stage', '-win').values('dungeon', 'stage', 'clear_time', 'win')
@@ -505,6 +523,7 @@ class DimholeView(APIView):
 class DimholeDetailView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
         if 'cid' not in request.GET or 'stage' not in request.GET:
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
@@ -590,6 +609,7 @@ class ReportsGenerateMonster(APIView):
 class MonsterView(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None, mon_id=None):
         start = time.time()
         if not mon_id:

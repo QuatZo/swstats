@@ -855,3 +855,35 @@ def get_series_distribution(series, parts):
         'name': p,
         'count': d,
     } for p, d in zip(points, distribution)]
+
+
+def _unzip_get_params(params):
+    x = dict()
+    for k, v in params:
+        if isinstance(v, dict):
+            x[k] = _unzip_get_params(v)
+        elif isinstance(v, list):
+            for i, vi in enumerate(v):
+                x[f'{k}{i}'] = vi
+        else:
+            x[k] = v
+    return x
+
+
+def calculate_cache_key(view_instance, view_method, request, args, kwargs):
+    key_builder = [view_instance.__class__.__name__, request.method, ]
+    if request.GET:
+        t = [f'{k}={v}' for k, v in _unzip_get_params(
+            list(request.GET.lists())).items()]
+        t.sort()
+        key_builder += t
+    if kwargs:
+        t = [f'{k}={v}' for k, v in kwargs.items()]
+        t.sort()
+        key_builder += t
+    if args:
+        t = list(args)
+        t.sort()
+        key_builder += t
+
+    return '.'.join(key_builder)
