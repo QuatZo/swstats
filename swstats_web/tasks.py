@@ -228,7 +228,7 @@ def fetch_monsters_data(self, filters):
             f = 'std'
         if f not in desc:
             desc[f] = {}
-        desc[f][stats[stat]] = round(val, 2)
+        desc[f][stats[stat]] = round(val, 2) if val else 0
 
     content = {
         'chart_data': {
