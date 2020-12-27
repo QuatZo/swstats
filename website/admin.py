@@ -24,7 +24,7 @@ class RuneSetAdmin(admin.ModelAdmin):
 
 class RuneAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'wizard', 'slot', 'quality', 'stars', 'rune_set', 'upgrade_limit', 'upgrade_curr', 'base_value', 'sell_value', 'primary', 'primary_value',
+        'id', 'wizard_id', 'slot', 'quality', 'stars', 'rune_set', 'upgrade_limit', 'upgrade_curr', 'base_value', 'sell_value', 'primary', 'primary_value',
         'innate', 'innate_value', 'sub_hp_flat', 'sub_hp', 'sub_atk_flat', 'sub_atk', 'sub_def_flat', 'sub_def', 'sub_speed', 'sub_crit_rate', 'sub_crit_dmg',
         'sub_res', 'sub_acc', 'quality_original', 'efficiency', 'efficiency_max', 'equipped', 'equipped_rta', 'locked'
     )
@@ -36,7 +36,7 @@ class MonsterFamilyAdmin(admin.ModelAdmin):
 
 class MonsterBaseAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'family', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken', 'recommendation_text', 'recommendation_votes'
+        'id', 'family', 'base_class', 'name', 'attribute', 'archetype', 'max_skills', 'awaken',
     )
 
 
@@ -46,27 +46,15 @@ class MonsterSourceAdmin(admin.ModelAdmin):
 
 class MonsterAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'wizard', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'avg_eff_artifacts',
-        'avg_eff_total', 'eff_hp', 'eff_hp_def_break', 'skills', 'get_runes', 'get_runes_rta', 'get_artifacts', 'get_artifacts_rta', 'created', 'source', 'transmog', 'storage', 'locked'
+        'id', 'wizard_id', 'base_monster', 'level', 'stars', 'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff', 'avg_eff_artifacts',
+        'avg_eff_total', 'eff_hp', 'skills', 'created', 'source', 'transmog', 'storage', 'locked'
     )
 
     filter_horizontal = ('runes', 'artifacts', 'runes_rta', 'artifacts_rta')
 
-    def get_runes(self, obj):
-        return "\n".join([str(rune) for rune in obj.runes.all()])
-
-    def get_runes_rta(self, obj):
-        return "\n".join([str(rune) for rune in obj.runes_rta.all()])
-
-    def get_artifacts(self, obj):
-        return "\n".join([str(artifact) for artifact in obj.artifacts.all()])
-
-    def get_artifacts_rta(self, obj):
-        return "\n".join([str(artifact) for artifact in obj.artifacts_rta.all()])
-
 
 class MonsterRepAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wizard', 'monster')
+    list_display = ('id', 'wizard_id', 'monster')
 
 
 class MonsterHohAdmin(admin.ModelAdmin):
@@ -78,11 +66,8 @@ class MonsterFusionAdmin(admin.ModelAdmin):
 
 
 class DeckAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wizard', 'place', 'number',
-                    'get_monsters', 'leader', 'team_runes_eff')
-
-    def get_monsters(self, obj):
-        return "\n".join([str(monster) for monster in obj.monsters.all()])
+    list_display = ('id', 'wizard_id', 'place', 'number',
+                    'leader', 'team_runes_eff')
 
 
 class BuildingAdmin(admin.ModelAdmin):
@@ -90,11 +75,11 @@ class BuildingAdmin(admin.ModelAdmin):
 
 
 class WizardBuildingAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wizard', 'building', 'level')
+    list_display = ('id', 'wizard_id', 'building', 'level')
 
 
 class ArenaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wizard', 'wins', 'loses', 'ratio',
+    list_display = ('id', 'wizard_id', 'wins', 'loses', 'ratio',
                     'rank', 'def_1', 'def_2', 'def_3', 'def_4')
 
     def ratio(self, obj):
@@ -113,61 +98,40 @@ class HomunculusBuildAdmin(admin.ModelAdmin):
 
 
 class WizardHomunculusAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wizard', 'homunculus', 'build')
+    list_display = ('id', 'wizard_id', 'homunculus', 'build')
 
 
 class ArtifactAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'wizard', 'rtype', 'attribute', 'archetype', 'level', 'primary', 'primary_value', 'substats', 'substats_values',
+        'id', 'wizard_id', 'rtype', 'attribute', 'archetype', 'level', 'primary', 'primary_value', 'substats', 'substats_values',
         'quality', 'quality_original', 'efficiency', 'efficiency_max', 'equipped', 'equipped_rta', 'locked'
     )
 
 
 # live
 class DungeonRunAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wizard', 'dungeon', 'stage',
-                    'clear_time', 'get_monsters', 'win', 'date')
-
-    def get_monsters(self, obj):
-        return "\n".join([str(monster) for monster in obj.monsters.all()])
+    list_display = ('id', 'wizard_id', 'dungeon', 'stage',
+                    'clear_time', 'win', 'date')
 
 
 class RiftDungeonRunAdmin(admin.ModelAdmin):
-    list_display = ('battle_key', 'wizard', 'dungeon', 'win', 'clear_time', 'clear_rating', 'get_front_line',
-                    'get_back_line', 'leader', 'dmg_phase_1', 'dmg_phase_glory', 'dmg_phase_2', 'dmg_total', 'date')
-
-    def get_front_line(self, obj):
-        return ', '.join([str(obj.monster_1), str(obj.monster_2), str(obj.monster_3), str(obj.monster_4)])
-
-    def get_back_line(self, obj):
-        return ', '.join([str(obj.monster_5), str(obj.monster_6), str(obj.monster_7), str(obj.monster_8)])
+    list_display = ('battle_key', 'wizard_id', 'dungeon', 'clear_rating', 'monster_1_id', 'monster_2_id', 'monster_3_id', 'monster_4_id',
+                    'monster_5_id', 'monster_6_id', 'monster_7_id', 'monster_8_id', 'leader_id', 'dmg_phase_1', 'dmg_phase_glory', 'dmg_phase_2', 'dmg_total', 'date')
 
 
 class RaidDungeonRunAdmin(admin.ModelAdmin):
-    list_display = ('battle_key', 'wizard', 'stage', 'win', 'clear_time',
-                    'get_front_line', 'get_back_line', 'leader', 'date')
-
-    def get_front_line(self, obj):
-        return ', '.join([str(obj.monster_1), str(obj.monster_2), str(obj.monster_3), str(obj.monster_4)])
-
-    def get_back_line(self, obj):
-        return ', '.join([str(obj.monster_5), str(obj.monster_6), str(obj.monster_7), str(obj.monster_8)])
+    list_display = ('battle_key', 'wizard_id', 'stage', 'win', 'clear_time', 'monster_1_id', 'monster_2_id', 'monster_3_id', 'monster_4_id',
+                    'monster_5_id', 'monster_6_id', 'monster_7_id', 'monster_8_id', 'leader_id', 'date')
 
 
 class SiegeRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wizard', 'get_monsters', 'leader',
+    list_display = ('id', 'wizard_id', 'leader_id',
                     'win', 'lose', 'ratio', 'last_update', 'full')
-
-    def get_monsters(self, obj):
-        return "\n".join([str(monster) for monster in obj.monsters.all()])
 
 
 class DimensionHoleRunAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wizard', 'dungeon', 'stage',
-                    'clear_time', 'get_monsters', 'win', 'practice', 'date')
-
-    def get_monsters(self, obj):
-        return "\n".join([str(monster) for monster in obj.monsters.all()])
+    list_display = ('id', 'wizard_id', 'dungeon', 'stage',
+                    'clear_time', 'win', 'practice', 'date')
 
 
 # Register your models here.

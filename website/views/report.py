@@ -284,8 +284,6 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     # EFFECTIVE HP & EFFECTIVE HP WHILE DEF BROKEN
     eff_hp_plot = create_histogram_plot(
         df['eff_hp'], "Effective HP Distribution<br>(only 6* with equipped runes)", bot)
-    eff_hp_def_plot = create_histogram_plot(
-        df['eff_hp_def_break'], "Effective HP with Defense Break<br>(only 6* with equipped runes)", bot)
     #################################################
 
     #################################################
@@ -481,85 +479,9 @@ def generate_plots(monsters, monsters_runes, base_monster, monsters_artifacts, b
     #################################################
 
     plots.append(eff_hp_plot)
-    plots.append(eff_hp_def_plot)
     plots.append(stars_plot)
     plots.append(equipped_runes_plot)
     plots.append(skillups_plot)
     plots.append(transmogs_plot)
 
     return plots, most_common_build, plot_sets, plot_builds, top_sets, plot_artifacts_element_main, plot_artifacts_archetype_main, artifact_best
-
-
-class ReportGeneratorViewSet(viewsets.ViewSet):
-    def create(self, request):
-        # upload by using ajax, focused on stuff that Desktop App had
-        context = {}
-
-        if request.is_ajax():
-            data = request.data
-            base_monster = MonsterBase.objects.get(id=data)
-
-            monsters, hoh_exist, hoh_date, fusion_exist, filename, monsters_runes, _, monsters_artifacts = get_monster_info(
-                base_monster)
-
-            plots, _, _, _, _, _, _, _ = generate_plots(
-                monsters, monsters_runes, base_monster, monsters_artifacts)
-
-            context = {
-                'base_monster': base_monster,
-                'monsters': monsters,
-                'monsters_runes': monsters_runes,
-                'monsters_artifacts': monsters_artifacts,
-                'hoh': hoh_exist,
-                'hoh_date': hoh_date,
-                'fusion': fusion_exist,
-                'filename': filename,
-                'plots': plots,
-            }
-
-            html = render_to_string(
-                'website/report/report_generate.html', context)
-
-            return HttpResponse(html)
-
-
-def get_report_menu(request):
-    return render(request, 'website/report/report_menu.html')
-
-
-def get_report(request):
-    """Return the Report page."""
-    monsters_base = list(MonsterBase.objects.filter(~Q(archetype=5) & ~Q(awaken=0) & Q(monster__stars=6)).prefetch_related('monster_set').values(
-        'id', 'name').annotate(count=Count('monster__id')))  # archetype=5 -> Material Monsters, awaken=0 -> Unawakened, monster__stars=6 -> 6*
-    monsters_base = sorted(
-        monsters_base, key=itemgetter('count'), reverse=True)
-
-    context = {
-        'base': monsters_base,
-    }
-
-    return render(request, 'website/report/report_index.html', context)
-
-
-def get_old_reports(request):
-    images = dict()
-
-    app_static_dir = os.path.join(
-        settings.BASE_DIR, 'website', 'static', 'website', 'reports')
-
-    for filename in os.listdir(app_static_dir):
-        if filename.endswith(".png"):
-            images[filename] = os.path.getmtime(
-                app_static_dir + '/' + filename)
-
-    images = {k: v for k, v in sorted(images.items(
-    ), key=lambda image: image[1], reverse=True)}  # reverse=True -> descending
-    for key, val in images.items():
-        images[key] = datetime.strftime(
-            datetime.fromtimestamp(val), "%Y-%m-%d")
-
-    context = {
-        'images': images,
-    }
-
-    return render(request, 'website/report/report_old.html', context)
