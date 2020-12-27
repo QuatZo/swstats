@@ -597,6 +597,7 @@ class ReportsGenerateInit(APIView):
 class ReportsGenerateMonster(APIView):
     permission_classes = [IsSwstatsWeb, ]
 
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, monster_id=None, format=None):
         if not monster_id:
             return Response({'error', 'No Monster ID given.'}, status=status.HTTP_400_BAD_REQUEST)
