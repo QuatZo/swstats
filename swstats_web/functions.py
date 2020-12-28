@@ -4,11 +4,14 @@ import datetime
 import math
 import time
 import itertools
+from operator import itemgetter
 from datetime import timedelta
+import statistics
 
 from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
 
 from website.models import *
+from website.functions import calc_efficiency
 from .serializers import RuneFullSerializer, MonsterSerializer, ArtifactSerializer, SiegeSerializer
 
 
@@ -895,3 +898,238 @@ def calculate_cache_key(view_instance, view_method, request, args, kwargs):
         key_builder += t
 
     return '.'.join(key_builder)
+
+
+def parse_wizard(wizard, dim_hole_energy):
+    return {
+        'name': wizard['wizard_name'],
+        'country': wizard['wizard_last_country'],
+        'level': wizard['wizard_level'],
+        'mana': wizard['wizard_mana'],
+        'crystals': wizard['wizard_crystal'],
+        'guild_points': wizard['guild_point'],
+        'glory_points': wizard['honor_point'],
+        'rta_points': wizard['honor_medal'],
+        'shapeshifting_stones': wizard['costume_point'],
+        'social_points': wizard['social_point_current'],
+        'ancient_coins': wizard['event_coin'],
+        'energy': wizard['wizard_energy'],
+        'energy_max': wizard['energy_max'],
+        'dim_hole_energy': dim_hole_energy,
+        'arena_wings': wizard['arena_energy'],
+        'dim_rift_crystals': wizard['darkportal_energy'],
+    }
+
+
+def parse_monsters(monsters, locked_monsters):
+    # monsters[id]['attribute']
+    attributes = dict(MonsterBase.MONSTER_ATTRIBUTES)
+    # monsters[id]['unit_master_id'][MonsterBase MODEL]
+    archetypes = dict(MonsterBase.MONSTER_TYPES)
+
+    monsters_fusion = MonsterFusion.objects.all()
+    monsters_hoh = MonsterHoh.objects.all()
+
+    base_monsters = list(set([monster['unit_master_id']
+                              for monster in monsters]))
+    base_monsters = {mb['id']: mb for mb in MonsterBase.objects.defer('family').filter(id__in=base_monsters).values(
+        'id', 'name', 'archetype', 'attribute', 'awaken', 'base_class').order_by()}
+
+    base_stars = {
+        'star_1': [1, 0],
+        'star_2': [2, 0],
+        'star_3': [3, 0],
+        'star_4': [4, 0],
+        'star_5': [5, 0],
+    }
+
+    monster_elements = dict()
+    monster_archetypes = dict()
+    for val in attributes.values():
+        if val not in monster_elements:
+            monster_elements[val] = 0
+    for val in archetypes.values():
+        if val not in monster_archetypes:
+            monster_archetypes[val] = 0
+
+    nat5_non_fusion = list()
+    ld_nat4plus_non_fusion_nor_hoh = list()
+    for monster in monsters:
+        base_monster = base_monsters[monster['unit_master_id']]
+        monster_elements[attributes[monster['attribute']]] += 1
+        monster_archetypes[archetypes[base_monster['archetype']]] += 1
+        base_stars['star_' + str(base_monster['base_class'])][1] += 1
+        if base_monster['base_class'] == 5:
+            if not monsters_fusion.filter(monster=base_monster['id']).exists():
+                nat5_non_fusion.append({
+                    'monster': base_monster['name'],
+                    'acquiration_date': monster['create_time'],
+                })
+        if monster['attribute'] >= 4 and base_monster['base_class'] >= 4:  # l&d, 4*+
+            if not monsters_hoh.filter(monster=base_monster['id']).exists() and not monsters_fusion.filter(monster=base_monster['id']).exists():
+                ld_nat4plus_non_fusion_nor_hoh.append({
+                    'monster': base_monster['name'],
+                    'acquiration_date': monster['create_time'],
+                })
+
+    last_nat5 = sorted(nat5_non_fusion, key=itemgetter(
+        'acquiration_date'), reverse=True)[0] if nat5_non_fusion else {}
+    last_nat4_ld = sorted(ld_nat4plus_non_fusion_nor_hoh, key=itemgetter(
+        'acquiration_date'), reverse=True)[0] if ld_nat4plus_non_fusion_nor_hoh else {}
+
+    return {
+        'count': len(monsters),
+        'elements': monster_elements,
+        'archetypes': monster_archetypes,
+        'base_class': base_stars,
+
+        'nat5_not_fusion': nat5_non_fusion,
+        'last_nat5': (datetime.datetime.today() - datetime.datetime.strptime(last_nat5['acquiration_date'], "%Y-%m-%d %H:%M:%S")).days if nat5_non_fusion else None,
+
+        'ld4plus_not_fusion': ld_nat4plus_non_fusion_nor_hoh,
+        'last_ld4plus': (datetime.datetime.today() - datetime.datetime.strptime(last_nat4_ld['acquiration_date'], "%Y-%m-%d %H:%M:%S")).days if ld_nat4plus_non_fusion_nor_hoh else None,
+    }
+
+
+def parse_runes(runes_unequipped, runes_equipped, runes_locked):
+    # unpack both and create one list
+    runes = [*runes_unequipped, *runes_equipped]
+
+    # only current efficiency
+    efficiencies = [calc_efficiency(rune)[0] for rune in runes]
+    eff_min = min(efficiencies)
+    eff_max = max(efficiencies)
+    eff_mean = round(statistics.mean(efficiencies), 2)
+    eff_median = round(statistics.median(efficiencies), 2)
+    eff_st_dev = round(statistics.stdev(efficiencies), 2)
+    maxed = len([True for rune in runes if rune['upgrade_curr'] == 15])
+
+    runes_len = len(runes)
+    runes_unequipped_len = len(runes_unequipped)
+    runes_equipped_len = len(runes_equipped)
+    runes_locked_len = len(runes_locked)
+
+    sets = {row['id']: [row['name'].lower(), 0] for row in RuneSet.objects.values(
+        'id', 'name') if row['id'] != 99}  # all sets except immemorial
+    slots = {
+        'slot_1': [1, 0],
+        'slot_2': [2, 0],
+        'slot_3': [3, 0],
+        'slot_4': [4, 0],
+        'slot_5': [5, 0],
+        'slot_6': [6, 0],
+    }
+
+    for rune in runes:
+        sets[rune['set_id']][1] += 1
+        slots['slot_' + str(rune['slot_no'])][1] += 1
+
+    return {
+        'count': runes_len,
+        'unequipped_count': runes_unequipped_len,
+        'unequipped_percentage': round(runes_unequipped_len * 100 / runes_len, 2),
+        'equipped_count': runes_equipped_len,
+        'equipped_percentage': round(runes_equipped_len * 100 / runes_len, 2),
+        'locked_count': runes_locked_len,
+        'locked_percentage': round(runes_locked_len * 100 / runes_len, 2),
+
+        'eff_min': eff_min,
+        'eff_max': eff_max,
+        'eff_mean': eff_mean,
+        'eff_median': eff_median,
+        'eff_st_dev': eff_st_dev,
+
+        'maxed': maxed,
+        'maxed_percentage': round(maxed * 100 / runes_len, 2),
+
+        'sets': sets,
+        'slots': slots,
+    }
+
+
+def parse_guild_members(guild_members, guild_member_defenses):
+    members = list()
+    for temp_member in guild_members.keys():
+        member = guild_members[temp_member]
+        defenses = [row['unit_list']
+                    for row in guild_member_defenses if row['wizard_id'] == member['wizard_id']][0]
+        if defenses:
+            defense_1 = len(defenses[0])
+            defense_2 = len(defenses[1])
+        else:
+            defense_1 = 0
+            defense_2 = 0
+
+        last_login = datetime.datetime.utcfromtimestamp(
+            member['last_login_timestamp'])
+        members.append({
+            'name': member['wizard_name'],
+            'joined': datetime.datetime.utcfromtimestamp(member['join_timestamp']),
+            'last_login': last_login,
+            'last_login_days': (datetime.datetime.today() - last_login).days,
+            'defense_1': defense_1,
+            'defense_2': defense_2,
+        })
+
+        members = sorted(members, key=itemgetter(
+            'last_login'), reverse=True)
+    return members
+
+
+def parse_guild(guild, ranking, guild_member_defenses):
+    guild_info = guild['guild_info']
+
+    gw_members_count = len(guild_member_defenses)
+    gw_members_defense_count = 0
+    for wizard in guild_member_defenses:
+        for defense in wizard['unit_list']:
+            gw_members_defense_count += len(defense)
+
+    gw_ranks = dict(Guild.GUILD_RANKS)
+
+    return {
+        'name': guild_info['name'],
+        'master': guild_info['master_wizard_name'],
+        'best_ranking': gw_ranks[ranking['best']['rating_id']],
+        'current_ranking': gw_ranks[ranking['current']['rating_id']],
+        'members_count': guild_info['member_now'],
+        'members_max': guild_info['member_max'],
+        'members_gw': gw_members_count,
+        'defenses_count': gw_members_defense_count,
+        # 2 defenses and 3 monsters per defense
+        'defenses_max': gw_members_count * 2 * 3,
+        'members': parse_guild_members(guild['guild_members'], guild_member_defenses),
+    }
+
+
+def parse_friends(friend_list):
+    friends = list()
+    mons = list()
+    for friend in friend_list:
+        last_login = datetime.datetime.utcfromtimestamp(
+            friend['last_login_timestamp'])
+        friends.append({
+            'name': friend['wizard_name'],
+            'last_login': last_login,
+            'last_login_days': (datetime.datetime.today() - last_login).days,
+            'rep': {
+                'monster': friend['rep_unit_master_id'],
+                'image': None,
+                'level': friend['rep_unit_level'],
+                'stars': friend['rep_unit_class'],
+            },
+        })
+        mons.append(friend['rep_unit_master_id'])
+
+    mons = list(set(mons))
+    mons = {mb.id: mb for mb in MonsterBase.objects.select_related(
+        'family').filter(id__in=mons)}
+    for friend in friends:
+        mon_id = friend['rep']['monster']
+        friend['rep']['monster'] = f'{mons[mon_id].name} ({mons[mon_id].family.name})' if mons[
+            mon_id].awaken > 0 else mons[mon_id].name
+        friend['rep']['image'] = mons[mon_id].get_image()
+
+    friends = sorted(friends, key=itemgetter('last_login'), reverse=True)
+
+    return friends

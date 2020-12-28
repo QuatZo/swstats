@@ -43,4 +43,6 @@ urlpatterns = [
     path('monster/<int:mon_id>/', views.MonsterView.as_view(), name='web_monster'),
 
     path('status/<str:task_id>/', views.StatusView.as_view(), name='web_status'),
+
+    path('profile/', views.ProfileView.as_view(), name='web_profile'),
 ]

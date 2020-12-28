@@ -1084,3 +1084,26 @@ def generate_monster_report(self, monster_id):
     }
 
     return content
+
+
+@celery_app.task(name='generate.profile-report', bind=True)
+def generate_profile_report(self, data):
+    runes_equipped = [rune for monster in data['unit_list']
+                      for rune in monster['runes']]
+    data_keys = data.keys()
+    keys = [
+        'tvalue', 'wizard_info', 'dimension_hole_info', 'unit_list', 'unit_lock_list', 'runes', 'rune_lock_list', 'friend_list'
+    ]
+    if any([True if key not in data_keys else False for key in keys]):
+        self.update_state(state='FAILURE')
+        return {'error': "Given File is an invalid Summoners War JSON File."}
+
+    context = {
+        'wizard': parse_wizard(data['wizard_info'], data['dimension_hole_info']['energy']),
+        'monsters': parse_monsters(data['unit_list'], data['unit_lock_list']),
+        'runes': parse_runes(data['runes'], runes_equipped, data['rune_lock_list']),
+        'guild': parse_guild(data['guild'], data['guildwar_ranking_stat'], data['guild_member_defense_list']) if 'guild' in data_keys and 'guildwar_ranking_stat' in data_keys and 'guild_member_defense_list' in data_keys else None,
+        'friends': parse_friends(data['friend_list']),
+    }
+
+    return context

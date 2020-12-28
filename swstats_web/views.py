@@ -666,3 +666,15 @@ class StatusView(APIView):
             }
 
         return Response(response)
+
+
+class ProfileView(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+
+    def post(self, request, format=None):
+        if 'command' not in request.data.keys() or request.data['command'] != 'HubUserLogin':
+            return Response({'error': "Given File is an invalid Summoners War JSON File."}, status=status.HTTP_400_BAD_REQUEST)
+
+        task = generate_profile_report.delay(request.data)
+
+        return Response({'status': task.state, 'task_id': task.id})
