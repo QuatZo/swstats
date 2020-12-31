@@ -24,6 +24,8 @@ class Command(BaseCommand):
                     'sub_def', 'sub_speed', 'sub_crit_rate', 'sub_crit_dmg', 'sub_res', 'sub_acc']
 
         while pointer < count:
+            self.stdout.write(
+                f"{pointer}/{count} ({round(pointer / count * 100, 2)}%)")
             data = RuneSerializer(
                 qs[pointer:min(pointer + batch_size, count)], many=True).data
             df = pd.DataFrame.from_records(data)
