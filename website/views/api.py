@@ -216,13 +216,13 @@ class MonsterViewSet(viewsets.ModelViewSet):
             openapi.Parameter('family', openapi.IN_QUERY, "Monster Family", type=openapi.TYPE_STRING, enum=list(
                 MonsterFamily.objects.values_list('name', flat=True))),
             openapi.Parameter('attribute', openapi.IN_QUERY, "Monster Attribute",
-                              type=openapi.TYPE_STRING, enum=MonsterBase().get_monster_attributes()),
+                              type=openapi.TYPE_STRING, enum=MonsterBase.get_monster_attributes()),
             openapi.Parameter('archetype', openapi.IN_QUERY, "Monster Archetype",
-                              type=openapi.TYPE_STRING, enum=MonsterBase().get_monster_archetypes()),
+                              type=openapi.TYPE_STRING, enum=MonsterBase.get_monster_archetypes()),
             openapi.Parameter('base_monster', openapi.IN_QUERY, "Base Monster", type=openapi.TYPE_STRING, enum=list(
                 MonsterBase.objects.values_list('name', flat=True))),
             openapi.Parameter('awaken', openapi.IN_QUERY, "Monster Awaken Status",
-                              type=openapi.TYPE_STRING, enum=MonsterBase.get_monster_awakens),
+                              type=openapi.TYPE_STRING, enum=MonsterBase.get_monster_awakens()),
             openapi.Parameter('level_min', openapi.IN_QUERY,
                               "Monster Minimum Level", type=openapi.TYPE_INTEGER),
             openapi.Parameter('stars', openapi.IN_QUERY, "Monster Stars",

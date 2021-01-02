@@ -28,6 +28,7 @@ from rest_framework_extensions.cache.decorators import (
 
 class HomepageView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -170,6 +171,7 @@ class HomepageView(APIView):
 
 class ScoringView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     def get(self, request, format=None):
         return Response({'points': get_scoring_system(), 'comparison': {}})
@@ -177,6 +179,7 @@ class ScoringView(APIView):
 
 class UploadView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     def post(self, request, format=None):
         data = json.loads(request.body)
@@ -190,6 +193,7 @@ class UploadView(APIView):
 
 class RunesView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -200,6 +204,7 @@ class RunesView(APIView):
 
 class RunesTableView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -211,6 +216,7 @@ class RunesTableView(APIView):
 
 class MonstersView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -221,6 +227,7 @@ class MonstersView(APIView):
 
 class MonstersTableView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -232,6 +239,7 @@ class MonstersTableView(APIView):
 
 class ArtifactsView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -242,6 +250,7 @@ class ArtifactsView(APIView):
 
 class ArtifactsTableView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -253,6 +262,7 @@ class ArtifactsTableView(APIView):
 
 class SiegeView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -263,6 +273,7 @@ class SiegeView(APIView):
 
 class SiegeTableView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -274,6 +285,7 @@ class SiegeTableView(APIView):
 
 class CairosView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -330,6 +342,7 @@ class CairosView(APIView):
 
 class CairosDetailView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -359,6 +372,7 @@ class CairosDetailView(APIView):
 
 class RiftView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -433,6 +447,7 @@ class RiftView(APIView):
 
 class RiftDetailView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -466,6 +481,7 @@ class RiftDetailView(APIView):
 
 class DimholeView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -522,6 +538,7 @@ class DimholeView(APIView):
 
 class DimholeDetailView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None):
@@ -552,6 +569,7 @@ class DimholeDetailView(APIView):
 
 class ReportsOld(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     def get(self, request, format=None):
         images = list()
@@ -579,6 +597,7 @@ class ReportsOld(APIView):
 
 class ReportsGenerateInit(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     def get(self, request, format=None):
         monsters = list()
@@ -596,6 +615,7 @@ class ReportsGenerateInit(APIView):
 
 class ReportsGenerateMonster(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, monster_id=None, format=None):
@@ -609,6 +629,7 @@ class ReportsGenerateMonster(APIView):
 
 class MonsterView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
     def get(self, request, format=None, mon_id=None):
@@ -639,6 +660,7 @@ class MonsterView(APIView):
 
 class StatusView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     def get(self, request, format=None, task_id=None):
         if not task_id:
@@ -670,6 +692,7 @@ class StatusView(APIView):
 
 class ProfileView(APIView):
     permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
 
     def post(self, request, format=None):
         if 'command' not in request.data.keys() or request.data['command'] != 'HubUserLogin':

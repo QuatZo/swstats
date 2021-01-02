@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 class MonsterFamilyUploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             for family in request.data:
@@ -30,6 +32,8 @@ class MonsterFamilyUploadViewSet(viewsets.ViewSet):
 
 
 class MonsterSourceUploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             for source in request.data:
@@ -41,6 +45,8 @@ class MonsterSourceUploadViewSet(viewsets.ViewSet):
 
 
 class MonsterBaseUploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             for base in request.data:
@@ -67,6 +73,8 @@ class MonsterBaseUploadViewSet(viewsets.ViewSet):
 
 
 class MonsterHohUploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             for hoh in request.data:
@@ -87,6 +95,8 @@ class MonsterHohUploadViewSet(viewsets.ViewSet):
 
 
 class MonsterFusionUploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             for fusion in request.data:
@@ -106,6 +116,8 @@ class MonsterFusionUploadViewSet(viewsets.ViewSet):
 
 
 class BuildingUploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             for building in request.data:
@@ -117,6 +129,8 @@ class BuildingUploadViewSet(viewsets.ViewSet):
 
 
 class HomunculusUploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             for homie in request.data:
@@ -128,6 +142,8 @@ class HomunculusUploadViewSet(viewsets.ViewSet):
 
 
 class HomunculusBuildUploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             for build in request.data:
@@ -145,6 +161,8 @@ class HomunculusBuildUploadViewSet(viewsets.ViewSet):
 
 
 class UploadViewSet(viewsets.ViewSet):
+    swagger_schema = None
+
     def create(self, request):
         if request.data:
             if request.data['command'] == 'HubUserLogin':
@@ -192,6 +210,7 @@ class UploadViewSet(viewsets.ViewSet):
 
 
 class CommandViewSet(viewsets.ModelViewSet):
+    swagger_schema = None
     serializer_class = CommandSerializer
     queryset = Command.objects.all()
     http_method_names = ['get']
