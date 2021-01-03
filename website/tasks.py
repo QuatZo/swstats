@@ -448,9 +448,9 @@ def handle_siege_defenses_upload_task(data):
             wizards = {w.id: w for w in Wizard.objects.all()}
 
             for deck in data['defense_deck_list']:
-                wizard = wizards[deck['wizard_id']]
-                if not wizard:
+                if not deck['wizard_id'] in wizards:
                     continue
+                wizard = wizards[deck['wizard_id']]
                 temp_mons[deck['deck_id']] = list()
                 defenses.append({
                     'id': deck['deck_id'],
