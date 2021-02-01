@@ -481,6 +481,9 @@ class Artifact(models.Model):
         (219, "Additional Damage by % of ATK"),
         (220, "Additional Damage by % of DEF"),
         (221, "Additional Damage by % of SPD"),
+        (222, "Crit DMG+ up to % as the enemy's HP condition is good"),
+        (223, "Crit DMG+ up to % as the enemy's HP condition is good"),
+        (224, "Single-target skill CRIT DMG +% on your turn"),
     )
 
     ARTIFACT_EFFECTS_ATTRIBUTE_ONLY = (
