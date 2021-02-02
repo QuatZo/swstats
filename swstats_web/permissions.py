@@ -15,8 +15,8 @@ class IsSwstatsWeb(BasePermission):
             return False
 
         referer_url = request.META.get('HTTP_REFERER', '')
-        target_url = 'localhost' if settings.DEBUG else 'web.swstats.info'
-        if not target_url in referer_url:
+        target_urls = ['localhost'] if settings.DEBUG else ['web.swstats.info', 'build.swstats.info']
+        if not any([url in referer_url for url in target_urls]):
             return False
 
         # 30s difference between both timestamps
