@@ -39,6 +39,8 @@ urlpatterns = [
          name='web_reports_generate'),
     path('reports-generate/<int:monster_id>/', views.ReportsGenerateMonster.as_view(),
          name='web_reports_generate_monster'),
+    path('reports-generate-bot/<int:monster_id>/', views.ReportsBotGenerateMonster.as_view(),
+         name='web_reports_generate_bot_monster'),
 
     path('monster/<int:mon_id>/', views.MonsterView.as_view(), name='web_monster'),
 

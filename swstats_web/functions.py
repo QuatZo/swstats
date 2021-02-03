@@ -12,7 +12,7 @@ from django.db.models import F, Q, Avg, Min, Max, Sum, Count, FloatField, Func
 
 from website.models import *
 from website.functions import calc_efficiency
-from .serializers import RuneFullSerializer, MonsterSerializer, ArtifactSerializer, SiegeSerializer
+from .serializers import RuneFullSerializer, MonsterSerializer, ArtifactSerializer, SiegeSerializer, MonsterBaseSerializer
 
 
 def get_scoring_system():
@@ -1133,3 +1133,237 @@ def parse_friends(friend_list):
     friends = sorted(friends, key=itemgetter('last_login'), reverse=True)
 
     return friends
+
+
+def generate_bot_monster_report(monster_id):
+    monsters = Monster.objects.filter(base_monster_id=monster_id, stars=6, level=40).prefetch_related(
+        'runes', 'runes__rune_set',
+        'artifacts',
+    ).order_by('id').values(
+        'id', 'skills', 'transmog', 'locked', 'storage',
+        'hp', 'attack', 'defense', 'speed', 'res', 'acc', 'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp',
+        'runes__slot', 'runes__rune_set__name', 'runes__primary',
+        'artifacts__rtype', 'artifacts__primary', 'artifacts__substats',
+    )
+
+    # base monster info, to serialize with MonsterBaseSerializer
+    try:
+        base_monster = MonsterBase.objects.get(id=monster_id)
+    except MonsterBase.DoesNotExist:
+        return None
+    monster = MonsterBaseSerializer(base_monster).data
+
+    monster_hoh = MonsterHoh.objects.filter(
+        id=(str(monster_id)[:4] + '0' + str(monster_id)[-1])).order_by('-date_open')
+    if monster_hoh.exists():
+        monster['hoh'] = monster_hoh.first().start_date.strftime("YYYY-mm-dd")
+    else:
+        monster['hoh'] = 'No'
+
+    monster['fusion'] = 'Yes' if MonsterFusion.objects.filter(
+        id=(str(monster_id)[:4] + '0' + str(monster_id)[-1])).exists() else 'No'
+    # family info, to serialize with MonsterBaseSerializer
+    family_monsters = MonsterBase.objects.filter(family_id=base_monster.family_id).exclude(
+        id=monster_id).select_related('family').order_by('id')
+
+    proper_records = []
+    rune_sets = {rs.name: rs.amount for rs in RuneSet.objects.all()}
+    rune_sets = {k: v for k, v in sorted(
+        rune_sets.items(), key=lambda item: item[1], reverse=True)}
+    rune_effects = dict(Rune.RUNE_EFFECTS)
+    artifact_substats = dict(Artifact.ARTIFACT_EFFECTS_ALL)
+    stats = ['hp', 'attack', 'defense', 'speed', 'res', 'acc',
+             'crit_rate', 'crit_dmg', 'avg_eff_total', 'eff_hp', ]
+    pie_stats = ['transmog', 'locked', 'storage', ]
+    to_cpy = [
+        'id', 'skills'
+    ] + pie_stats + stats
+    sets_4 = {s: 0 for s in ['Violent', 'Swift',
+                             'Rage', 'Fatal', 'Despair', 'Vampire']}
+
+    # prepare records for DataFrame
+    record_groups = itertools.groupby(monsters, lambda m: m['id'])
+    for _, record_group in record_groups:
+        records = list(record_group)
+
+        data = {}
+
+        sets = []
+        for record in records:
+            if not data.keys():
+                for item in to_cpy:
+                    data[item] = record[item]
+
+            # some trash records, looking only for monsters with equipped runes
+            if not record['runes__slot']:
+                continue
+            slot = record['runes__slot'] - 1
+            if f'rune_{slot + 1}' not in data:
+                if record['runes__primary']:
+                    data[f'rune_{slot + 1}'] = rune_effects[record['runes__primary']]
+                if record['runes__rune_set__name']:
+                    sets.append(record['runes__rune_set__name'])
+
+            if record['artifacts__rtype']:
+                a_type = Artifact.get_artifact_rtype(
+                    record['artifacts__rtype']).lower()
+                if f'artifact_{a_type}' not in data:
+                    if record['artifacts__primary']:
+                        data[f'artifact_{a_type}'] = Artifact.get_artifact_primary(
+                            record['artifacts__primary'])
+                    if 'artifact_substats' not in data:
+                        data['artifact_substats'] = []
+                    if record['artifacts__substats']:
+                        data['artifact_substats'] += [artifact_substats[r]
+                                                      for r in record['artifacts__substats']]
+
+        if all([True if f'rune_{i}' in data else False for i in range(1, 7)]):
+            proper_sets = {}
+            sets_str = []
+            full = 0
+            for s in sets:
+                if s not in proper_sets:
+                    proper_sets[s] = 0
+                proper_sets[s] += 1
+            for s in proper_sets:
+                occ = math.floor(proper_sets[s] / rune_sets[s])
+                if occ:
+                    full += rune_sets[s] * occ
+                    if rune_sets[s] == 4:  # add 4-rune sets at first place
+                        sets_4[s] += 1
+                        sets_str.insert(0, s)
+                    else:
+                        sets_str.append(s)
+            data['sets'] = ' + '.join(sets_str)
+            if full != 6:
+                data['sets'] += ' + Broken'
+
+            if 'artifact_attribute' not in data:
+                data['artifact_attribute'] = None
+            if 'artifact_archetype' not in data:
+                data['artifact_archetype'] = None
+            if 'artifact_substats' not in data:
+                data['artifact_substats'] = []
+            proper_records.append(data)
+
+    df = pd.DataFrame(proper_records)
+
+    if not df.shape[0]:  # empty df
+        monster['build'] = 'No information given'
+        monster['sets'] = [{
+            'name': f'Top {i + 1} set',
+            'text': 'No information given'
+        } for i in range(3)]
+        content = {
+            'chart_data': {
+                'dist_acc': [],
+                'dist_attack': [],
+                'dist_avg_eff_total': [],
+                'dist_crit_dmg': [],
+                'dist_crit_rate': [],
+                'dist_defense': [],
+                'dist_eff_hp': [],
+                'dist_hp': [],
+                'dist_res': [],
+                'dist_speed': [],
+                'pie_locked': [],
+                'pie_skilled_up': [],
+                'pie_storage': [],
+                'pie_transmog': [],
+                'vc_artifact_primary': [],
+                'vc_artifact_substats': [],
+                'vc_rune_builds': [],
+                'vc_rune_slots': [],
+                'vc_sets': [],
+                'vc_sets_4': [],
+            },
+            'monster': monster,
+            'family': MonsterBaseSerializer(family_monsters, many=True).data,
+            'table': [],
+            'desc': {},
+        }
+
+        return content
+
+    chart_data = {}
+    # distribution charts
+    for stat in stats:
+        chart_data[f'dist_{stat}'] = get_series_distribution(
+            df[stat], 15)
+
+    # pie charts
+    for stat in pie_stats:
+        chart_data[f'pie_{stat}'] = [{'name': 'Yes' if k else 'No', 'count': v}
+                                     for k, v in df[stat].value_counts().to_dict().items()]
+    chart_data['pie_skilled_up'] = [{'name': 'Yes' if k else 'No', 'count': v}
+                                    for k, v in (df['skills'].apply(lambda x: (np.array(x) == np.array(base_monster.max_skills)).all())).value_counts().to_dict().items()]
+
+    # bar charts
+    chart_data['vc_sets'] = [{'name': k, 'count': v}
+                             for k, v in df['sets'].value_counts().to_dict().items() if v > 10]
+    chart_data['vc_sets_4'] = sorted([{'name': k, 'count': v}
+                                      for k, v in sets_4.items()], key=lambda x: x['count'], reverse=True)
+
+    vc_rune_slot_2 = df['rune_2'].dropna().value_counts().to_dict()
+    vc_rune_slot_4 = df['rune_4'].dropna().value_counts().to_dict()
+    vc_rune_slot_6 = df['rune_6'].dropna().value_counts().to_dict()
+    rune_unique_slot = list(
+        set(list(vc_rune_slot_2.keys()) + list(vc_rune_slot_4.keys()) + list(vc_rune_slot_6.keys())))
+    chart_data['vc_rune_slots'] = []
+    for s in rune_unique_slot:
+        chart_data['vc_rune_slots'].append({
+            "name": s,
+            "Slot 2": vc_rune_slot_2[s] if s in vc_rune_slot_2 else 0,
+            "Slot 4": vc_rune_slot_4[s] if s in vc_rune_slot_4 else 0,
+            "Slot 6": vc_rune_slot_6[s] if s in vc_rune_slot_6 else 0,
+        })
+
+    vc_artifact_element_primary = df['artifact_attribute'].dropna(
+    ).value_counts().to_dict()
+    vc_artifact_archetype_primary = df['artifact_archetype'].dropna(
+    ).value_counts().to_dict()
+    artifact_unique_primary = list(set(list(
+        vc_artifact_archetype_primary.keys()) + list(vc_artifact_element_primary.keys())))
+    chart_data['vc_artifact_primary'] = []
+    for s in artifact_unique_primary:
+        chart_data['vc_artifact_primary'].append({
+            "name": s,
+            "Element": vc_artifact_element_primary[s] if s in vc_artifact_element_primary else 0,
+            "Archetype": vc_artifact_archetype_primary[s] if s in vc_artifact_archetype_primary else 0,
+        })
+
+    # most common builds
+    builds_count = df.groupby(["rune_2", "rune_4", "rune_6"]).size().reset_index(
+        name='count').sort_values(["count"], ascending=False)
+    builds_count['name'] = builds_count['rune_2'] + ' / ' + \
+        builds_count['rune_4'] + ' / ' + builds_count['rune_6']
+    builds_count = builds_count[builds_count['count'] > 10][['name', 'count']]
+    chart_data['vc_rune_builds'] = builds_count.to_dict(orient='records')
+
+    # artifact substats bar chart
+    artifact_subs_series = []
+    _ = df['artifact_substats'].dropna().apply(
+        lambda li: [artifact_subs_series.append(l) for l in li])
+    artifact_subs_series = pd.Series(artifact_subs_series)
+    chart_data['vc_artifact_substats'] = [{'name': k, 'count': v}
+                                          for k, v in artifact_subs_series.dropna().value_counts().to_dict().items() if v > 10]
+
+    monster['build'] = chart_data['vc_rune_builds'][0]['name'] if chart_data['vc_rune_builds'] else 'No information given'
+    monster['sets'] = [{
+        'name': f'Top {i + 1} set',
+        'text': f"{chart_data['vc_sets'][i]['name']} ({round(chart_data['vc_sets'][i]['count'] / df.shape[0] * 100)}%)" if len(chart_data['vc_sets']) > i else 'No information given'
+    } for i in range(3)]
+
+    df_stats = df[stats].describe().drop(['count', ], axis=0).round(2)
+    df_stats.columns = ['HP', 'Attack', 'Defense',
+                        'Speed', 'Resistance', 'Accuracy', 'Critical Rate', 'Critical Damage', 'Average Efficiency', 'Effective HP']
+
+    content = {
+        'chart_data': chart_data,
+        'monster': monster,
+        'family': MonsterBaseSerializer(family_monsters, many=True).data,
+        'table': df.fillna('').to_dict(orient='records'),
+        'desc': df_stats.fillna('-').to_dict('index'),
+    }
+
+    return content

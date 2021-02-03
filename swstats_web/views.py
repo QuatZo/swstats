@@ -627,6 +627,20 @@ class ReportsGenerateMonster(APIView):
         return Response({'status': task.state, 'task_id': task.id})
 
 
+class ReportsBotGenerateMonster(APIView):
+    permission_classes = [IsSwstatsWeb, ]
+    swagger_schema = None
+
+    @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
+    def get(self, request, monster_id=None, format=None):
+        if not monster_id:
+            return Response({'error', 'No Monster ID given.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        content = generate_bot_monster_report(monster_id)
+
+        return Response(content)
+
+
 class MonsterView(APIView):
     permission_classes = [IsSwstatsWeb, ]
     swagger_schema = None
