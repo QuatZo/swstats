@@ -19,10 +19,6 @@ class IsSwstatsWeb(BasePermission):
         if not any([url in referer_url for url in target_urls]):
             return False
 
-        # 30s difference between both timestamps
-        if abs(round(time.time() * 1000) - int(request.headers['SWStats-Web-TS'])) > 30000:
-            return False
-
         gen_key = hmac.new(
             key=bytes(settings.SWSTATS_WEB_SALT, encoding='utf-8'),
             msg=bytes(request.headers['SWStats-Web-TS'], encoding='utf-8'),
