@@ -628,7 +628,7 @@ class ReportsGenerateMonster(APIView):
 
 
 class ReportsBotGenerateMonster(APIView):
-    permission_classes = [IsSwstatsWeb, ]
+    permission_classes = [permissions.AllowAny, ]
     swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
