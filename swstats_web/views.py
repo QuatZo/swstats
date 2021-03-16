@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.conf import settings
-from rest_framework import status
+from rest_framework import permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -614,7 +614,7 @@ class ReportsGenerateInit(APIView):
 
 
 class ReportsGenerateMonster(APIView):
-    permission_classes = [IsSwstatsWeb, ]
+    permission_classes = [permissions.AllowAny, ]
     swagger_schema = None
 
     @cache_response(60 * 15, key_func=calculate_cache_key, cache_errors=False)
@@ -673,7 +673,7 @@ class MonsterView(APIView):
 
 
 class StatusView(APIView):
-    permission_classes = [IsSwstatsWeb, ]
+    permission_classes = [permissions.AllowAny, ]
     swagger_schema = None
 
     def get(self, request, format=None, task_id=None):
