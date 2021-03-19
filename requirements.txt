@@ -1,5 +1,5 @@
 amqp==2.5.2
-asgiref==3.2.7
+asgiref==3.2.10
 astroid==2.4.1
 billiard==3.6.3.0
 bugsnag==4.0.1

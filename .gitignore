@@ -135,9 +135,6 @@ dmypy.json
 Pipfile
 Pipfile.lock
 
-# Migrations
-migrations/
-
 # logs
 logs/
 

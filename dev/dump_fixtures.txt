@@ -1,0 +1,1 @@
+python manage.py dumpdata website.Command website.RuneSet website.MonsterFamily website.MonsterBase website.MonsterHoh website.MonsterFusion website.MonsterSource website.Building website.HomunculusSkill website.HomunculusBuild -o base_data.json --verbosity 1
