@@ -203,7 +203,7 @@ def get_scoring_for_profile(wizard_id):
 
     # buildings
     a_b = buildings.filter(building__area=Building().get_area_id('Arena'))
-    a_b_max_count = a_b.filter(level=10).count()
+    a_b_max_count = a_b.filter(level=20).count()
     points['buildings']['max'] *= a_b_max_count
     if a_b_max_count != a_b.count():
         points['buildings']['max_all'] = 0

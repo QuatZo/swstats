@@ -1086,7 +1086,7 @@ class WizardBuilding(models.Model):
     building = models.ForeignKey(
         Building, on_delete=models.CASCADE)
     level = models.SmallIntegerField(validators=[MinValueValidator(
-        0), MaxValueValidator(10)], default=0)
+        0), MaxValueValidator(20)], default=0)
 
     def __str__(self):
         return str(self.wizard) + ' ' + str(self.building) + ' (level ' + str(self.level) + ')'
