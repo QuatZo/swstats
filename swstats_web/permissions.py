@@ -14,4 +14,4 @@ class IsSwstatsWeb(BasePermission):
         if 'SWStats-Web-API' not in request.headers or 'SWStats-Web-TS' not in request.headers:
             return False
 
-        return False
+        return True
