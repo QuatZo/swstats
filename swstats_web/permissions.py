@@ -14,13 +14,4 @@ class IsSwstatsWeb(BasePermission):
         if 'SWStats-Web-API' not in request.headers or 'SWStats-Web-TS' not in request.headers:
             return False
 
-        gen_key = hmac.new(
-            key=bytes(settings.SWSTATS_WEB_SALT, encoding='utf-8'),
-            msg=bytes(request.headers['SWStats-Web-TS'], encoding='utf-8'),
-            digestmod=hashlib.sha256,
-        ).hexdigest()
-
-        if request.headers['SWStats-Web-API'] == gen_key:
-            return True
-
         return False
