@@ -73,7 +73,6 @@ def handle_profile_upload_task(data):
             logger.debug(
                 f"Checking if profile {data['wizard_info']['wizard_id']} exists...")
             wiz = Wizard.objects.filter(id=data['wizard_info']['wizard_id'])
-            wizard_uptodate = False
             if wiz.exists():
                 logger.debug(
                     f"Profile {data['wizard_info']['wizard_id']} exists... Checking if it's up-to-date...")
@@ -82,16 +81,12 @@ def handle_profile_upload_task(data):
                 if wizard.exists():
                     logger.debug(
                         f"Wizard profile {data['wizard_info']['wizard_id']} is up-to-date")
-                    wizard_uptodate = True
                 else:
                     logger.debug(
                         f"Updating profile {data['wizard_info']['wizard_id']}")
             else:
                 logger.debug(
                     f"Profile {data['wizard_info']['wizard_id']} does NOT exists. Starting first-time profile upload")
-
-            if wizard_uptodate:
-                return
 
             temp_wizard = data['wizard_info']
 
